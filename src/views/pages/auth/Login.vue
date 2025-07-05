@@ -4,9 +4,12 @@ import { ref } from 'vue';
 import axios from 'axios';
 import url from '@/composible/api';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '@/store/useUserStore';
 const email = ref('');
 const password = ref('');
 const router = useRouter();
+const userStore = useUserStore();
+
 const handleLogin = async () => {
     try {
         const response = await axios.post(`${url}/api/login`, {
@@ -19,6 +22,7 @@ const handleLogin = async () => {
         localStorage.setItem('authUser', JSON.stringify(user));
 
         router.push({ name: 'dashboard' });
+        userStore.setUser(user);
     } catch (error) {
         console.error(error);
     }
@@ -58,7 +62,7 @@ const handleLogin = async () => {
                         <InputText id="email1" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="email" />
 
                         <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
-                        <Password id="password1" v-model="password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
+                        <Password v-model="password" id="password1" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
 
                         <Button label="Sign In" class="w-full" type="submit"></Button>
                     </div>

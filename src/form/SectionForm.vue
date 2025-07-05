@@ -1,95 +1,83 @@
 <template>
-    <form @submit.prevent="handleSubmit" class="w-full">
-        <h1>Section</h1>
-        <div class="flex flex-col space-y-4">
-            <div class="flex flex-col space-y-1">
-                <label for="start_time">Start Time</label>
-                <DatePicker v-model="start_time" timeOnly fluid placeholder="Start time" />
+    <form @submit.prevent="handleSubmit" class="w-[320px]">
+        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Section' : 'Add New Section' }}</label>
+            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
+        </div>
+        <div class="p-4 text-start space-y-4">
+            <div>
+                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Start time: <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <DatePicker timeOnly class="w-full" placeholder="Start  Time" :required="true" required id="start-time" v-model="start_time" />
+                </div>
             </div>
-            <div class="flex flex-col space-y-1">
-                <label for="end_time">End Time</label>
-                <DatePicker v-model="end_time" timeOnly fluid placeholder="End time" />
+            <div>
+                <label for="end-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">End time: <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <DatePicker timeOnly class="w-full" placeholder="End Time" :required="true" v-model="end_time" id="end-time" required />
+                </div>
             </div>
-            <div class="w-full flex justify-end gap-3">
-                <Button type="submit">Submit</Button>
-                <Button type="reset" severity="danger">Reset</Button>
-            </div>
+        </div>
+        <div class="w-full flex justify-end gap-3 p-4">
+            <Button :label="loading ? 'Loading...' : 'Submit'" type="submit" :disabled="loading" />
+            <Button @click="$emit('close')" label="Cancel" severity="danger" />
         </div>
     </form>
 </template>
 
 <script>
 import { ref, onMounted, watch } from 'vue';
+import moment from 'moment';
 import { useFetch } from '@/composible/useFetch';
 
 export default {
     props: ['datatoedit'],
     setup(props, { emit }) {
         const collection = ref('sections');
-        const { postData, data, loading, error, updateData } = useFetch(collection.value);
-        const start_time = ref(null); // Initialize as null
-        const end_time = ref(null); // Initialize as null
+        const { postData, updateData } = useFetch(collection.value);
+        const start_time = ref(null);
+        const end_time = ref(null);
+        const loading = ref(false);
 
-        const ensureHmmFormat = (timeString) => {
-            if (!timeString) return null;
-            // DatePicker might return a string like "8:00" or a Date object
-            let hours, minutes;
-            if (typeof timeString === 'string') {
-                [hours, minutes] = timeString.split(':').map(Number);
-            } else if (timeString instanceof Date) {
-                hours = timeString.getHours();
-                minutes = timeString.getMinutes();
-            } else {
-                return null;
-            }
-            return `${hours}:${minutes.toString().padStart(2, '0')}`;
-        };
+        // Format to h:mm A (e.g., 1:30 PM)
 
         const handleSubmit = async () => {
             try {
-                // Ensure the time is in H:mm format before submitting
-                const formattedStartTime = ensureHmmFormat(start_time.value);
-                const formattedEndTime = ensureHmmFormat(end_time.value);
-
+                loading.value = true;
                 const req = {
-                    start_time: formattedStartTime, // e.g., "8:00"
-                    end_time: formattedEndTime, // e.g., "9:30"
+                    duration: `${moment(start_time.value).format('HH:mm a')} - ${moment(end_time.value).format('HH:mm a')}`,
                     status: true
                 };
+
                 if (props.datatoedit) {
                     await updateData(req, props.datatoedit._id);
-                    emit('socket');
                     emit('close');
+                    emit('toast', 'updated');
                 } else {
                     await postData(req);
-                    emit('socket');
                     emit('close');
+                    emit('toast', 'created');
                 }
             } catch (error) {
-                console.log(error);
+                console.error('Submission error:', error);
+            } finally {
+                loading.value = false;
             }
         };
 
-        watch(start_time, (newValue) => {
-            console.log('Start Time:', newValue);
-        });
-
-        watch(end_time, (newValue) => {
-            console.log('End Time:', newValue);
-        });
-
-        onMounted(async () => {
-            if (props.datatoedit) {
-                // Convert ISO strings to H:mm format for the DatePicker
-                start_time.value = props.datatoedit.start_time;
-                end_time.value = props.datatoedit.end_time;
+        onMounted(() => {
+            if (props.datatoedit?.duration) {
+                const [start, end] = props.datatoedit.duration.split(' - ');
+                start_time.value = start;
+                end_time.value = end;
             }
         });
 
         return {
             handleSubmit,
             start_time,
-            end_time
+            end_time,
+            loading
         };
     }
 };

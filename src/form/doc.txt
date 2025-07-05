@@ -1,0 +1,123 @@
+
+
+
+
+<template>
+    <form @submit.prevent="handleSubmit">
+        <div class="w-full">
+            <div class="flex items-center justify-between">
+                <h3>Add new</h3>
+                <div>
+                    <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 mt-8">
+                <div class="flex flex-col space-y-1">
+                    <label for="eng_name">Class Name</label>
+                    <InputText id="eng_name" type="text" placeholder="English name" v-model="name" />
+                </div>
+
+                <div class="flex flex-col space-y-1">
+                    <label for="select_staff"> Staff </label>
+                    <Select id="select_staff" v-model="selectStaff" :options="staffs" filter show-clear optionLabel="en_name" optionValue="_id" placeholder="Select a staff" class="w-full md:w-56" />
+                </div>
+
+                <div class="flex flex-col space-y-1">
+                    <label for="select_staff"> Students </label>
+                    <MultiSelect id="select_staff" v-model="selectStudent" :options="students" filter show-clear optionLabel="eng_name" optionValue="_id" placeholder="Select  Students" class="w-full md:w-56" />
+                </div>
+            </div>
+            <div class="w-full flex items-center justify-end mt-8">
+                <Button label="Save" type="submit" class="mr-2" />
+                <Button @click="$emit('close')" label="Cancel" severity="danger" />
+            </div>
+        </div>
+    </form>
+</template>
+<script>
+import { ref, onMounted, watch } from 'vue';
+import { useFetch } from '@/composible/useFetch';
+
+export default {
+    props: ['datatoedit'],
+    setup(props, { emit }) {
+        const { data: staffs, fetchData: fetchStaff } = useFetch('staffs');
+        const { data: students, fetchData: fetchStudents } = useFetch('students');
+
+        const filtersStudents = ref({
+            page: 1,
+            limit: 50,
+            search: '',
+            searchColumn: ['', '']
+        });
+
+        const filtersStaffs = ref({
+            page: 1,
+            limit: 50,
+            search: '',
+            searchColumn: ['', '']
+        });
+
+        const selectStaff = ref(null); // Renamed from "departments" for consistency
+        const selectStudent = ref(null); // Renamed from "departments" for consistency
+        const collection = ref('classes');
+        const { postData, data, loading, error, updateData } = useFetch(collection.value);
+        const name = ref(null);
+
+        const handleSubmit = async () => {
+            try {
+                const req = {
+                    name: name.value,
+                    staff: selectStaff.value,
+                    students: selectStudent.value
+                };
+                if (props.datatoedit) {
+                    await updateData(req, props.datatoedit._id);
+                } else {
+                    await postData(req);
+                }
+                // if (prop.datatoedit) {
+                //     req._id = prop.datatoedit._id;
+                //     await updateData(req);
+                // } else {
+                //     req.staff = selectStaff.value;
+                //     req.students = selectStudent.value;
+                // }
+                emit('close');
+            } catch (error) {
+                console.log('error', error);
+            }
+        };
+
+        onMounted(async () => {
+            if (props.datatoedit) {
+                name.value = props.datatoedit.name;
+                selectStaff.value = props.datatoedit.staff?._id;
+                selectStudent.value = props.datatoedit.students?.map((student) => student._id);
+
+                console.log('prop.datatoedit', props.datatoedit);
+            }
+            await fetchStaff(filtersStaffs.value);
+            await fetchStudents(filtersStudents.value);
+        });
+        return {
+            staffs,
+            students,
+            filtersStudents,
+            filtersStaffs,
+            selectStaff,
+            selectStudent,
+            collection,
+            data,
+            loading,
+            error,
+            fetchStaff,
+            handleSubmit,
+            name
+        };
+    }
+};
+</script>
+
+<style lang="scss" scoped></style>

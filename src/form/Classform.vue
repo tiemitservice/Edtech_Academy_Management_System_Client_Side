@@ -1,46 +1,71 @@
 <template>
-    <form @submit.prevent="handleSubmit">
-        <div class="w-full">
-            <div class="flex items-center justify-between">
-                <h3>Add new</h3>
-                <div>
-                    <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
-                </div>
+    <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+            <label class="text-base font-semibold text-gray-800">Add New</label>
+            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
+        </div>
+
+        <!-- Form Fields -->
+        <div class="px-4 py-5 space-y-5">
+            <!-- Class Name -->
+            <div class="space-y-1 text-start">
+                <label for="eng_name" class="block text-sm font-medium text-gray-700"> Class Name <span class="text-red-500">*</span> </label>
+                <InputText id="eng_name" v-model="name" type="text" placeholder="Enter class name" class="w-full" />
+            </div>
+            <Message severity="error" variant="simple" v-if="isValidateName"> Class name is required. </Message>
+
+            <!-- Status Toggle -->
+
+            <div class="space-y-1 text-start">
+                <label for="section" class="block text-sm font-medium text-gray-700"> Select Days </label>
+                <MultiSelect id="day_class" v-model="dayclass" :options="workDay" optionLabel="name" optionValue="name" filter show-clear placeholder="Select days of week" class="w-full" />
             </div>
 
-            <div class="grid grid-cols-3 gap-4 mt-8">
-                <div class="flex flex-col space-y-1">
-                    <label for="eng_name">Class Name</label>
-                    <InputText id="eng_name" type="text" placeholder="English name" v-model="name" />
-                </div>
-
-                <div class="flex flex-col space-y-1">
-                    <label for="select_staff"> Staff </label>
-                    <Select id="select_staff" v-model="selectStaff" :options="staffs.data" filter show-clear optionLabel="en_name" optionValue="_id" placeholder="Select a staff" class="w-full md:w-56" />
-                </div>
-
-                <div class="flex flex-col space-y-1">
-                    <label for="select_staff"> Students </label>
-                    <MultiSelect id="select_staff" v-model="selectStudent" :options="students.data" filter show-clear optionLabel="eng_name" optionValue="_id" placeholder="Select  Students" class="w-full md:w-56" />
-                </div>
+            <div class="space-y-1 text-start">
+                <label for="section" class="block text-sm font-medium text-gray-700"> Section </label>
+                <Select id="section" :options="section" option-label="duration" option-value="_id" v-model="duration" filter show-clear placeholder="Select a Section" class="w-full" />
             </div>
-            <div class="w-full flex items-center justify-end mt-8">
-                <Button label="Save" type="submit" class="mr-2" />
-                <Button @click="$emit('close')" label="Cancel" severity="danger" />
+            <div class="space-y-1 text-start">
+                <label for="section" class="block text-sm font-medium text-gray-700"> Subject </label>
+                <Select id="section" :options="subjects" option-label="name" option-value="_id" v-model="subject" filter show-clear placeholder="Select a Subject" class="w-full" />
             </div>
+            <div class="space-y-1 text-start">
+                <label for="Status" class="block text-sm font-medium text-gray-700"> Status </label>
+                <ToggleSwitch aria-labelledby="switch2" v-model="status" />
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-2 p-4">
+            <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+            <Button label="Cancel" @click="$emit('close')" severity="danger" />
         </div>
     </form>
 </template>
+
 <script>
 import { ref, onMounted, watch } from 'vue';
 import { useFetch } from '@/composible/useFetch';
 
 export default {
     props: ['datatoedit'],
-    setup(prop, { emit }) {
+    setup(props, { emit }) {
         const { data: staffs, fetchData: fetchStaff } = useFetch('staffs');
         const { data: students, fetchData: fetchStudents } = useFetch('students');
+        const { data: section, fetchData: fetchSection } = useFetch('sections');
+        const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
+        const subject = ref(null);
+        const workDay = ref([{ name: 'Monday' }, { name: 'Tuesday' }, { name: 'Wednesday' }, { name: 'Thursday' }, { name: 'Friday' }, { name: 'Saturday' }, { name: 'Sunday' }]);
+        const duration = ref(null);
+        const filterSection = ref({
+            page: 1,
+            limit: 50,
+            search: '',
+            searchColumn: ['', '']
+        });
 
+        const dayclass = ref(null);
         const filtersStudents = ref({
             page: 1,
             limit: 50,
@@ -55,30 +80,73 @@ export default {
             searchColumn: ['', '']
         });
 
+        const filterSubjects = ref({
+            status: true
+        });
+
         const selectStaff = ref(null); // Renamed from "departments" for consistency
         const selectStudent = ref(null); // Renamed from "departments" for consistency
         const collection = ref('classes');
         const { postData, data, loading, error, updateData } = useFetch(collection.value);
         const name = ref(null);
-
+        const status = ref(true);
+        const mark_as_complete = ref(true);
+        const isSubmitting = ref(false);
+        const isValidateName = ref(false);
+        const validateName = () => {
+            if (!name.value) {
+                isValidateName.value = 'Class name is required.';
+                return false;
+            }
+            isValidateName.value = '';
+            return true;
+        };
+        watch(name, () => {
+            validateName();
+        });
         const handleSubmit = async () => {
+            if (!validateName()) {
+                return;
+            }
             try {
+                isSubmitting.value = true;
                 const req = {
                     name: name.value,
-                    staff: selectStaff.value,
-                    students: selectStudent.value
+                    status: status.value,
+                    day_class: dayclass.value || [],
+                    subject: subject.value,
+                    duration: duration.value
                 };
 
-                await postData(req);
-                emit('close');
+                if (props.datatoedit) {
+                    await updateData(req, props.datatoedit._id);
+                    emit('close');
+                    emit('toast', 'update');
+                } else {
+                    await postData(req);
+                    emit('close');
+                    emit('toast', 'create');
+                }
             } catch (error) {
                 console.log('error', error);
             }
         };
 
         onMounted(async () => {
+            if (props.datatoedit) {
+                name.value = props.datatoedit.name;
+                selectStaff.value = props.datatoedit.staff?._id;
+                selectStudent.value = props.datatoedit.students?.map((student) => student._id);
+                dayclass.value = Array.isArray(props.datatoedit.day_class) ? props.datatoedit.day_class : [];
+                subject.value = props.datatoedit?.subject;
+                duration.value = props.datatoedit?.duration;
+                mark_as_complete.value = props.datatoedit.mark_as_complete;
+                console.log('prop.datatoedit', props.datatoedit);
+            }
             await fetchStaff(filtersStaffs.value);
             await fetchStudents(filtersStudents.value);
+            await fetchSection(filterSection.value);
+            await fetchSubjects(filterSubjects.value);
         });
         return {
             staffs,
@@ -93,7 +161,17 @@ export default {
             error,
             fetchStaff,
             handleSubmit,
-            name
+            name,
+            status,
+            isValidateName,
+            isSubmitting,
+            workDay,
+            dayclass,
+            section,
+            duration,
+            mark_as_complete,
+            subjects,
+            subject
         };
     }
 };

@@ -6,3 +6,32 @@
 * {
     font-family: 'Kantumruy Pro', sans-serif;
 }
+/* ::-webkit-scrollbar {
+    width: 8px;
+    height: 10px;
+} */
+
+/* Track */
+/* ::-webkit-scrollbar-track {
+    background: #e5d5ec;
+} */
+@media print {
+    .hidden-print {
+        display: none;
+    }
+
+    .print-header {
+        font-size: 20px;
+        line-height: 1.5rem; /* 24px */
+    }
+
+    #printTable {
+        visibility: visible;
+        position: absolute;
+        font-size: 1rem; /* 16px */
+        line-height: 1.5rem; /* 24px */
+        left: 0;
+        top: 0;
+        color: black; /* Ensure text is printed in black */
+    }
+}

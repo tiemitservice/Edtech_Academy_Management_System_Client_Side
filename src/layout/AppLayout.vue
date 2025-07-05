@@ -61,7 +61,7 @@ function isOutsideClicked(event) {
         <app-sidebar></app-sidebar>
         <div class="layout-main-container">
             <div class="layout-main">
-                <router-view></router-view>
+                <router-view class="animate-fade-up animate-duration-[400ms] animate-ease-in-out"></router-view>
             </div>
             <app-footer></app-footer>
         </div>

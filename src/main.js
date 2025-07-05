@@ -6,45 +6,49 @@ import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
-
 import '@/assets/styles.scss';
-
-// Define your custom primary palette (initial palette)
-const customPrimaryPalette = {
-    50: '#0A008E',
-    100: '#47AE6A',
-    200: '#0071BC',
-    300: '#8660e6', // Purple shade available for light mode
-    400: '#0071BC',
-    500: '#0A008E', // Deep blue as initial default
-    600: '#0A008E',
-    700: '#0071BC',
-    800: '#9f1239',
-    900: '#881337',
-    950: '#4c0519'
-};
-
-// Extend the Aura preset with your custom primary palette
-const customPreset = {
-    ...Aura,
-    semantic: {
-        ...Aura.semantic,
-        primary: customPrimaryPalette // Initial palette (will be overridden dynamically)
-    }
-};
+import { createPinia } from 'pinia';
 
 const app = createApp(App);
+const pinia = createPinia();
+app.use(pinia); // ✅ Install Pinia first
+
+// ✅ Now it's safe to use the store
+import { useUserStore } from './store/useUserStore';
+const userStore = useUserStore();
+const savedUser = localStorage.getItem('authUser');
+if (savedUser) {
+    userStore.setUser(JSON.parse(savedUser));
+}
 
 app.use(router);
 app.use(PrimeVue, {
     theme: {
-        preset: customPreset,
+        preset: {
+            ...Aura,
+            semantic: {
+                ...Aura.semantic,
+                primary: {
+                    50: '#0A008E',
+                    100: '#47AE6A',
+                    200: '#0071BC',
+                    300: '#8660e6',
+                    400: '#0071BC',
+                    500: '#0A008E',
+                    600: '#0A008E',
+                    700: '#0071BC',
+                    800: '#9f1239',
+                    900: '#881337',
+                    950: '#4c0519'
+                }
+            }
+        },
         options: {
             darkModeSelector: '.app-dark'
         }
     }
 });
+
 app.use(ToastService);
 app.use(ConfirmationService);
-
 app.mount('#app');

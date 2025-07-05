@@ -16,6 +16,10 @@ export default defineConfig({
             resolvers: [PrimeVueResolver()]
         })
     ],
+    server: {
+        host: '0.0.0.0', // Expose to all network interfaces
+        port: 5173,      // Default Vite port (optional, change if needed)
+    },
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url))

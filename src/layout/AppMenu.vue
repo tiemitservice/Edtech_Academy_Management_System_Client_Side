@@ -2,139 +2,106 @@
 import { ref } from 'vue';
 
 import AppMenuItem from './AppMenuItem.vue';
+import { useUserStore } from '@/store/useUserStore';
 
+const userStore = useUserStore();
 const model = ref([
     {
         label: 'Home',
         items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }]
     },
     {
-        label: 'Accademic',
+        label: 'Academic',
         items: [
-            { label: 'Staff', icon: 'pi pi-users', to: '/staff' },
-            { label: 'Class', icon: 'pi pi-address-book', to: '/class' },
-            { label: 'Section', icon: 'pi pi-clock', to: '/section' },
-            { label: 'Room', icon: 'pi pi-building', to: '/room' },
-            { label: 'Student', icon: 'pi pi-user', to: '/student' }
+            { label: 'Classes', icon: 'pi pi-book', to: '/class' },
+            { label: 'Class Transaction', icon: 'pi pi-bookmark', to: '/class_transaction' },
+            { label: 'Sessions', icon: 'pi pi-clock', to: '/section' },
+            { label: 'Subjects', icon: 'pi pi-book', to: '/subject' },
+            { label: 'Class Schedule', icon: 'pi pi-calendar', to: '/schedulelist' },
+            { label: 'Assign Teacher to Class', icon: 'pi pi-user-plus', to: '/assign_teacher_to_class' },
+            { label: 'Assign Student to Class', icon: 'pi pi-user-plus', to: '/assign_student_to_class' },
+            { label: 'Assign Student to Teacher', icon: 'pi pi-user-plus', to: '/assign_student_to_teacher' }
         ]
     },
     {
-        label: 'UI Components',
+        label: 'Students',
         items: [
-            { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', to: '/uikit/formlayout' },
-            { label: 'Input', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
-            { label: 'Button', icon: 'pi pi-fw pi-mobile', to: '/uikit/button', class: 'rotated-icon' },
-            { label: 'Table', icon: 'pi pi-fw pi-table', to: '/uikit/table' },
-            { label: 'List', icon: 'pi pi-fw pi-list', to: '/uikit/list' },
-            { label: 'Tree', icon: 'pi pi-fw pi-share-alt', to: '/uikit/tree' },
-            { label: 'Panel', icon: 'pi pi-fw pi-tablet', to: '/uikit/panel' },
-            { label: 'Overlay', icon: 'pi pi-fw pi-clone', to: '/uikit/overlay' },
-            { label: 'Media', icon: 'pi pi-fw pi-image', to: '/uikit/media' },
-            { label: 'Menu', icon: 'pi pi-fw pi-bars', to: '/uikit/menu' },
-            { label: 'Message', icon: 'pi pi-fw pi-comment', to: '/uikit/message' },
-            { label: 'File', icon: 'pi pi-fw pi-file', to: '/uikit/file' },
-            { label: 'Chart', icon: 'pi pi-fw pi-chart-bar', to: '/uikit/charts' },
-            { label: 'Timeline', icon: 'pi pi-fw pi-calendar', to: '/uikit/timeline' },
-            { label: 'Misc', icon: 'pi pi-fw pi-circle', to: '/uikit/misc' }
-        ]
-    },
-    {
-        label: 'Pages',
-        icon: 'pi pi-fw pi-briefcase',
-        to: '/pages',
-        items: [
-            {
-                label: 'Landing',
-                icon: 'pi pi-fw pi-globe',
-                to: '/landing'
+            userStore.hasPermission('student:read') && {
+                label: 'Student List',
+                icon: 'pi pi-users',
+                to: '/studentlist'
             },
-            {
-                label: 'Auth',
-                icon: 'pi pi-fw pi-user',
-                items: [
-                    {
-                        label: 'Login',
-                        icon: 'pi pi-fw pi-sign-in',
-                        to: '/auth/login'
-                    },
-                    {
-                        label: 'Error',
-                        icon: 'pi pi-fw pi-times-circle',
-                        to: '/auth/error'
-                    },
-                    {
-                        label: 'Access Denied',
-                        icon: 'pi pi-fw pi-lock',
-                        to: '/auth/access'
-                    }
-                ]
+            userStore.hasPermission('student attendance:read') && {
+                label: 'Student Attendance',
+                icon: 'pi pi-calendar-check',
+                to: '/student_attendance'
             },
-            {
-                label: 'Crud',
-                icon: 'pi pi-fw pi-pencil',
-                to: '/pages/crud'
+            userStore.hasPermission('student scores:read') && {
+                label: 'Student Scores',
+                icon: 'pi pi-chart-line',
+                to: '/student_score'
             },
-            {
-                label: 'Not Found',
-                icon: 'pi pi-fw pi-exclamation-circle',
-                to: '/pages/notfound'
+            userStore.hasPermission('student permission:read') && {
+                label: 'Student Permission',
+                icon: 'pi pi-envelope-open',
+                to: '/studentpermission'
             },
-            {
-                label: 'Empty',
-                icon: 'pi pi-fw pi-circle-off',
-                to: '/pages/empty'
+            userStore.hasPermission('student class info:read') && {
+                label: 'Student Class Info',
+                icon: 'pi pi-info-circle',
+                to: '/studentclassinfo'
+            },
+            userStore.hasPermission('student class history:read') && {
+                label: 'Student Class History',
+                icon: 'pi pi-history',
+                to: '/student_class_history'
+            },
+            userStore.hasPermission('student payments:read') && {
+                label: 'Student Payments',
+                icon: 'pi pi-wallet',
+                to: '/studentpayment'
             }
+        ].filter(Boolean) // ✅ Removes any `false` items
+    },
+    {
+        label: 'Staff',
+        items: [
+            { label: 'Teachers', icon: 'pi pi-user', to: '/staff' },
+            { label: 'Teacher Attendance', icon: 'pi pi-calendar-check', to: '/staff_attendance' },
+            { label: 'Teacher Permission', icon: 'pi pi-envelope-open', to: '/staffpermission' },
+            { label: 'Departments', icon: 'pi pi-sitemap', to: '/department' },
+            { label: 'Positions', icon: 'pi pi-briefcase', to: '/posistion' }
         ]
     },
     {
-        label: 'Hierarchy',
+        label: 'Inventory',
         items: [
-            {
-                label: 'Submenu 1',
-                icon: 'pi pi-fw pi-bookmark',
-                items: [
-                    {
-                        label: 'Submenu 1.1',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [
-                            { label: 'Submenu 1.1.1', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 1.1.2', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 1.1.3', icon: 'pi pi-fw pi-bookmark' }
-                        ]
-                    },
-                    {
-                        label: 'Submenu 1.2',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [{ label: 'Submenu 1.2.1', icon: 'pi pi-fw pi-bookmark' }]
-                    }
-                ]
-            },
-            {
-                label: 'Submenu 2',
-                icon: 'pi pi-fw pi-bookmark',
-                items: [
-                    {
-                        label: 'Submenu 2.1',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [
-                            { label: 'Submenu 2.1.1', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 2.1.2', icon: 'pi pi-fw pi-bookmark' }
-                        ]
-                    },
-                    {
-                        label: 'Submenu 2.2',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [{ label: 'Submenu 2.2.1', icon: 'pi pi-fw pi-bookmark' }]
-                    }
-                ]
-            }
+            { label: 'Books', icon: 'pi pi-book', to: '/book' },
+            { label: 'Book Categories', icon: 'pi pi-tags', to: '/bookcategory' }
+        ]
+    },
+    {
+        label: 'Finance',
+        items: [
+            { label: 'Student Payments', icon: 'pi pi-money-bill', to: '/studentpayment' },
+            { label: 'Expenses', icon: 'pi pi-minus-circle', to: '/expense' },
+            { label: 'Income', icon: 'pi pi-plus-circle', to: '/income' },
+            { label: 'Payment Transactions', icon: 'pi pi-credit-card', to: '/payment_transaction' }
+        ]
+    },
+    {
+        label: 'Settings',
+        items: [
+            { label: 'User Management', icon: 'pi pi-users', to: '/users' },
+            { label: 'Reset Password', icon: 'pi pi-key', to: '/resetpassword' },
+            { label: 'School Holidays', icon: 'pi pi-calendar-times', to: '/holiday' }
         ]
     }
 ]);
 </script>
 
 <template>
-    <ul class="layout-menu !z-20">
+    <ul class="layout-menu !z-20 hidden-print">
         <div class="size-48 overflow-hidden mx-auto">
             <img class="w-full h-full" src="../assets/logo.png" alt="" />
         </div>

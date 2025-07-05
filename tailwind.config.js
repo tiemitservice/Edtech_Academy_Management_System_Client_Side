@@ -3,8 +3,8 @@ import PrimeUI from 'tailwindcss-primeui';
 
 export default {
     darkMode: ['selector', '[class*="app-dark"]'],
-    content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}", "*.{js,ts,jsx,tsx,mdx}"],
-    plugins: [PrimeUI],
+    content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}', '*.{js,ts,jsx,tsx,mdx}'],
+    plugins: [PrimeUI, require('tailwindcss-animated')],
     theme: {
         screens: {
             sm: '576px',
@@ -27,7 +27,7 @@ export default {
                     800: '#9f1239',
                     900: '#881337',
                     950: '#4c0519',
-                    DEFAULT: '#0A008E',
+                    DEFAULT: '#0A008E'
                 }
             }
         }

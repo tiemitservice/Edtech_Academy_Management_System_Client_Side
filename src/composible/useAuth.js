@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export default function useAuth() {
     const user = ref(JSON.parse(localStorage.getItem('authUser')) || null); // Retrieve user from localStorage
-    const token = ref(localStorage.getItem('authToken') || null); // Retrieve token from localStorage
+    const token = ref(localStorage.getItem('authToken') || '');
 
     const loading = ref(false);
     const error = ref(null);
@@ -12,19 +12,23 @@ export default function useAuth() {
     const isAuthenticated = computed(() => !!token.value);
 
     // Watch for changes in token and user to update localStorage
-    watch([token, user], () => {
-        if (token.value) {
-            localStorage.setItem('authToken', token.value);
-        } else {
-            localStorage.removeItem('authToken');
-        }
+    watch(
+        [token, user],
+        () => {
+            if (token.value) {
+                localStorage.setItem('authToken', token.value);
+            } else {
+                localStorage.removeItem('authToken');
+            }
 
-        if (user.value) {
-            localStorage.setItem('authUser', JSON.stringify(user.value));
-        } else {
-            localStorage.removeItem('authUser');
-        }
-    }, { immediate: true });
+            if (user.value) {
+                localStorage.setItem('authUser', JSON.stringify(user.value));
+            } else {
+                localStorage.removeItem('authUser');
+            }
+        },
+        { immediate: true }
+    );
 
     // Fetch user data
     const fetchUser = async () => {
@@ -34,8 +38,8 @@ export default function useAuth() {
         try {
             const response = await axios.get(`${url}/current-user`, {
                 headers: {
-                    Authorization: `Bearer ${token.value}`,
-                },
+                    Authorization: `Bearer ${token.value}`
+                }
             });
             user.value = response.data;
             console.log('User:', user.value);
@@ -47,7 +51,8 @@ export default function useAuth() {
     };
 
     // Logout function
-    const logout = () => {
+    const logout = async () => {
+        localStorage.removeItem('authToken');
         token.value = null;
         user.value = null;
     };
@@ -59,6 +64,6 @@ export default function useAuth() {
         loading,
         error,
         logout,
-        fetchUser,
+        fetchUser
     };
 }

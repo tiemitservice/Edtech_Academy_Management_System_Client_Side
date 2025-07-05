@@ -1,157 +1,139 @@
-import { ref } from "vue";
-import axios from "./apiUrl"; // Assuming the Axios instance is configured in this file
-import url from "./api";
+// composable/useFetch.js
+import { ref, onMounted, onUnmounted } from 'vue';
+import axios from 'axios';
+import io from 'socket.io-client';
+import useAuth from './useAuth';
+
+const { user } = useAuth();
+// const API_URL = 'http://localhost:5000';
+const API_URL = 'https://edtech-academy-management-system-server.onrender.com';
 
 export function useFetch(collection) {
     const data = ref([]);
-    const loading = ref(false); // Set to false initially for better UX
+    const loading = ref(false);
     const error = ref(null);
+    let socket = null;
+
     const fetchData = async (filters = {}) => {
         loading.value = true;
         error.value = null;
-
         try {
-            console.log(`Fetching data for collection: ${collection}`);
-
             const queryString = new URLSearchParams(filters).toString();
-            const url = `/api/${collection}${queryString ? `?${queryString}` : ""}`;
-
-            const response = await axios.get(url);
-            console.log("Response data:", response.data);
-            data.value = response.data;
+            const response = await axios.get(`${API_URL}/api/${collection}${queryString ? `?${queryString}` : ''}`);
+            data.value = response.data.data || response.data;
         } catch (err) {
-            error.value = err.message || "An error occurred while fetching data.";
-            console.error("Error fetching data:", err);
+            error.value = err.message || 'An error occurred while fetching data.';
+            console.error('Error fetching data:', err);
         } finally {
             loading.value = false;
         }
     };
 
-
-    // Post data to the server
     const postData = async (payload) => {
         loading.value = true;
         error.value = null;
         try {
-            const response = await axios.post(`${url}/api/${collection}`, payload);
-            console.log("Response data:", response.data);
-            data.value.push(response.data);
+            const response = await axios.post(`${API_URL}/api/${collection}`, payload, {
+                headers: {
+                    'Content-Type': payload instanceof FormData ? 'multipart/form-data' : 'application/json'
+                }
+            });
+            return response.data;
         } catch (err) {
-            error.value = err.message || "An error occurred while posting data.";
-            console.error("Error posting data:", err);
+            error.value = err.message || 'An error occurred while posting data.';
+            console.error('Error posting data:', err);
+            throw err;
         } finally {
             loading.value = false;
         }
     };
-    // update data to the server
+
     const updateData = async (payload, id) => {
         loading.value = true;
         error.value = null;
         try {
-            console.log(`Updating data for collection: ${collection}`, payload);
-
-            const response = await axios.patch(`/api/${collection}/${id}`, payload, {
+            const response = await axios.patch(`${API_URL}/api/${collection}/${id}`, payload, {
                 headers: {
-                    'Content-Type': 'multipart/form-data', // Ensure the request is treated as FormData
-                },
+                    'Content-Type': payload instanceof FormData ? 'multipart/form-data' : 'application/json'
+                }
             });
-
-            console.log("Response data:", response.data);
+            return response.data;
         } catch (err) {
-            error.value = err.message || "An error occurred while updating data.";
-            console.error("Error updating data:", err);
+            error.value = err.message || 'An error occurred while updating data.';
+            console.error('Error updating data:', err);
+            throw err;
         } finally {
             loading.value = false;
         }
     };
 
-
-    // use delete data
     const deleteData = async (id) => {
         loading.value = true;
         error.value = null;
         try {
-            console.log(`Deleting data for collection: ${collection}`, id);
-            const response = await axios.delete(`/api/${collection}/${id}`);
-            console.log("Response data:", response.data);
-            data.value = data.value.filter(item => item._id !== id);
+            const response = await axios.delete(`${API_URL}/api/${collection}/${id}`);
+            return response.data;
         } catch (err) {
-            error.value = err.message || "An error occurred while deleting data.";
-            console.error("Error deleting data:", err);
-        } finally {
-            loading.value = false;
-        }
-    }
-
-    // user delete
-    const deleteUser = async (id) => {
-        loading.value = true;
-        error.value = null;
-        try {
-            console.log(`Deleting data for collection: ${collection}`, id);
-            const response = await axios.delete(`/api/${collection}/${id}`);
-            console.log("Response data:", response.data);
-            data.value = data.value.filter(item => item._id !== id);
-        } catch (err) {
-            error.value = err.message || "An error occurred while deleting data.";
-            console.error("Error deleting data:", err);
+            error.value = err.message || 'Error deleting data';
+            console.error(`Error deleting ${collection}:`, err);
+            throw err;
         } finally {
             loading.value = false;
         }
     };
 
-    // use create user
-
-    const getToken = () => localStorage.getItem("token");
-    const createUser = async (payload) => {
-
-        loading.value = true;
-        error.value = null;
+    const resetPassword = async (token, payload) => {
         try {
-            const token = getToken();
-            const response = await axios.post(`/api/${collection}`, payload, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            data.value.push(response.data);
-            console.log('response', response.data);
+            const response = await axios.patch(`${API_URL}/api/reset-password/${token}`, payload);
+            return response.data;
         } catch (err) {
-            error.value = err.message || "An error occurred while posting data.";
-            console.error("Error posting data:", err);
-        } finally {
-            loading.value = false;
+            console.error('ResetPassword Error:', err.response?.data || err.message);
+            throw err;
         }
-    }
+    };
 
-    const updateUser = async (payload, id) => {
-        loading.value = true;
-        error.value = null;
-        try {
-            const token = getToken();
-            const response = await axios.patch(`/api/${collection}/${id}`, payload, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+    onMounted(() => {
+        socket = io(API_URL);
+        socket.on('connect', () => {
+            console.log(`Socket.IO connected for ${collection}`);
+            socket.emit('join', collection);
+        });
 
-            // Check if data.value is an array before calling findIndex
+        socket.on(`${collection}_created`, (newData) => {
+            console.log(`${collection}_created received:`, newData);
             if (Array.isArray(data.value)) {
-                const index = data.value.findIndex((item) => item._id === id);
-                if (index !== -1) {
-                    data.value[index] = response.data;
-                }
-            } else {
-                // If data.value is not an array, just update it directly
-                data.value = response.data;
+                data.value.push(newData);
+                data.value = [...data.value]; // Ensure reactivity
             }
+        });
 
-            console.log('response', response.data);
+        socket.on(`${collection}_updated`, (updatedData) => {
+            console.log(`${collection}_updated received:`, updatedData);
+            if (Array.isArray(data.value)) {
+                const index = data.value.findIndex((item) => item._id === updatedData._id);
+                if (index !== -1) {
+                    data.value[index] = { ...data.value[index], ...updatedData };
+                } else {
+                    data.value.push(updatedData);
+                }
+                data.value = [...data.value]; // Ensure reactivity
+            }
+        });
 
-        } catch (err) {
-            error.value = err.message || "An error occurred while updating data.";
-            console.error("Error updating data:", err);
-        } finally {
-            loading.value = false;
+        socket.on(`${collection}_deleted`, (deletedItem) => {
+            console.log(`${collection}_deleted received:`, deletedItem);
+            data.value = data.value.filter((item) => item._id !== deletedItem._id);
+            data.value = [...data.value]; // Trigger reactivity
+        });
+    });
+
+    onUnmounted(() => {
+        if (socket) {
+            socket.emit('leave', collection);
+            socket.disconnect();
+            console.log(`Socket.IO disconnected for ${collection}`);
         }
-    };
+    });
 
-
-    return { data, loading, error, fetchData, postData, updateData, createUser, updateUser, deleteUser, deleteData };
+    return { data, loading, error, fetchData, postData, updateData, deleteData, resetPassword };
 }
