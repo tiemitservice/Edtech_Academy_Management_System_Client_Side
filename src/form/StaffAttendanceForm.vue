@@ -1,181 +1,156 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[420px]">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Staff Attendance</label>
+            <label class="text-base font-semibold text-gray-800">Teacher Attendance</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
         <div class="p-4 text-start grid grid-cols-2 gap-4">
             <div>
-                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name <span class="text-red-500"></span></label>
-                <InputText :required="true" v-model="name" placeholder="Name" disabled class="w-full" />
+                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+                <InputText id="name" :value="datatoedit?.en_name" disabled class="w-full bg-gray-100" />
             </div>
             <div>
-                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Entry Time <span class="text-red-500">*</span></label>
-                <DatePicker timeOnly :required="true" v-model="Entry_time" placeholder="Entry Time" class="w-full" />
-                <!-- <Message severity="error" variant="simple" v-if="isValidateEntryTime"> {{ isValidateEntryTime }} </Message> -->
+                <label for="checking_at" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date</label>
+                <Calendar id="checking_at" v-model="formState.checking_at" showIcon dateFormat="yy-mm-dd" class="w-full" />
             </div>
             <div>
-                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Exit Time <span class="text-red-500">*</span></label>
-                <DatePicker timeOnly :required="true" v-model="Exit_time" placeholder="Exit Time" class="w-full" />
-                <!-- <Message severity="error" variant="simple" v-if="isValidateExiteTime"> {{ isValidateEntryTime }} </Message> -->
+                <label for="entry-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Entry Time <span class="text-red-500">*</span></label>
+                <Calendar id="entry-time" timeOnly required v-model="formState.entry_time" placeholder="Entry Time" class="w-full" />
             </div>
             <div>
-                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Note <span class="text-red-500"></span></label>
-                <InputText v-model="note" placeholder="Note" class="w-full" />
+                <label for="exit-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Exit Time <span class="text-red-500">*</span></label>
+                <Calendar id="exit-time" timeOnly required v-model="formState.exit_time" placeholder="Exit Time" class="w-full" />
             </div>
-            <div>
-                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mark Status <span class="text-red-500"></span></label>
-                <Select :options="Attendance_Enum" :required="true" v-model="selectAttendance" option-label="name" option-value="value" placeholder="Select Attendance" class="w-full" />
+            <div class="col-span-2">
+                <label for="status" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mark Status <span class="text-red-500">*</span></label>
+                <Select id="status" :options="attendanceOptions" required v-model="formState.attendance" option-label="name" option-value="value" placeholder="Select Attendance" class="w-full" />
+            </div>
+            <div class="col-span-2">
+                <label for="note" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Note</label>
+                <Textarea id="note" v-model="formState.note" placeholder="Optional note..." class="w-full" rows="2" />
             </div>
         </div>
-        <div class="w-full flex justify-end gap-3 p-4">
-            <Button :label="loading ? 'Loading...' : 'Submit'" type="submit" :disabled="loading" />
-            <Button @click="$emit('close')" label="Cancel" severity="danger" />
+        <div class="w-full flex justify-end gap-3 p-4 border-t bg-gray-50">
+            <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
+            <Button :label="loading ? 'Submitting...' : 'Submit'" type="submit" :loading="loading" />
         </div>
     </form>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useFetch } from '@/composible/useFetch';
-import useAuth from '@/composible/useAuth';
-import { DatePicker } from 'primevue';
+import { useToast } from 'primevue/usetoast';
 import moment from 'moment';
-export default {
-    props: ['datatoedit'],
-    setup(props, { emit }) {
-        const { user } = useAuth();
-        const { loading, updateData } = useFetch('staffs');
-        const { postData: postAttendance } = useFetch('staffattendances');
-        const selectAttendance = ref(null);
-        const Entry_time = ref(null);
-        const Exit_time = ref(null);
-        const note = ref(null);
-        const isValidateExiteTime = ref(false);
-        const isValidateEntryTime = ref(false);
-        const isValidateAttendance = ref(false);
 
-        const validateAttendance = () => {
-            if (!selectAttendance.value) {
-                isValidateAttendance.value = 'Attendance is required.';
-                return false;
-            }
-            isValidateAttendance.value = '';
-            return true;
+// --- Props and Emits ---
+const props = defineProps({
+    datatoedit: {
+        // This is the teacher/staff object
+        type: Object,
+        required: true
+    }
+});
+const emit = defineEmits(['close', 'toast', 'save']);
+
+// --- Composables ---
+const { updateData: updateStaff, loading } = useFetch('staffs');
+const { postData: postAttendanceReport } = useFetch('teacherattendancereports');
+const toast = useToast();
+
+// --- Component State ---
+const formState = ref({
+    entry_time: null,
+    exit_time: null,
+    note: null,
+    checking_at: new Date(),
+    attendance: 'present' // Default to present
+});
+
+const attendanceOptions = ref([
+    { name: 'Present', value: 'present' },
+    { name: 'Absent', value: 'absent' },
+    { name: 'Late', value: 'late' },
+    { name: 'Permission', value: 'permission' }
+]);
+
+// --- Watchers for real-time validation ---
+watch(
+    () => formState.value.exit_time,
+    (newExitTime) => {
+        if (newExitTime && formState.value.entry_time && moment(newExitTime).isBefore(moment(formState.value.entry_time))) {
+            toast.add({ severity: 'error', summary: 'Invalid Time', detail: 'Exit time cannot be before entry time.', life: 4000 });
+        }
+    }
+);
+
+watch(
+    () => formState.value.entry_time,
+    (newEntryTime) => {
+        if (newEntryTime && formState.value.exit_time && moment(formState.value.exit_time).isBefore(moment(newEntryTime))) {
+            // Clear the invalid exit time to force re-selection
+            formState.value.exit_time = null;
+            toast.add({ severity: 'warn', summary: 'Time Cleared', detail: 'Exit time was before the new entry time and has been cleared.', life: 4000 });
+        }
+    }
+);
+
+// --- Form Submission ---
+const handleSubmit = async () => {
+    // Basic validation
+    if (!formState.value.entry_time || !formState.value.exit_time || !formState.value.attendance) {
+        toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Entry Time, Exit Time, and Status are required.', life: 3000 });
+        return;
+    }
+    // **NEW:** Time comparison validation before submitting
+    if (moment(formState.value.exit_time).isBefore(moment(formState.value.entry_time))) {
+        toast.add({ severity: 'error', summary: 'Invalid Time', detail: 'Exit time cannot be before entry time.', life: 4000 });
+        return;
+    }
+
+    try {
+        const entryTimeFormatted = moment(formState.value.entry_time).format('HH:mm');
+        const exitTimeFormatted = moment(formState.value.exit_time).format('HH:mm');
+        const checkingAtDate = moment(formState.value.checking_at).startOf('day').toDate();
+
+        // Payload to update the main staff record
+        const staffUpdatePayload = {
+            attendance: formState.value.attendance,
+
+            entry_time: entryTimeFormatted,
+            exit_time: exitTimeFormatted,
+            note: formState.value.note
         };
 
-        const validateEntryTime = () => {
-            if (!Entry_time.value) {
-                isValidateEntryTime.value = 'Entry time is required.';
-                return false;
-            }
-            isValidateEntryTime.value = '';
-            return true;
+        // Payload for the new attendance report
+        const reportPayload = {
+            teacher_id: props.datatoedit._id,
+            entry_time: entryTimeFormatted,
+            exit_time: exitTimeFormatted,
+            checking_at: checkingAtDate,
+            note: formState.value.note,
+            attendance_status: formState.value.attendance
         };
 
-        const validateExiteTime = () => {
-            if (!Exit_time.value) {
-                isValidateExiteTime.value = 'Exit time is required.';
-                return false;
-            }
-            isValidateExiteTime.value = '';
-            return true;
-        };
+        // Execute both operations concurrently
+        await Promise.all([updateStaff(staffUpdatePayload, props.datatoedit._id), postAttendanceReport(reportPayload)]);
 
-        watch(Entry_time, () => {
-            validateExiteTime();
-        });
-        watch(Exit_time, () => {
-            validateEntryTime();
-        });
-
-        watch(selectAttendance, () => {
-            validateAttendance();
-        });
-
-        const Attendance_Enum = ref([
-            { name: 'Present', value: 'present' },
-            { name: 'Absent', value: 'absent' },
-            { name: 'Late', value: 'late' },
-            { name: 'Permission', value: 'permission' }
-        ]);
-        const name = ref(null);
-        const handleSubmit = async () => {
-            if (!validateEntryTime()) {
-                emit('toast', { action: 'check_fields', message: 'Entry time is required.' });
-
-                return;
-            }
-            if (!validateExiteTime()) {
-                emit('toast', { action: 'check_fields', message: 'Exit time is required.' });
-
-                return;
-            }
-            if (!validateAttendance()) {
-                emit('toast', { action: 'check_fields', message: 'Attendance is missing.' });
-
-                return;
-            }
-            try {
-                loading.value = true;
-
-                const req = {
-                    attendance: selectAttendance.value,
-                    department: props.datatoedit.department,
-                    position: props.datatoedit.position,
-                    entry_time: moment(Entry_time.value).format('HH:mm a'),
-                    exit_time: moment(Exit_time.value).format('HH:mm a'),
-                    note: note.value
-                };
-
-                if (props.datatoedit) {
-                    const updated = await updateData(req, props.datatoedit._id);
-                    emit('close');
-                    emit('toast', 'updated');
-
-                    // ✅ Only proceed if update succeeded
-                    if (updated && updated._id) {
-                        const req_attendance = {
-                            staff: props.datatoedit._id,
-                            set_by: user.value.id,
-                            status: selectAttendance.value,
-                            entry_time: moment(Entry_time.value).format('HH:mm a'),
-                            exit_time: moment(Exit_time.value).format('HH:mm a'),
-                            note: note.value
-                        };
-                        await postAttendance(req_attendance);
-                    }
-                }
-            } catch (error) {
-                console.log(error);
-                // emit('toast', 'check_fields');
-            }
-        };
-
-        onMounted(() => {
-            if (props.datatoedit) {
-                selectAttendance.value = props.datatoedit?.attendance;
-                name.value = props.datatoedit?.en_name;
-                Entry_time.value = props.datatoedit?.entry_time;
-                Exit_time.value = props.datatoedit?.exit_time;
-                note.value = props.datatoedit?.note;
-            }
-        });
-        return {
-            name,
-            handleSubmit,
-            loading,
-            selectAttendance,
-            Attendance_Enum,
-            user,
-            Entry_time,
-            Exit_time,
-            note,
-            isValidateExiteTime,
-            isValidateEntryTime
-        };
+        toast.add({ severity: 'success', summary: 'Success', detail: 'Attendance recorded successfully.', life: 3000 });
+        emit('close');
+    } catch (error) {
+        console.error('Error submitting attendance:', error);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to submit attendance.', life: 3000 });
     }
 };
-</script>
 
-<style lang="scss" scoped></style>
+// --- Lifecycle Hook ---
+onMounted(() => {
+    // Pre-fill form with existing data if available
+    if (props.datatoedit) {
+        formState.value.note = props.datatoedit.note || '';
+        formState.value.entry_time = props.datatoedit.entry_time ? moment(props.datatoedit.entry_time, 'HH:mm').toDate() : null;
+        formState.value.exit_time = props.datatoedit.exit_time ? moment(props.datatoedit.exit_time, 'HH:mm').toDate() : null;
+        formState.value.attendance = props.datatoedit.attendance || 'present';
+    }
+});
+</script>

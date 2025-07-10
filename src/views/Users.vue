@@ -26,8 +26,8 @@
                         <Column field="image" header="Profile" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex items-center space-x-3">
-                                    <div class="flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                                        <img :src="slotProps.data.image || 'https://placehold.co/40'" :alt="slotProps.data.name" class="object-cover w-full h-full" />
+                                    <div class="flex items-center justify-center w-16 h-16 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                                        <img :src="slotProps.data.image || 'https://placehold.co/64'" :alt="slotProps.data.name" class="object-cover w-full h-full" />
                                     </div>
                                 </div>
                             </template>
@@ -51,9 +51,9 @@
                         <Column header="Actions" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
-                                    <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" icon="pi pi-info-circle" @click="openStaffModal(slotProps.data)" severity="success" rounded aria-label="Info" />
+                                    <!-- <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" icon="pi pi-info-circle" @click="openStaffModal(slotProps.data)" severity="success" rounded aria-label="Info" /> -->
                                     <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                    <Button @click="handleDelete(slotProps.data._id)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
+                                    <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" @click="handleDelete(slotProps.data._id)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
                                 </div>
                             </template>
                         </Column>
@@ -61,7 +61,7 @@
                 </div>
             </div>
         </div>
-        <Dialog v-model:visible="isOpen" class="w-full md:w-1/2" header="Add User" :modal="true">
+        <Dialog v-model:visible="isOpen" class="w-full md:w-1/2 !p-0" modal :closable="false">
             <component :is="currentComponent" @close="handleClose" :datatoedit="datatoedit" />
         </Dialog>
     </div>
@@ -73,6 +73,7 @@ import useAuth from '@/composible/useAuth';
 import { useFetch } from '@/composible/useFetch';
 import socket from '@/composible/socket';
 import UsersForm from '@/form/UsersForm.vue';
+
 export default {
     components: {
         UsersForm

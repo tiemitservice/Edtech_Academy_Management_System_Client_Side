@@ -5,8 +5,8 @@ import io from 'socket.io-client';
 import useAuth from './useAuth';
 
 const { user } = useAuth();
-// const API_URL = 'http://localhost:5000';
-const API_URL = 'https://edtech-academy-management-system-server.onrender.com';
+const API_URL = 'http://localhost:5000';
+// const API_URL = 'https://edtech-academy-management-system-server.onrender.com';
 
 export function useFetch(collection) {
     const data = ref([]);

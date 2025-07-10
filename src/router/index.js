@@ -13,7 +13,7 @@ import StudentAttendance from '@/views/StudentAttendance.vue';
 import StudentScore from '@/views/StudentScore.vue';
 import StudentClassInfo from '@/views/StudentClassInfo.vue';
 import StudentClassHistory from '@/views/StudentClassHistory.vue';
-
+import StudentCategory from '@/views/StudentCategory.vue';
 import AssignTeacherToClass from '@/views/AssignTeacherToClass.vue';
 import AssigneStudentToClass from '@/views/AssigneStudentToClass.vue';
 import ScheduleList from '@/views/ScheduleList.vue';
@@ -31,9 +31,33 @@ import Posistion from '@/views/Posistion.vue';
 import Subject from '@/views/Subject.vue';
 import StaffAttendance from '@/views/StaffAttendance.vue';
 
-import Users from '@/views/Users.vue';
+import CourInvoiceList from '@/views/CourInvoiceList.vue';
 
+import Users from '@/views/Users.vue';
+import SchoolInfo from '@/views/SchoolInfo.vue';
 import ResetPassword from '@/views/ResetPassword.vue';
+
+import CourseInvoice from '@/views/CourseInvoice.vue';
+import CourseInvoceTransaction from '@/views/CourseInvoceTransaction.vue';
+import BookPayment from '@/views/BookPayment.vue';
+import BookPaymentTransaction from '@/views/BookPaymentTransaction.vue';
+import BookInvoice from '@/views/BookInvoice.vue';
+import Discount from '@/views/Discount.vue';
+
+// report
+
+import StudentScoreReport from '@/Reports/StudentScoreReport.vue';
+import MarkClassReport from '@/Reports/MarkClassReport.vue';
+import ReMarkClassReport from '@/Reports/ReMarkClassReport.vue';
+import AttendanceReport from '@/Reports/AttendanceReport.vue';
+import BookPaymentReport from '@/Reports/BookPaymentReport.vue';
+import StudentPaymentReport from '@/Reports/StudentPaymentReport.vue';
+import StockInStockOutReport from '@/Reports/StockInStockOutReport.vue';
+import StudentCompletePaymentReport from '@/Reports/StudentCompletePaymentReport.vue';
+import TeacherAttendanceReport from '@/Reports/TeacherAttendanceReport.vue';
+import TeacherPermissionReport from '@/Reports/TeacherPermissionReport.vue';
+import PromoteStudentReport from '@/Reports/PromoteStudentReport.vue';
+import StudentPermissionReport from '@/Reports/StudentPermissionReport.vue';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -159,6 +183,11 @@ const router = createRouter({
                     component: StudentScore
                 },
                 {
+                    path: '/student_category',
+                    name: 'studentcategory',
+                    component: StudentCategory
+                },
+                {
                     path: '/student_class_history',
                     name: 'studentclasshistory',
                     component: StudentClassHistory
@@ -177,8 +206,100 @@ const router = createRouter({
                     path: '/resetpassword',
                     name: 'resetpassword',
                     component: ResetPassword
-                }
+                },
+                {
+                    path: '/schoolinfo',
+                    name: 'schoolinfo',
+                    component: SchoolInfo
+                },
+                {
+                    path: '/courinvoicelist',
+                    name: 'courinvoicelist',
+                    component: CourInvoiceList
+                },
+                {
+                    path: '/courseinvoice_transaction',
+                    name: 'courseinvoice_transaction',
+                    component: CourseInvoceTransaction
+                },
+                {
+                    path: '/bookpayment',
+                    name: 'bookpayment',
+                    component: BookPayment
+                },
 
+                {
+                    path: '/bookpayment_transaction',
+                    name: 'bookpayment_transaction',
+                    component: BookPaymentTransaction
+                },
+                {
+                    path: '/discount',
+                    name: 'discount',
+                    component: Discount
+                },
+                // report
+
+                {
+                    path: '/score_report',
+                    name: 'score_report',
+                    component: StudentScoreReport
+                },
+                {
+                    path: '/mark_class_report',
+                    name: 'mark_class_report',
+                    component: MarkClassReport
+                },
+                {
+                    component: ReMarkClassReport,
+                    path: '/re_mark_report',
+                    name: 're_mark_report'
+                },
+                {
+                    component: AttendanceReport,
+                    path: '/attendance_report',
+                    name: 'attendance_report'
+                },
+                {
+                    component: BookPaymentReport,
+                    path: '/book_payment_report',
+                    name: 'book_payment_report'
+                },
+                {
+                    component: StudentPaymentReport,
+                    path: '/student_payment_report',
+                    name: 'student_payment_report'
+                },
+                {
+                    component: StockInStockOutReport,
+                    path: '/stock_history_report',
+                    name: 'stock_history_report'
+                },
+                {
+                    component: StudentCompletePaymentReport,
+                    path: '/student_complete_payment_report',
+                    name: 'student_complete_payment_report'
+                },
+                {
+                    component: TeacherAttendanceReport,
+                    path: '/teacher_attendance_report',
+                    name: 'teacher_attendance_report'
+                },
+                {
+                    component: TeacherPermissionReport,
+                    path: '/teacher_permission_report',
+                    name: 'teacher_permission_report'
+                },
+                {
+                    component: PromoteStudentReport,
+                    path: '/promote_student_report',
+                    name: 'promote_student_report'
+                },
+                {
+                    component: StudentPermissionReport,
+                    path: '/student_permission_report',
+                    name: 'student_permission_report'
+                }
                 // {
                 //     path: '/student_mode',
                 //     name: 'student_mode',
@@ -220,6 +341,16 @@ const router = createRouter({
                 //     ]
                 // }
             ]
+        },
+        {
+            path: '/print_invoice/:id',
+            name: 'invoice_invoice',
+            component: CourseInvoice
+        },
+        {
+            path: '/book-invoice/:id',
+            name: 'book-invoice',
+            component: BookInvoice
         },
         {
             path: '/landing',

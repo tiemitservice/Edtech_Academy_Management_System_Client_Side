@@ -28,7 +28,7 @@
                     <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
                         <Column field="_id" header="ID" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.data._id }}</p>
+                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
                             </template>
                         </Column>
                         <!-- created at -->
@@ -187,6 +187,7 @@ const filterData = () => {
             const matchesClass = item._id === classId;
             const createdAtYear = moment(item.createdAt).year();
             const matchesYear = createdAtYear === selectedYear;
+
             return matchesName && matchesClass && matchesYear;
         }) || [];
 
@@ -283,7 +284,7 @@ const handleCloseStudentClassDetail = () => {
 onMounted(async () => {
     await fetchData();
     await fetchSections();
-    await fetchClass();
+    await fetchClass({ mark_as_completed: true });
     // filterData();
 });
 </script>

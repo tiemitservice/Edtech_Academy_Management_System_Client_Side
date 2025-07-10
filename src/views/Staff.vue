@@ -29,8 +29,8 @@
                         <Column field="profile" header="Profile" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex items-center space-x-3">
-                                    <div class="flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                                        <img :src="slotProps.data?.image" :alt="slotProps.data.en_name" />
+                                    <div class="flex w-16 h-16 items-center justify-center overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                                        <img :src="slotProps.data?.image ? slotProps.data.image : 'https://placehold.co/64'" :alt="slotProps.data.en_name" />
                                     </div>
                                 </div>
                             </template>

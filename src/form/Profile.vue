@@ -84,6 +84,13 @@ const handleSubmit = async () => {
         isUploading.value = false;
     }
 };
+const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        selectedImage.value = file;
+        previewImage.value = URL.createObjectURL(file);
+    }
+};
 onMounted(() => {
     console.log('User:', user.value);
 
@@ -94,12 +101,4 @@ onMounted(() => {
     form.image = user.value?.image || '';
     previewImage.value = user.value?.image || '';
 });
-
-const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        selectedImage.value = file;
-        previewImage.value = URL.createObjectURL(file);
-    }
-};
 </script>

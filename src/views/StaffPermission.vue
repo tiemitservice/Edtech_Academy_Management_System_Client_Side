@@ -1,56 +1,56 @@
 <template>
     <section class="px-4 mx-auto">
-        <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white p-4 rounded-lg">
+        <!-- Header and Filter Controls -->
+        <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg flex-wrap">
             <label class="text-lg font-medium text-gray-800 dark:text-white">Staff Permissions List</label>
 
-            <Button @click="openModal" label="Add new" />
+            <div class="flex items-center gap-4 flex-wrap">
+                <!-- Filter by Staff -->
+                <div class="flex items-center gap-2">
+                    <label for="staff_filter" class="text-sm font-medium">Staff:</label>
+                    <Select v-model="filterStaffId" :options="staffs" filter optionLabel="name" optionValue="_id" placeholder="All Staff" showClear inputId="staff_filter" class="min-w-[180px]" />
+                </div>
+                <!-- Filter by a single day -->
+                <div class="flex items-center gap-2">
+                    <label for="date_filter" class="text-sm font-medium">Date:</label>
+                    <Calendar v-model="filterDate" dateFormat="yy-mm-dd" showIcon inputId="date_filter" />
+                </div>
+                <!-- Apply Filter Button -->
+                <Button @click="applyFilters" label="Filter" icon="pi pi-filter" />
+                <!-- Add New Button -->
+                <Button @click="openModal" label="Add new" />
+            </div>
         </div>
 
         <div class="flex flex-col">
             <div class="overflow-x-auto">
-                <div class="py-2">
-                    <DataTable v-if="data" :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
-                            <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.data._id }}</p>
-                            </template>
+                <div class="py-2" v-if="!loading">
+                    <DataTable v-if="filteredData.length > 0" :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                        <Column header="No." style="min-width: 50px">
+                            <template #body="slotProps">{{ slotProps.index + 1 }}</template>
                         </Column>
-
                         <Column field="staff" header="Staff" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg">{{ formatStaffNestedField(slotProps.data.staff, 'name') }}</div>
+                                <div class="inline px-3 py-1 text-lg">{{ formatStaffName(slotProps.data.staff) }}</div>
                             </template>
                         </Column>
-
-                        <!-- reason -->
                         <Column field="reason" header="Reason" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg">{{ slotProps.data.reason }}</div>
                             </template>
                         </Column>
-                        <!-- reason -->
                         <Column field="hold_date" header="Start Date - End Date" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <!-- <div v-for="duration in slotProps.data.reason" class="inline px-3 py-1 text-lg font-semibold">
-
-                                </div> -->
-                                <p>
-                                    {{ slotProps.data.hold_date.join(' - ') }}
+                                <p v-if="Array.isArray(slotProps.data.hold_date)">
+                                    {{ slotProps.data.hold_date.map((d) => new Date(d).toLocaleDateString()).join(' - ') }}
                                 </p>
                             </template>
                         </Column>
-
-                        <!-- status -->
-                        <Column field="status" header="Status" sortable style="min-width: 200px">
+                        <Column field="status" header="Status" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg">
-                                    <Tag v-if="slotProps.data.status === 'accepted'" severity="success" value="Accepted"></Tag>
-                                    <Tag v-if="slotProps.data.status === 'rejected'" severity="danger" value="Rejected"></Tag>
-                                    <Tag v-if="slotProps.data.status === 'pending'" severity="warn" value="Pending"></Tag>
-                                </div>
+                                <Tag :severity="getStatusSeverity(slotProps.data.status)" :value="slotProps.data.status"></Tag>
                             </template>
                         </Column>
-
                         <Column header="Actions" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
@@ -60,16 +60,22 @@
                             </template>
                         </Column>
                     </DataTable>
+                    <div v-else>
+                        <NotFound message="No permission requests found for the selected criteria." />
+                    </div>
+                </div>
+                <div v-else>
+                    <Laoding />
                 </div>
             </div>
         </div>
 
+        <!-- Add/Edit Modal -->
         <TransitionRoot appear :show="isOpen" as="template">
             <Dialog as="div" @close="closeModal" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
@@ -84,18 +90,18 @@
             </Dialog>
         </TransitionRoot>
 
+        <!-- Delete Confirmation Modal -->
         <TransitionRoot appear :show="isDelete" as="template">
             <Dialog as="div" @close="handleCloseDelete" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
                                 <div class="mt-2">
-                                    <DeleteConfimation :deleteData="deleteData" :datatoedit="datatoedit" :collection="collection" @close="handleCloseDelete" @toast="showToast" />
+                                    <DeleteConfimation :deleteData="deleteId" :datatoedit="datatoedit" :collection="collection" @close="handleCloseDelete" @toast="showToast" />
                                 </div>
                             </DialogPanel>
                         </TransitionChild>
@@ -103,97 +109,129 @@
                 </div>
             </Dialog>
         </TransitionRoot>
+
         <Toast position="top-right" />
     </section>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import { useToast } from 'primevue/usetoast';
+import Calendar from 'primevue/calendar';
+import Select from 'primevue/select';
 import StaffAproveForm from '@/form/StaffAproveForm.vue';
 import DeleteConfimation from '@/form/DeleteConfimation.vue';
+import NotFound from './pages/NotFound.vue';
+import Laoding from './pages/Laoding.vue';
+import moment from 'moment';
+
 const isOpen = ref(false);
 const datatoedit = ref(null);
 const collection = ref('staffpermissions');
 const { data: staffs, fetchData: fetchStaff } = useFetch('users');
 
-const formatStaffNestedField = (id, fieldPath, fallback = 'Unknown') => {
-    const staff = staffs.value?.find((staff) => staff._id === id);
-    if (!staff) return fallback;
+// Refs for filters
+const filterDate = ref(new Date());
+const filterStaffId = ref(null);
 
-    const fields = fieldPath.split('.');
-    const result = fields.reduce((obj, key) => (obj && obj[key] !== undefined ? obj[key] : undefined), staff);
+const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
+const filteredData = ref([]);
 
-    if (Array.isArray(result)) return result.join(', ');
-    return result ?? fallback;
+const formatStaffName = (staffId) => {
+    const staff = staffs.value?.find((s) => s._id === staffId);
+    return staff ? staff.name : 'Unknown';
 };
-const toast = useToast();
-const showToast = (action, severity) => {
-    let summary;
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = ' Created Success';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = ' Updated Success';
-            break;
-        case 'delete':
-            summary = ' Deleted Success';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
 
+const getStatusSeverity = (status) => {
+    switch (status) {
+        case 'accepted':
+            return 'success';
+        case 'rejected':
+            return 'danger';
+        case 'pending':
+            return 'warning';
+        default:
+            return 'info';
+    }
+};
+
+const toast = useToast();
+const showToast = (action) => {
+    const severityMap = { create: 'success', update: 'info', delete: 'error' };
+    const summaryMap = { create: 'Created Success', update: 'Updated Success', delete: 'Deleted Success' };
     toast.add({
-        severity: severity,
-        summary: summary,
+        severity: severityMap[action] || 'info',
+        summary: summaryMap[action] || 'Action Completed',
         life: 3000
     });
 };
+
 const isDelete = ref(false);
-const deleteData = ref(null);
-const handleDeleteConfirm = async (id, doc) => {
-    deleteData.value = id;
+const deleteId = ref(null);
+const handleDeleteConfirm = (id, doc) => {
+    deleteId.value = id;
     datatoedit.value = doc;
     isDelete.value = true;
 };
-const handleCloseDelete = async () => {
+
+const handleCloseDelete = async (wasDeleted) => {
     isDelete.value = false;
-    deleteData.value = null;
-    await fetchData();
+    deleteId.value = null;
+    datatoedit.value = null;
+    if (wasDeleted) {
+        await fetchData(); // Refetch all data
+    }
 };
-const handleEdit = (data) => {
-    datatoedit.value = data;
-    openModal();
+
+const handleEdit = (doc) => {
+    isOpen.value = true;
+    datatoedit.value = doc;
 };
-const handleClose = () => {
+
+const handleClose = async (wasSaved) => {
+    isOpen.value = false;
+    datatoedit.value = null;
+    if (wasSaved) {
+        await fetchData(); // Refetch all data
+    }
+};
+
+const closeModal = () => {
     isOpen.value = false;
     datatoedit.value = null;
 };
 
-const closeModal = async () => {
-    isOpen.value = false;
-    datatoedit.value = null;
-    await fetchData();
-};
 function openModal() {
+    datatoedit.value = null;
     isOpen.value = true;
 }
-const { data, loading, error, fetchData } = useFetch(collection.value);
-const filters = ref({
-    page: 1,
-    limit: 50,
-    search: '',
-    searchColumn: ['start_time', 'end_time']
+
+const applyFilters = () => {
+    let dataToFilter = [...rawData.value];
+
+    // Filter by date
+    if (filterDate.value) {
+        const selectedDate = moment(filterDate.value);
+        dataToFilter = dataToFilter.filter((item) => moment(item.created_at).isSame(selectedDate, 'day'));
+    }
+
+    // Filter by staff
+    if (filterStaffId.value) {
+        dataToFilter = dataToFilter.filter((item) => item.staff === filterStaffId.value);
+    }
+
+    filteredData.value = dataToFilter;
+};
+
+// Watch for changes on the raw data to re-apply filters automatically
+watch(rawData, () => {
+    applyFilters();
 });
 
 onMounted(async () => {
     await fetchStaff();
-    await fetchData();
+    await fetchData(); // Fetch all data initially
 });
 </script>

@@ -1,7 +1,9 @@
 <template>
     <section class="px-4 mx-auto">
         <!-- <p class="mt-1 text-lg text-gray-800">Staff list</p> -->
-
+        <!-- <pre>
+            {{ data[0] }}
+        </pre> -->
         <div class="py-2 flex flex-col md:flex-row mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg justify-between items-center">
             <label class="text-lg font-medium text-gray-800 dark:text-white">Classes</label>
             <div class="flex items-center gap-4">
@@ -10,7 +12,7 @@
                     <InputText placeholder="Search by name" v-model="searchQuery" class="w-full" />
                 </IconField>
                 <div class="flex items-center gap-4">
-                    <DatePicker v-model="createdAt_select" selectionMode="range" show-button-bar placeholder="Filter by created at" />
+                    <DatePicker v-model="createdAt_select" selectionMode="range" show-icon show-button-bar placeholder="Filter by created at" />
                     <Button @click="filterData" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700" /> <Button @click="openModal" label="Add new" />
                 </div>
             </div>
@@ -22,7 +24,7 @@
                     <DataTable :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
                         <Column field="_id" header="ID" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.data._id }}</p>
+                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
                             </template>
                         </Column>
                         <!-- created at -->
@@ -57,18 +59,11 @@
                         <Column header="Actions" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
-                                    <Button
-                                        @click="handleClassDetails(slotProps.data)"
-                                        icon="pi pi-user
-    "
-                                        severity="success"
-                                        rounded
-                                        aria-label="Info"
-                                    />
+                                    <Button @click="handleClassDetails(slotProps.data)" icon="pi pi-user" severity="success" rounded aria-label="Info" />
                                     <Button @click="handleStudentClassDetail(slotProps.data)" icon="pi pi-users" rounded aria-label="Info" />
                                     <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                    <Button icon="pi pi-bookmark-fill" severity="warn" rounded aria-label="Edit" @click="handleMarkClass(slotProps.data)" />
-                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
+                                    <Button icon="pi pi-bookmark-fill" severity="warn" rounded aria-label="Edit" @click="handleMarkClass(slotProps.data)" :disabled="slotProps.data?.students?.length <= 0" />
+                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" :disabled="slotProps.data?.students?.length" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
                                 </div>
                             </template>
                         </Column>

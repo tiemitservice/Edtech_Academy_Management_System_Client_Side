@@ -10,7 +10,7 @@
                     <InputText placeholder="Search by name" v-model="searchQuery" class="w-full" />
                 </IconField>
                 <div class="flex items-center gap-4">
-                    <DatePicker v-model="createdAt_select" selectionMode="range" show-button-bar placeholder="Filter by created at" />
+                    <DatePicker v-model="createdAt_select" show-icon selectionMode="range" show-button-bar placeholder="Filter by created at" />
                     <!-- <Button @click="filterData" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700" /> <Button @click="openModal" label="Add new" /> -->
                 </div>
             </div>
@@ -22,7 +22,7 @@
                     <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
                         <Column field="_id" header="ID" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.data._id }}</p>
+                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
                             </template>
                         </Column>
                         <!-- created at -->
@@ -33,7 +33,7 @@
                         </Column>
                         <Column field="name" header="Name" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
                                     {{ slotProps.data.name }}
                                 </div>
                             </template>
@@ -48,7 +48,7 @@
                         <!-- start data -->
                         <Column field="start_time" header="Duration" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
                                     {{ formatDuration(slotProps.data?.duration) || 'N/A' }}
                                 </div>
                             </template>
@@ -56,7 +56,7 @@
                         <!-- start data -->
                         <!-- <Column field="start_time" header="Duration" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
                                     {{ slotProps.data?.mark_as_completed ? 'Completed' : 'Incomplete' }}
                                 </div>
                             </template>
@@ -76,7 +76,7 @@
                                     <Button @click="handleStudentClassDetail(slotProps.data)" icon="pi pi-users" rounded aria-label="Info" />
                                     <!-- <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" /> -->
                                     <Button icon="pi pi-undo" severity="warn" rounded aria-label="Edit" @click="handleMarkClass(slotProps.data)" />
-                                    <!-- <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" /> -->
+                                    <Button @click="handlePromote(slotProps.data)" icon="pi pi-arrow-right" severity="danger" rounded aria-label="Delete" />
                                 </div>
                             </template>
                         </Column>
@@ -179,7 +179,27 @@
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
                                 <div>
-                                    <MarkClassForm :datatoedit="datatoedit" @close="handleCloseMarkClass" @toast="showToast" />
+                                    <RemarkClassForm :datatoedit="datatoedit" @close="handleCloseMarkClass" @toast="showToast" />
+                                </div>
+                            </DialogPanel>
+                        </TransitionChild>
+                    </div>
+                </div>
+            </Dialog>
+        </TransitionRoot>
+
+        <TransitionRoot appear :show="is_promote" as="template">
+            <Dialog as="div" @close="handleClosePromote" class="relative z-[99]">
+                <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+                    <div class="fixed inset-0 bg-black/25" />
+                </TransitionChild>
+
+                <div class="fixed inset-0 overflow-y-auto">
+                    <div class="flex min-h-full items-start justify-center p-4 text-center">
+                        <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+                            <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
+                                <div>
+                                    <PromoteStudentForm :datatoedit="datatoedit" @close="handleClosePromote" @toast="showToast" />
                                 </div>
                             </DialogPanel>
                         </TransitionChild>
@@ -202,8 +222,10 @@ import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import { formatDate2 } from '@/composible/formatDate';
 import moment from 'moment';
 import NotFound from './pages/NotFound.vue';
-import MarkClassForm from '@/form/MarkClassForm.vue';
+import RemarkClassForm from '@/form/RemarkClassForm.vue';
 import StudentClassDetial from '../../App/StudentClassDetial.vue';
+import PromoteStudentForm from '@/form/PromoteStudentForm.vue';
+
 import Laoding from './pages/Laoding.vue';
 const collection = ref('classes');
 const { data: rawData, loading: loadingClass, error, fetchData } = useFetch(collection.value);
@@ -220,6 +242,16 @@ const searchQuery = ref('');
 const createdAt_select = ref([moment().startOf('year').startOf('day').toDate(), moment().endOf('year').endOf('day').toDate()]);
 const apply_loading = ref(false);
 const filteredData = ref([]);
+
+const is_promote = ref(false);
+const handlePromote = (doc) => {
+    is_promote.value = true;
+    datatoedit.value = doc;
+};
+const handleClosePromote = () => {
+    is_promote.value = false;
+    datatoedit.value = null;
+};
 
 const isMarkClass = ref(false);
 const handleMarkClass = (doc) => {

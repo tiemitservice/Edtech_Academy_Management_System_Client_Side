@@ -29,8 +29,8 @@
                         <Column field="image" header="Profile" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex items-center space-x-3">
-                                    <div class="flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                                        <img :src="slotProps.data.image || 'https://placehold.co/40'" :alt="slotProps.data.eng_name" class="object-cover w-full h-full" />
+                                    <div class="flex items-center justify-center w-16 h-16 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                                        <img :src="slotProps.data.image || 'https://placehold.co/64'" :alt="slotProps.data.eng_name" class="object-cover w-full h-full" />
                                     </div>
                                 </div>
                             </template>

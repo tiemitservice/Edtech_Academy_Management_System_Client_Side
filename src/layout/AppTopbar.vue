@@ -3,6 +3,14 @@ import { useLayout } from '@/layout/composables/layout';
 import useAuth from '@/composible/useAuth';
 import { useRouter } from 'vue-router';
 import { Button } from 'primevue';
+import { useFetch } from '@/composible/useFetch';
+import { onMounted } from 'vue';
+
+const { data, fetchData } = useFetch('companies');
+
+onMounted(async () => {
+    await fetchData();
+});
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 const { user, logout } = useAuth();
 const router = useRouter();
@@ -10,9 +18,9 @@ const handleLogout = () => {
     logout();
     router.push('/auth/login');
 };
-console.log('====================================');
-console.log(user.value);
-console.log('====================================');
+// console.log('====================================');
+// console.log(user.value);
+// console.log('====================================');
 </script>
 
 <template>
@@ -23,7 +31,7 @@ console.log('====================================');
             </button>
             <router-link to="/" class="layout-topbar-logo">
                 <div class="text-center">
-                    <p class="font-semibold text-primary text-2xl">អ៊ែដធិច អាខាឌឺមី</p>
+                    <p class="font-semibold text-primary text-2xl">{{ data[0]?.name }}</p>
                 </div>
             </router-link>
         </div>

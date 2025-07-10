@@ -1,9 +1,14 @@
 <template>
-    <form @submit.prevent="handleSubmit" class="space-y-6 p-6 max-w-5xl mx-auto" enctype="multipart/form-data">
-        <!-- User Info Section -->
-        <div class="grid md:grid-cols-2 gap-8">
-            <!-- Profile Picture -->
-            <div>
+    <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
+        <!-- User Info -->
+        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit User' : 'Add New User' }}</label>
+            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
+        </div>
+
+        <div class="p-6">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Profile Picture -->
                 <div class="flex flex-col items-center space-y-4">
                     <div class="relative group w-32 h-32">
                         <div v-if="previewImage" class="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-lg">
@@ -21,264 +26,248 @@
                     </div>
                     <label class="text-sm font-semibold text-gray-700">Update Profile Picture</label>
                 </div>
+
+                <!-- User Fields -->
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <InputText v-model="form.name" type="text" class="w-full" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                            <InputText v-model="form.email" type="email" class="w-full" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Password</label>
+                            <Password v-model="form.password" placeholder="Password" fluid :toggleMask="true" class="w-full" :feedback="false" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <InputText v-model="form.phoneNumber" type="text" class="w-full" />
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Role</label>
+                            <Select v-model="form.role" :options="roles" option-label="name" option-value="_id" placeholder="Select a role" class="w-full" />
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- User Fields -->
-            <div class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Full Name</label>
-                        <InputText v-model="form.name" type="text" class="w-full" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Email</label>
-                        <InputText v-model="form.email" type="email" class="w-full" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Password</label>
-                        <Password v-model="form.password" placeholder="Password" :toggleMask="true" fluid class="w-full" :feedback="false" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Phone Number</label>
-                        <InputText v-model="form.phoneNumber" type="text" class="w-full" />
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">Role</label>
-                        <Select v-model="form.role" :options="roles" option-label="name" option-value="_id" placeholder="Select a role" class="w-full" />
-                    </div>
+            <!-- Permissions Table -->
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold mb-4">Permissions</h3>
+                <div class="overflow-auto rounded-lg shadow-sm border max-h-[50vh]">
+                    <table class="min-w-full table-auto text-sm text-left">
+                        <thead class="bg-gray-100 sticky top-0">
+                            <tr>
+                                <th class="border px-4 py-2">Module</th>
+                                <th class="border px-4 py-2 text-center">Create</th>
+                                <th class="border px-4 py-2 text-center">Read</th>
+                                <th class="border px-4 py-2 text-center">Update</th>
+                                <th class="border px-4 py-2 text-center">Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="module in permissionModules" :key="module.name" class="hover:bg-gray-50">
+                                <td class="border-b border-r px-4 py-2 font-medium flex items-center justify-between">
+                                    <label>{{ module.name }}</label>
+                                    <input type="checkbox" :checked="isModuleFullySelected(module)" @change="toggleModuleAll(module)" />
+                                </td>
+                                <td v-for="action in ['create', 'read', 'update', 'delete']" :key="action" class="border px-4 py-2 font-medium">
+                                    <div class="flex items-center justify-center">
+                                        <template v-if="module.actions.includes(action)">
+                                            <input type="checkbox" :value="`${module.name.toLowerCase()}:${action}`" v-model="form.permissions" />
+                                        </template>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- Permissions Table -->
-        <div>
-            <h3 class="text-lg font-semibold mb-4">Permissions</h3>
-            <div class="overflow-auto rounded-lg shadow-sm border">
-                <table class="min-w-full table-auto text-sm text-left">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border px-4 py-2">Module (Select All)</th>
-                            <th class="border px-4 py-2 text-center">Create</th>
-                            <th class="border px-4 py-2 text-center">Read</th>
-                            <th class="border px-4 py-2 text-center">Update</th>
-                            <th class="border px-4 py-2 text-center">Delete</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="module in permissionModules" :key="module" class="hover:bg-gray-50">
-                            <td class="border-b border-r px-4 py-2 font-medium flex items-center justify-between">
-                                <label for="">
-                                    {{ module }}
-                                </label>
-                                <input type="checkbox" :checked="isModuleFullySelected(module)" @change="toggleModuleAll(module)" />
-                            </td>
-                            <td class="px-4 border py-2 font-medium">
-                                <div class="flex items-center justify-center">
-                                    <input type="checkbox" :value="`${module.toLowerCase()}:create`" v-model="form.permissions" />
-                                </div>
-                            </td>
-                            <td class="border px-4 py-2 font-medium">
-                                <div class="flex items-center justify-center">
-                                    <input type="checkbox" :value="`${module.toLowerCase()}:read`" v-model="form.permissions" />
-                                </div>
-                            </td>
-                            <td class="border px-4 py-2 font-medium">
-                                <div class="flex items-center justify-center">
-                                    <input type="checkbox" :value="`${module.toLowerCase()}:update`" v-model="form.permissions" />
-                                </div>
-                            </td>
-                            <td class="border px-4 py-2 font-medium">
-                                <div class="flex items-center justify-center">
-                                    <input type="checkbox" :value="`${module.toLowerCase()}:delete`" v-model="form.permissions" />
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
         <!-- Submit Button -->
-        <Button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full" :disabled="loading">
-            {{ loading ? 'Saving...' : 'Save' }}
-        </Button>
-
-        <!-- Error Message -->
-        <p v-if="error" class="text-red-500 mt-2 text-center">{{ error }}</p>
+        <div class="p-4 bg-gray-50 border-t">
+            <Button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full" :disabled="loading">
+                {{ loading ? 'Saving...' : 'Save Changes' }}
+            </Button>
+            <p v-if="error" class="text-red-500 mt-2 text-center">{{ error }}</p>
+        </div>
     </form>
 </template>
-<script>
+
+<script setup>
 import { ref, reactive, onMounted } from 'vue';
-import { useFetch } from '../composible/useFetch';
+import { useFetch } from '@/composible/useFetch';
 
-export default {
-    props: ['datatoedit'],
-    setup(props) {
-        const { postData: createUser, updateData, loading, error } = useFetch('users');
+const props = defineProps(['datatoedit']);
+const emit = defineEmits(['close', 'save']);
+const { postData: createUser, updateData, loading, error } = useFetch('users');
 
-        const form = reactive({
-            name: '',
-            email: '',
-            password: '',
-            phoneNumber: '',
-            role: '',
-            is_reminder: true,
-            status: true,
-            permissions: []
-        });
+const roles = ref([
+    { name: 'Admin', _id: 'admin' },
+    { name: 'User', _id: 'user' },
+    { name: 'Teacher', _id: 'teacher' },
+    { name: 'Student', _id: 'student' },
+    { name: 'Superadmin', _id: 'superadmin' }
+]);
 
-        const roles = ref([
-            { name: 'Admin', _id: 'admin' },
-            { name: 'User', _id: 'user' },
-            { name: 'Teacher', _id: 'teacher' },
-            { name: 'Student', _id: 'student' },
-            { name: 'Superadmin', _id: 'superadmin' }
-        ]);
+const permissionModules = ref([
+    // Academic
+    { name: 'Classes', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Class Transaction', actions: ['read'] },
+    { name: 'Sessions', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Subjects', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Class Schedule', actions: ['read'] },
+    { name: 'Assign Teacher to Class', actions: ['update'] },
+    { name: 'Assign Student to Class', actions: ['update'] },
+    // Students
+    { name: 'Student List', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Category', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Attendance', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Scores', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Permission', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Class Info', actions: ['read'] },
+    { name: 'Student Class History', actions: ['read'] },
+    // Teacher
+    { name: 'Teachers', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Teacher Attendance', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Teacher Permission', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Departments', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Positions', actions: ['create', 'read', 'update', 'delete'] },
+    // Book
+    { name: 'Book List', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Book Categories', actions: ['create', 'read', 'update', 'delete'] },
+    // Finance
+    { name: 'Student Payments Tracking', actions: ['read'] },
+    { name: 'Course Invoice', actions: ['read'] },
+    { name: 'Course Payment Transactions', actions: ['read'] },
+    { name: 'Book Payment', actions: ['read'] },
+    { name: 'Book Payment Transactions', actions: ['read'] },
+    // Student Reports
+    { name: 'Student Score Report', actions: ['read'] },
+    { name: 'Mark Class Report', actions: ['read'] },
+    { name: 'Re-Mark Class Report', actions: ['read'] },
+    { name: 'Student Attendance Report', actions: ['read'] },
+    { name: 'Promote Student Report', actions: ['read'] },
+    { name: 'Student Permission Report', actions: ['read'] },
+    // Teacher Reports
+    { name: 'Teacher Attendance Report', actions: ['read'] },
+    { name: 'Teacher Permission Report', actions: ['read'] },
+    // Payment Reports
+    { name: 'Student Payment Report', actions: ['read'] },
+    { name: 'Student Complete Payment Report', actions: ['read'] },
+    { name: 'Book Payment Report', actions: ['read'] },
+    { name: 'Book Stock History', actions: ['read'] },
+    // Settings
+    { name: 'Discount', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'User Management', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Reset Password', actions: ['update'] },
+    { name: 'School Holidays', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'School Info', actions: ['update'] }
+]);
 
-        const permissionModules = ref([
-            'Student List',
-            'Student Attendance',
-            'Student Scores',
-            'Student Permission',
-            'Student Class Info',
-            'Student Class History',
-            'Student Payments',
-            'Teacher List',
-            'Teacher Attendance',
-            'Teacher Permission',
-            'Classes',
-            'Class Transaction',
-            'Class Schedule',
-            'Subjects',
-            'Sessions',
-            'Assign Teacher to Class',
-            'Assign Student to Class',
-            'Assign Student to Teacher',
-            'Books',
-            'Book Categories',
-            'Expenses',
-            'Income',
-            'Payment Transactions',
-            'User Management',
-            'Reset Password',
-            'School Holidays',
-            'Departments',
-            'Positions'
-        ]);
+const form = reactive({
+    name: '',
+    email: '',
+    password: '',
+    phoneNumber: '',
+    role: '',
+    is_reminder: true,
+    status: true,
+    permissions: []
+});
 
-        const selectedImage = ref(null);
-        const previewImage = ref(null);
+const selectedImage = ref(null);
+const previewImage = ref(null);
 
-        const handleImageChange = (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                selectedImage.value = file;
-                previewImage.value = URL.createObjectURL(file);
-            }
-        };
-
-        const isModuleFullySelected = (module) => {
-            const base = module.toLowerCase();
-            return ['create', 'read', 'update', 'delete'].every((action) => form.permissions.includes(`${base}:${action}`));
-        };
-
-        const toggleModuleAll = (module) => {
-            const base = module.toLowerCase();
-            const perms = ['create', 'read', 'update', 'delete'].map((action) => `${base}:${action}`);
-            const allSelected = perms.every((p) => form.permissions.includes(p));
-
-            if (allSelected) {
-                form.permissions = form.permissions.filter((p) => !perms.includes(p));
-            } else {
-                form.permissions = [...new Set([...form.permissions, ...perms])];
-            }
-        };
-
-        const handleSubmit = async () => {
-            const payload = new FormData();
-
-            for (const key in form) {
-                if (key === 'password' && !form[key]) continue;
-                payload.append(key, form[key]);
-            }
-
-            payload.append('permissions', JSON.stringify(form.permissions));
-
-            if (selectedImage.value) {
-                payload.append('image', selectedImage.value);
-            }
-
-            try {
-                if (props.datatoedit) {
-                    await updateData(payload, props.datatoedit._id);
-                } else {
-                    await createUser(payload);
-                }
-            } catch (err) {
-                console.error('Error submitting:', err);
-            }
-        };
-
-        onMounted(() => {
-            if (props.datatoedit) {
-                previewImage.value = props.datatoedit.image;
-                form.name = props.datatoedit.name;
-                form.email = props.datatoedit.email;
-                form.password = props.datatoedit.password;
-                form.phoneNumber = props.datatoedit.phoneNumber;
-                form.role = props.datatoedit?.role;
-                form.is_reminder = props.datatoedit.is_reminder;
-                form.status = props.datatoedit.status;
-
-                const rawPerms = props.datatoedit.permissions;
-                const normalized = [];
-
-                if (Array.isArray(rawPerms)) {
-                    rawPerms.forEach((p) => {
-                        try {
-                            const parsed = JSON.parse(p);
-                            if (Array.isArray(parsed)) {
-                                normalized.push(...parsed);
-                            } else if (typeof parsed === 'string') {
-                                normalized.push(...parsed.split(',').map((x) => x.trim()));
-                            }
-                        } catch {
-                            normalized.push(...p.split(',').map((x) => x.trim()));
-                        }
-                    });
-                } else if (typeof rawPerms === 'string') {
-                    try {
-                        const parsed = JSON.parse(rawPerms);
-                        if (Array.isArray(parsed)) {
-                            normalized.push(...parsed);
-                        } else {
-                            normalized.push(...rawPerms.split(',').map((x) => x.trim()));
-                        }
-                    } catch {
-                        normalized.push(...rawPerms.split(',').map((x) => x.trim()));
-                    }
-                }
-
-                form.permissions = [...new Set(normalized)];
-            }
-            console.log('====================================');
-            console.log(form.permissions);
-            console.log('====================================');
-        });
-
-        return {
-            form,
-            roles,
-            loading,
-            error,
-            selectedImage,
-            previewImage,
-            permissionModules,
-            handleImageChange,
-            handleSubmit,
-            isModuleFullySelected,
-            toggleModuleAll
-        };
+const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        selectedImage.value = file;
+        previewImage.value = URL.createObjectURL(file);
     }
 };
+
+const isModuleFullySelected = (module) => {
+    return module.actions.every((action) => form.permissions.includes(`${module.name.toLowerCase()}:${action}`));
+};
+
+const toggleModuleAll = (module) => {
+    const perms = module.actions.map((action) => `${module.name.toLowerCase()}:${action}`);
+    const allSelected = perms.every((p) => form.permissions.includes(p));
+
+    if (allSelected) {
+        form.permissions = form.permissions.filter((p) => !perms.includes(p));
+    } else {
+        form.permissions = [...new Set([...form.permissions, ...perms])];
+    }
+};
+
+const handleSubmit = async () => {
+    const payload = new FormData();
+
+    for (const key in form) {
+        if (key === 'password' && !form[key]) continue;
+        if (key === 'permissions') {
+            payload.append(key, JSON.stringify(form[key]));
+        } else {
+            payload.append(key, form[key]);
+        }
+    }
+
+    if (selectedImage.value) {
+        payload.append('image', selectedImage.value);
+    }
+
+    try {
+        if (props.datatoedit) {
+            await updateData(payload, props.datatoedit._id);
+        } else {
+            await createUser(payload);
+        }
+        emit('save');
+        emit('close');
+    } catch (err) {
+        console.error('Error submitting:', err);
+    }
+};
+
+onMounted(() => {
+    if (props.datatoedit) {
+        previewImage.value = props.datatoedit.image;
+        form.name = props.datatoedit.name;
+        form.email = props.datatoedit.email;
+        form.phoneNumber = props.datatoedit.phoneNumber;
+        form.role = props.datatoedit.role;
+        form.is_reminder = props.datatoedit.is_reminder;
+        form.status = props.datatoedit.status;
+
+        // **FIX:** New robust recursive function to parse complex permission strings
+        const flattenAndParse = (arr) => {
+            let result = [];
+            if (!Array.isArray(arr)) return result;
+
+            for (const item of arr) {
+                if (Array.isArray(item)) {
+                    result.push(...flattenAndParse(item));
+                } else if (typeof item === 'string') {
+                    try {
+                        const parsed = JSON.parse(item);
+                        result.push(...flattenAndParse(Array.isArray(parsed) ? parsed : [parsed]));
+                    } catch (e) {
+                        result.push(...item.split(',').map((p) => p.trim()));
+                    }
+                }
+            }
+            return result;
+        };
+
+        const rawPerms = props.datatoedit.permissions || [];
+        const parsedPermissions = flattenAndParse(rawPerms);
+        form.permissions = [...new Set(parsedPermissions)];
+    }
+});
 </script>

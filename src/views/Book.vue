@@ -31,18 +31,23 @@
                         <!-- start data -->
                         <Column field="name" header="Name" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.name }}</div>
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">{{ slotProps.data.name }}</div>
                             </template>
                         </Column>
 
                         <Column field="price" header="Price" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.price }}</div>
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">{{ slotProps.data.price }} $</div>
+                            </template>
+                        </Column>
+                        <Column field="stock" header="Stock" sortable style="min-width: 200px">
+                            <template #body="slotProps">
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">{{ slotProps.data.stock }}</div>
                             </template>
                         </Column>
                         <Column field="bookType" header="Type" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ formatBookCategory(slotProps.data?.bookType) }}</div>
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">{{ formatBookCategory(slotProps.data?.bookType) }}</div>
                             </template>
                         </Column>
 
@@ -56,7 +61,7 @@
                         </Column>
                     </DataTable>
                 </div>
-                <div v-else-if="!loading && data.length === 0">
+                <div v-else-if="!loading && data.length === 0 && hasFiltered">
                     <NotFound />
                 </div>
                 <div v-else>
@@ -168,9 +173,11 @@ const showToast = (action, severity) => {
 const data = ref([]);
 const searchQuery = ref('');
 const selectedBookCategory = ref(null);
-const filterData = () => {
-    loading.value = true;
+const hasFiltered = ref(false);
 
+const filterData = () => {
+    loading.value = false;
+    hasFiltered.value = false;
     setTimeout(() => {
         const q = (searchQuery.value || '').trim().toLowerCase();
 
@@ -183,6 +190,7 @@ const filterData = () => {
 
         console.log('Filtered data:', data.value);
         loading.value = false;
+        hasFiltered.value = true;
     }, 500);
 };
 
@@ -191,6 +199,15 @@ watch(searchQuery, () => {
     console.log('Search input changed');
     filterData();
 });
+watch(
+    rawData,
+    () => {
+        console.log('rawData updated:', rawData.value);
+        filterData();
+    },
+    { deep: true }
+);
+
 const isDelete = ref(false);
 const deleteData = ref(null);
 const handleDeleteConfirm = async (id, doc) => {

@@ -1,21 +1,23 @@
 <template>
     <form class="max-h-[90vh] h-fit overflow-auto">
-        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800"> Check Attendance </label>
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50 sticky top-0 z-10">
+            <label class="text-base font-semibold text-gray-800"> Check Attendance for {{ datatoedit?.name }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <div class="p-4">
+            <!-- Attendance Table -->
             <DataTable :value="editableStudents" showGridlines responsiveLayout="scroll">
-                <Column field="name" header="No" class="text-nowrap text-center">
+                <Column field="name" header="No" class="text-nowrap text-center" headerStyle="width: 3rem">
                     <template #body="{ index }">
                         {{ index + 1 }}
                     </template>
                 </Column>
 
-                <Column field="name" header="Khmer Name" class="text-nowrap">
+                <Column field="name" header="Student Name" class="text-nowrap">
                     <template #body="{ data }">
-                        {{ formatStudent(data.student, 'eng_name') }}
+                        {{ formatStudentName(data.student) }}
                     </template>
                 </Column>
 
@@ -37,82 +39,93 @@
                 </Column>
             </DataTable>
 
+            <!-- Action Buttons -->
             <div class="py-4 flex items-center justify-end gap-4">
-                <Button :label="loading ? 'Updating...' : 'Submit Attendance'" :disabled="loading" :loading="loading" @click="submitAttendance" />
-                <Button @click="$emit('close')" label="Cancel" severity="danger" />
+                <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
+                <Button :label="loading ? 'Submitting...' : 'Submit Attendance'" :disabled="loading" :loading="loading" @click="submitAttendance" />
             </div>
         </div>
     </form>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted } from 'vue';
 import moment from 'moment';
 import { useFetch } from '@/composible/useFetch';
 
-export default {
-    props: ['datatoedit'],
-    setup(props, { emit }) {
-        const { updateData } = useFetch('classes');
-        const { data: students, fetchData: fetchStudents, loading } = useFetch('students');
+// --- Props and Emits ---
+const props = defineProps({
+    datatoedit: {
+        type: Object,
+        required: true
+    }
+});
+const emit = defineEmits(['close', 'toast', 'save']);
 
-        const attendanceOptions = [
-            { label: 'Present', value: 'present' },
-            { label: 'Absent', value: 'absent' },
-            { label: 'Late', value: 'late' },
-            { label: 'Permission', value: 'permission' }
-        ];
+// --- Data Fetching ---
+// This composable will be used to POST to the 'attendancereports' collection
+const { postData: postAttendanceReport, loading } = useFetch('attendancereports');
+// This is needed to format the student names in the table
+const { data: students, fetchData: fetchStudents } = useFetch('students');
 
-        const editableStudents = ref(
-            props.datatoedit.students.map((s) => ({
-                ...s,
-                attendance: s.attendance || '',
-                checking_at: moment().format('YYYY-MM-DD HH:mm'),
-                note: s.note || ''
+// --- Component State ---
+const attendanceOptions = [
+    { label: 'Present', value: 'present' },
+    { label: 'Absent', value: 'absent' },
+    { label: 'Late', value: 'late' },
+    { label: 'Permission', value: 'permission' }
+];
+
+// Create a deep, editable copy of the students from the prop, initializing attendance fields
+const editableStudents = ref(
+    props.datatoedit.students.map((s) => ({
+        ...s,
+        attendance: s.attendance || 'present', // Default to 'present'
+        checking_at: moment().format('YYYY-MM-DD HH:mm'),
+        note: s.note || ''
+    }))
+);
+
+// --- Helper Functions ---
+const formatStudentName = (studentData) => {
+    const studentId = typeof studentData === 'object' ? studentData?._id : studentData;
+    const student = students.value?.find((s) => s._id === studentId);
+    return student?.eng_name || 'Loading...';
+};
+
+// --- Form Submission ---
+const submitAttendance = async () => {
+    try {
+        // Prepare the payload according to the AttendanceReportSchema
+        const payload = {
+            class_id: props.datatoedit._id,
+            subject_id: props.datatoedit.subject,
+            duration: props.datatoedit.duration,
+            staff_id: props.datatoedit.staff,
+            students: editableStudents.value.map((s) => ({
+                student: s.student._id || s.student,
+                attendance: s.attendance,
+                checking_at: s.checking_at,
+                note: s.note
             }))
-        );
-
-        const formatStudent = (id) => {
-            const student = students.value?.find((s) => s._id === id || s._id === id?._id);
-            return student?.eng_name || '';
         };
 
-        const submitAttendance = async () => {
-            loading.value = true;
-            try {
-                const payload = {
-                    students: editableStudents.value.map((s) => ({
-                        student: s.student._id || s.student,
-                        attendance: s.attendance,
-                        checking_at: s.checking_at,
-                        note: s.note
-                    })),
-                    staff: props.datatoedit.staff
-                };
+        // Post the new attendance report to the database
+        await postAttendanceReport(payload);
 
-                await updateData(payload, props.datatoedit._id);
-                emit('close');
-                emit('toast', 'Attendance submitted');
-            } catch (error) {
-                const message = error.response?.data?.details || 'Error submitting attendance';
-                emit('toast', { action: 'server_error', message });
-                console.error('Attendance update error:', error);
-            } finally {
-                loading.value = false;
-            }
-        };
-
-        onMounted(async () => {
-            await fetchStudents();
-        });
-
-        return {
-            editableStudents,
-            formatStudent,
-            attendanceOptions,
-            submitAttendance,
-            loading
-        };
+        emit('toast', 'create', 'Attendance submitted successfully.');
+        emit('save'); // Notify the parent component that data has changed
+        emit('close');
+    } catch (error) {
+        console.error('Error submitting attendance:', error);
+        const message = error.response?.data?.message || 'Failed to submit attendance.';
+        emit('toast', 'error', message);
     }
 };
+
+// --- Lifecycle Hook ---
+onMounted(async () => {
+    // Fetch the full student list to ensure names can be displayed correctly
+    await fetchStudents();
+});
 </script>

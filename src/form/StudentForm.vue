@@ -229,6 +229,11 @@
                                 />
                             </div>
                         </div>
+                        <div class="flex items-start gap-4">
+                            <label for=""> Status </label>
+                            <!-- status -->
+                            <ToggleSwitch v-model="status" />
+                        </div>
                     </div>
                 </div>
                 <!-- document information -->
@@ -550,7 +555,7 @@ export default {
                 attendance.value = props.datatoedit.attendance;
                 attendance_date.value = props.datatoedit.attendance_date;
                 attendance_enum.value = props.datatoedit.attendance_enum;
-                // teacher.value = props.datatoedit.teacher?.map((item) => item._id) || [];
+                teacher.value = props.datatoedit.teacher;
                 rental_book.value = props.datatoedit.rental_book?.map((item) => item._id) || [];
                 status.value = props.datatoedit.status;
                 date_entered.value = props.datatoedit.date_intered;

@@ -2,118 +2,101 @@
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Mark Class Form</label>
+            <label class="text-base font-semibold text-gray-800">Update Class Status</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <div class="px-4 py-5 space-y-5">
             <div>
-                <label for="date" class="block text-sm font-medium text-gray-700"></label>
-                Are you sure you want to mark this class as done?
-            </div>
-            <div class="space-y-1 text-start flex items-end">
-                <ToggleSwitch id="switch2" aria-labelledby="switch2" v-model="mark_as_complete" />
+                <label for="date" class="block text-sm font-medium text-gray-700">Set the completion status for this class.</label>
             </div>
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-2 p-4">
-            <Button label="Cancel" @click="$emit('close')" severity="danger" outlined />
+        <div class="flex justify-end gap-2 p-4 border-t bg-gray-50">
+            <Button label="Cancel" @click="$emit('close')" severity="secondary" outlined />
             <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
 
-<script>
-import { ref, onMounted, watch } from 'vue';
+<script setup>
+import { ref, onMounted } from 'vue';
 import { useFetch } from '@/composible/useFetch';
 
-export default {
-    props: ['datatoedit'],
-    setup(props, { emit }) {
-        const { data: staffs, fetchData: fetchStaff } = useFetch('staffs');
-        const { data: students, fetchData: fetchStudents } = useFetch('students');
-        const { data: section, fetchData: fetchSection } = useFetch('sections');
-        const workDay = ref([{ name: 'Monday' }, { name: 'Tuesday' }, { name: 'Wednesday' }, { name: 'Thursday' }, { name: 'Friday' }, { name: 'Saturday' }, { name: 'Sunday' }]);
-        const duration = ref(null);
-        const filterSection = ref({
-            page: 1,
-            limit: 50,
-            search: '',
-            searchColumn: ['', '']
-        });
+// Define props passed from the parent component
+const props = defineProps({
+    datatoedit: {
+        type: Object,
+        required: true
+    }
+});
 
-        const dayclass = ref(null);
-        const filtersStudents = ref({
-            page: 1,
-            limit: 50,
-            search: '',
-            searchColumn: ['', '']
-        });
+// Define events this component can emit
+const emit = defineEmits(['close', 'toast', 'save']);
 
-        const filtersStaffs = ref({
-            page: 1,
-            limit: 50,
-            search: '',
-            searchColumn: ['', '']
-        });
+// --- Data Fetching ---
+// useFetch instance for updating the 'classes' collection
+const { updateData: updateClass } = useFetch('classes');
+// useFetch instance for creating a new record in the 'markclassreports' collection
+const { postData: postMarkClassReport } = useFetch('markclassreports');
 
-        const selectStaff = ref(null); // Renamed from "departments" for consistency
-        const selectStudent = ref(null); // Renamed from "departments" for consistency
-        const collection = ref('classes');
-        const { postData, data, loading, error, updateData } = useFetch(collection.value);
-        const name = ref(null);
-        const status = ref(true);
-        const mark_as_complete = ref(true);
-        const isSubmitting = ref(false);
+// --- Component State ---
+const mark_as_complete = ref(false);
+const isSubmitting = ref(false);
 
-        const handleSubmit = async () => {
-            try {
-                isSubmitting.value = true;
-                const req = {
-                    mark_as_completed: mark_as_complete.value
-                };
-                if (props.datatoedit) {
-                    await updateData(req, props.datatoedit._id);
-                    emit('close');
-                    emit('toast', 'update');
-                }
-            } catch (error) {
-                console.log('error', error);
-            }
+// --- Form Submission ---
+const handleSubmit = async () => {
+    if (!props.datatoedit?._id) {
+        console.error('No class data provided to update.');
+        emit('toast', 'error', 'An error occurred.');
+        return;
+    }
+
+    isSubmitting.value = true;
+    try {
+        // --- Action 1: Update the class status ---
+        const classUpdatePayload = {
+            mark_as_completed: false
         };
+        const updateClassPromise = updateClass(classUpdatePayload, props.datatoedit._id);
 
-        onMounted(async () => {
-            if (props.datatoedit) {
-                mark_as_complete.value = props.datatoedit.mark_as_completed;
-                console.log('prop.datatoedit', props.datatoedit);
-            }
-            await fetchStaff(filtersStaffs.value);
-            await fetchStudents(filtersStudents.value);
-            await fetchSection(filterSection.value);
-        });
-        return {
-            staffs,
-            students,
-            filtersStudents,
-            filtersStaffs,
-            selectStaff,
-            selectStudent,
-            collection,
-            data,
-            loading,
-            error,
-            fetchStaff,
-            handleSubmit,
-            name,
-            status,
+        let reportPromise = Promise.resolve(); // Default to a resolved promise
 
-            isSubmitting,
+        // --- Action 2: If marking as complete, create a report ---
 
-            mark_as_complete
-        };
+        // Validate that the necessary data exists before creating the report
+        if (Array.isArray(props.datatoedit.students) && props.datatoedit.students.length > 0 && props.datatoedit.subject) {
+            const reportPayload = {
+                class_id: props.datatoedit._id,
+                subject_id: props.datatoedit.subject,
+                duration: props.datatoedit.duration,
+                student_id: props.datatoedit.students.map((s) => s.student?._id).filter((id) => id)
+            };
+            reportPromise = postMarkClassReport(reportPayload);
+        } else {
+            console.warn('Class has no students or no subject assigned, skipping report creation.');
+        }
+
+        // Execute both database operations concurrently
+        await Promise.all([updateClassPromise, reportPromise]);
+
+        emit('toast', 'update');
+        emit('close');
+    } catch (error) {
+        console.error('Error processing class completion:', error);
+        emit('toast', 'error', 'An error occurred during the update.');
+    } finally {
+        isSubmitting.value = false;
     }
 };
-</script>
 
-<style lang="scss" scoped></style>
+// --- Lifecycle Hook ---
+onMounted(() => {
+    // Set the initial state of the toggle switch based on the class data being edited
+    if (props.datatoedit) {
+        // Ensure the value is a boolean, defaulting to false if it's missing
+        mark_as_complete.value = !!props.datatoedit.mark_as_completed;
+    }
+});
+</script>

@@ -6,10 +6,8 @@
             <!-- Left: All filters and search in a row, wrap on small screens -->
             <div class="flex flex-wrap gap-4 items-end">
                 <div class="flex flex-col">
-                    <label for="" class="text-lg font-medium text-gray-700 mb-1">
-                        Select Student <span><span class="text-red-500">*</span></span>
-                    </label>
-                    <Dropdown v-model="selectedStudent" showClear filter :options="studentOptions" optionLabel="eng_name" optionValue="_id" placeholder="Select Student" class="w-full md:w-64" />
+                    <label for="student-select" class="text-sm font-medium text-gray-700 mb-1"> Select Student <span class="text-red-500">*</span> </label>
+                    <Dropdown id="student-select" v-model="selectedStudent" showClear filter :options="studentOptions" optionLabel="eng_name" optionValue="_id" placeholder="Select Student" class="w-full md:w-64" />
                 </div>
                 <div>
                     <label class="invisible mb-1 select-none">&nbsp;</label>
@@ -26,6 +24,12 @@
                             {{ formatSubject(data.subject) }}
                         </template>
                     </Column>
+                    <!-- Teacher Column Added -->
+                    <Column field="staff" header="Teacher">
+                        <template #body="{ data }">
+                            {{ formatStaffName(data.staff) }}
+                        </template>
+                    </Column>
                     <Column field="duration" header="Section">
                         <template #body="{ data }">
                             {{ formatDuration(data.duration) }}
@@ -36,13 +40,11 @@
                             {{ formatYear(data.createdAt) }}
                         </template>
                     </Column>
-                    <!-- <Column header="Mark Completed">
-                        <template #body="{ data }">
-                            <Tag :value="data.mark_as_completed ? 'Yes' : 'No'" :severity="data.mark_as_completed ? 'success' : 'danger'" />
-                        </template>
-                    </Column> -->
                 </DataTable>
-                <NotFound v-else />
+                <NotFound v-else-if="searched" message="No active classes found for the selected student." />
+                <div v-else class="text-center p-8 bg-white rounded-lg shadow-md">
+                    <p class="text-gray-500">Please select a student and apply the filter to see their class history.</p>
+                </div>
             </div>
         </div>
         <Toast position="top-right" />
@@ -56,22 +58,26 @@ import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Tag from 'primevue/tag';
 import moment from 'moment';
 import NotFound from './pages/NotFound.vue';
-import { useToast } from 'primevue';
+import { useToast } from 'primevue/usetoast';
+
+// --- Data Fetching ---
 const { data: student, fetchData: fetchStudents } = useFetch('students');
 const { data: classes, fetchData: fetchClasses } = useFetch('classes');
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
 const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
-const formatSubject = (id) => {
-    const subject = subjects.value?.find((subject) => subject._id === id);
-    return subject ? subject.name : 'N/A';
-};
+// **NEW:** Fetching staff data
+const { data: staffs, fetchData: fetchStaff } = useFetch('staffs');
+
+// --- Component State ---
 const selectedStudent = ref(null);
 const filteredClasses = ref([]);
 const loading = ref(false);
+const searched = ref(false); // To track if a filter has been applied
+const toast = useToast();
 
+// --- Computed Properties ---
 const studentOptions = computed(
     () =>
         student.value?.map((s) => ({
@@ -81,48 +87,35 @@ const studentOptions = computed(
         })) || []
 );
 
+// --- Formatting Functions ---
+const formatSubject = (id) => {
+    const subject = subjects.value?.find((subject) => subject._id === id);
+    return subject ? subject.name : 'N/A';
+};
+
 const formatDuration = (id) => {
     const section = sections.value?.find((s) => s._id === id);
-    return section ? section.duration : 'N/A';
+    return section ? section.duration : 'N/A'; // Assuming section has a 'name' property
+};
+
+// **NEW:** Function to format the teacher's name
+const formatStaffName = (id) => {
+    const staffMember = staffs.value?.find((s) => s._id === id);
+    return staffMember ? staffMember.en_name : 'N/A';
 };
 
 const formatYear = (date) => {
     return moment(date).format('YYYY');
 };
-const toast = useToast();
 
+// --- Toast Notification ---
 const showToast = (payload) => {
     let action = typeof payload === 'string' ? payload : payload.action;
     let customMessage = typeof payload === 'object' ? payload.message : null;
-
     let severity;
     let summary;
 
     switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = 'Created Successfully';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = 'Updated Successfully';
-            break;
-        case 'delete':
-            severity = 'error';
-            summary = 'Deleted Successfully';
-            break;
-        case 'check_fields':
-            severity = 'warn';
-            summary = customMessage || 'Please fill all the required fields';
-            break;
-        case 'server_error':
-            severity = 'error';
-            summary = customMessage || 'Server error occurred';
-            break;
-        case 'asociate':
-            severity = 'warn';
-            summary = 'Please delete the associated data first';
-            break;
         case 'not_found':
             severity = 'warn';
             summary = customMessage || 'No matching records found';
@@ -132,13 +125,15 @@ const showToast = (payload) => {
             summary = customMessage || 'Data found successfully';
             break;
         default:
-            severity = 'info';
-            summary = 'Action Completed';
+            severity = 'warn';
+            summary = customMessage || 'Please select a student to filter';
     }
-
     toast.add({ severity, summary, life: 3000 });
 };
+
+// --- Filter Logic ---
 const applyFilter = () => {
+    searched.value = true;
     if (!selectedStudent.value) {
         filteredClasses.value = [];
         showToast({ action: 'not_found', message: 'Please select a student to filter' });
@@ -146,15 +141,14 @@ const applyFilter = () => {
     }
 
     loading.value = true;
-
     setTimeout(() => {
         const result =
             classes.value?.filter(
                 (cls) =>
                     cls.mark_as_completed === false &&
                     cls.students?.some((s) => {
-                        const id = typeof s.student === 'object' ? s.student._id : s.student;
-                        return id === selectedStudent.value;
+                        const studentId = typeof s.student === 'object' ? s.student._id : s.student;
+                        return studentId === selectedStudent.value;
                     })
             ) || [];
 
@@ -162,14 +156,15 @@ const applyFilter = () => {
         loading.value = false;
 
         if (result.length > 0) {
-            showToast({ action: 'found', message: `Found ${result.length} class` });
+            showToast({ action: 'found', message: `Found ${result.length} class(es)` });
         } else {
-            showToast({ action: 'not_found', message: 'No classes found for the selected student' });
+            showToast({ action: 'not_found', message: 'No active classes found for the selected student' });
         }
     }, 300);
 };
 
+// --- Lifecycle Hook ---
 onMounted(async () => {
-    await Promise.allSettled([fetchClasses(), fetchStudents(), fetchSections(), fetchSubjects()]);
+    await Promise.allSettled([fetchClasses(), fetchStudents(), fetchSections(), fetchSubjects(), fetchStaff()]);
 });
 </script>
