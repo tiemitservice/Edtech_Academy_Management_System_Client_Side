@@ -194,7 +194,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, reactive, nextTick } from 'vue';
+import { ref, onMounted, watch, computed, reactive } from 'vue';
 import { useFetch } from '@/composible/useFetch';
 import { useToast } from 'primevue/usetoast';
 import provinceJson from '@/json/province.json';
@@ -215,6 +215,7 @@ const emit = defineEmits(['close', 'toast', 'save']);
 // --- Composables ---
 const { data: category, fetchData: fetchCategory } = useFetch('student_categories');
 const { postData, updateData, loading: isSubmitting } = useFetch('students');
+const { data: allclasses, fetchData: fetchAllClasses, updateData: updateClass } = useFetch('classes');
 const toast = useToast();
 
 // --- Reactive Form State ---
@@ -344,20 +345,23 @@ const handleSubmit = async () => {
         return;
     }
 
-    const formData = new FormData();
-    for (const key in formState) {
-        if (formState[key] !== null && formState[key] !== undefined) {
-            if (key === 'date_of_birth' || key === 'date_intered') {
-                formData.append(key, moment(formState[key]).format('YYYY-MM-DD'));
-            } else {
-                formData.append(key, formState[key]);
-            }
-        }
-    }
-    if (image.value) formData.append('image', image.value);
-    if (document_image.value) formData.append('document_image', document_image.value);
+    const isDeactivating = props.datatoedit && props.datatoedit.status === true && formState.status === false;
 
     try {
+        // First, update the student's main record
+        const formData = new FormData();
+        for (const key in formState) {
+            if (formState[key] !== null && formState[key] !== undefined) {
+                if (key === 'date_of_birth' || key === 'date_intered') {
+                    formData.append(key, moment(formState[key]).format('YYYY-MM-DD'));
+                } else {
+                    formData.append(key, formState[key]);
+                }
+            }
+        }
+        if (image.value) formData.append('image', image.value);
+        if (document_image.value) formData.append('document_image', document_image.value);
+
         if (props.datatoedit) {
             await updateData(formData, props.datatoedit._id);
             emit('toast', 'update');
@@ -365,6 +369,30 @@ const handleSubmit = async () => {
             await postData(formData);
             emit('toast', 'create');
         }
+
+        // If the student is being deactivated, remove them from all classes.
+        if (isDeactivating) {
+            await fetchAllClasses();
+            const studentIdToRemove = props.datatoedit._id;
+
+            const classesToUpdate = allclasses.value.filter((cls) => cls.students.some((s) => (s.student?._id || s.student) === studentIdToRemove));
+
+            // Use a sequential loop for more reliable updates
+            for (const cls of classesToUpdate) {
+                const updatedStudents = cls.students.filter((s) => (s.student?._id || s.student) !== studentIdToRemove);
+                // **FIX:** Ensure the student objects in the payload are not populated
+                const payloadStudents = updatedStudents.map((s) => ({
+                    ...s,
+                    student: s.student?._id || s.student
+                }));
+                await updateClass({ students: payloadStudents }, cls._id);
+            }
+
+            if (classesToUpdate.length > 0) {
+                toast.add({ severity: 'info', summary: 'Classes Updated', detail: `Student removed from ${classesToUpdate.length} classes.`, life: 3000 });
+            }
+        }
+
         emit('save');
         emit('close');
     } catch (error) {
@@ -377,7 +405,6 @@ const handleSubmit = async () => {
 onMounted(async () => {
     await fetchCategory({ status: 'true' });
     if (props.datatoedit) {
-        // Populate formState with data from datatoedit prop
         for (const key in formState) {
             if (props.datatoedit[key] !== undefined) {
                 if (key === 'date_of_birth' || key === 'date_intered') {
