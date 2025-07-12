@@ -50,6 +50,7 @@
         "emailPlaceholder": "អាសយដ្ឋានអ៊ីមែល",
         "password": "ពាក្យសម្ងាត់",
         "passwordPlaceholder": "ពាក្យសម្ងាត់",
-        "signInButton": "ចូល"
+        "signInButton": "ចូល",
+        "signInButtonLoading": "កំពុងដំណើរការ..."
     }
 }

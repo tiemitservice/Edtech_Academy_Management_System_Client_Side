@@ -18,7 +18,7 @@
                             <label for="password" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">{{ $t('login.password') }}</label>
                             <Password v-model="password" id="password" :placeholder="$t('login.passwordPlaceholder')" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
 
-                            <Button :label="$t('login.signInButton')" class="w-full" type="submit"></Button>
+                            <Button :disabled="loading" :label="loading ? $t('login.signInButtonLoading') : $t('login.signInButton')" class="w-full" type="submit"></Button>
                         </div>
                     </div>
                 </div>
@@ -45,10 +45,11 @@ const { data: companyData, fetchData: fetchCompanyData } = useFetch('companies')
 // --- Component State ---
 const email = ref('');
 const password = ref('');
-
+const loading = ref(false);
 // --- Event Handlers ---
 const handleLogin = async () => {
     try {
+        loading.value = true;
         const response = await axios.post(`${url}/api/login`, {
             email: email.value,
             password: password.value
@@ -62,6 +63,8 @@ const handleLogin = async () => {
         router.push({ name: 'dashboard' });
     } catch (error) {
         console.error(error);
+    } finally {
+        loading.value = false;
     }
 };
 

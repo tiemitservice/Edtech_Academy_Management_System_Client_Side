@@ -24,7 +24,7 @@
                 <div class="flex justify-between items-center mb-4 border-b pb-4">
                     <div>
                         <h3 class="text-xl font-bold text-primary">{{ formatClassName(selectedReport.class_id) }}</h3>
-                        <p class="text-sm text-gray-600">Subject: {{ formatSubjectName(selectedReport.subject_id) }} | Duration: {{ formatDurationName(selectedReport.duration) }} | Report Date: {{ formatDate(selectedReport.createdAt) }}</p>
+                        <p class="text-sm text-gray-600">Subject: {{ formatSubjectName(selectedReport?.subject_id) }} | Duration: {{ formatDurationName(selectedReport.duration) }} | Report Date: {{ formatDate(selectedReport.createdAt) }}</p>
                     </div>
                     <div>
                         <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
@@ -121,7 +121,7 @@ const formatDate = (date) => moment(date).format('YYYY-MM-DD');
 const formatClassName = (id) => classes.value?.find((c) => c._id === id)?.name || 'N/A';
 const formatStudentName = (id) => students.value?.find((s) => s._id === id)?.eng_name || 'N/A';
 const formatSubjectName = (id) => subjects.value?.find((s) => s._id === id)?.name || 'N/A';
-const formatDurationName = (id) => sections.value?.find((s) => s._id === id)?.name || 'N/A';
+const formatDurationName = (id) => sections.value?.find((s) => s._id === id)?.duration || 'N/A';
 const formatStudentInfo = (id, field) => students.value?.find((s) => s._id === id)?.[field] || 'N/A';
 
 // --- ACTIONS ---

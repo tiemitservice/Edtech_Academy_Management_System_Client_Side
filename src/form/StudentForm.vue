@@ -174,6 +174,14 @@
                         </div>
                     </div>
                 </div>
+                <!-- Status Toggle -->
+                <div class="col-span-2">
+                    <h4 class="text-lg font-medium pb-2">Status</h4>
+                    <div class="rounded p-4 border flex items-center gap-4">
+                        <label for="status" class="text-sm font-medium">Active</label>
+                        <ToggleSwitch v-model="formState.status" inputId="status" />
+                    </div>
+                </div>
             </div>
 
             <!-- Form Actions -->

@@ -51,6 +51,7 @@
         "emailPlaceholder": "Email address",
         "password": "Password",
         "passwordPlaceholder": "Password",
-        "signInButton": "Sign In"
+        "signInButton": "Sign In",
+        "signInButtonLoading": "Signing In..."
     }
 }

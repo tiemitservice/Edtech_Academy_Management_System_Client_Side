@@ -8,7 +8,7 @@
 
         <div class="p-4">
             <!-- Scores Table -->
-            <DataTable :value="editableStudents" showGridlines responsiveLayout="scroll">
+            <DataTable :value="editableStudents" striped-rows showGridlines responsiveLayout="scroll">
                 <Column class="text-nowrap w-[150px]" field="name" header="Student Name" frozen>
                     <template #body="{ data }">
                         {{ formatStudentName(data.student) }}
@@ -104,7 +104,7 @@ const submitScores = async () => {
             student_id: firstStudentId,
             class_id: props.datatoedit._id,
             duration: props.datatoedit.duration,
-            subject_id: props.datatoedit.subject,
+            subject: props.datatoedit.subject,
             students: editableStudents.value.map((s) => ({
                 student: s.student._id || s.student,
                 attendance_score: s.attendance_score || 0,

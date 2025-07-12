@@ -4,6 +4,7 @@
             <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Assigned Students' : 'Assign Students' }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
+
         <div class="p-4 space-y-4">
             <div class="flex flex-col text-start">
                 <label for="student_list" class="mb-2 font-medium">Students</label>
@@ -11,9 +12,9 @@
                 <small v-if="error" class="text-red-500 mt-1">{{ error }}</small>
             </div>
         </div>
+
         <div class="w-full flex items-center justify-end gap-2 p-4 border-t bg-gray-50">
-            <Button label="Cancel" @click="$emit('close')" severity="secondary" outlined />
-            <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" />
+            <Button label="Cancel" @click="$emit('close')" severity="secondary" outlined /> <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" />
         </div>
     </form>
 </template>
@@ -34,9 +35,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'toast', 'save']);
 
 // --- Data Fetching ---
-// This form fetches its own list of students to populate the dropdown.
 const { data: students, fetchData: fetchStudents } = useFetch('students');
-// This is used to PATCH the 'classes' collection with the updated student list.
 const { updateData, loading: isSubmitting } = useFetch('classes');
 
 // --- Component State ---
@@ -45,14 +44,32 @@ const error = ref('');
 
 // --- Form Submission ---
 const handleSubmit = async () => {
-    error.value = '';
+    error.value = ''; // 1. Get the original list of students with their full data (including scores).
 
-    // The payload needs to be an array of objects, each with a 'student' property.
-    // This preserves the data structure required by your backend.
-    const studentsPayload = (selectedStudents.value || []).map((studentId) => ({ student: studentId }));
+    const originalStudentsWithScores = props.datatoedit.students || []; // 2. Get the new, complete list of student IDs from the MultiSelect component.
 
-    // The request body only contains the 'students' field,
-    // which will be updated in the specified class document.
+    const selectedStudentIds = selectedStudents.value || []; // 3. Build the new payload by merging the old data with the new list.
+
+    const studentsPayload = selectedStudentIds.map((newId) => {
+        // Find the original data for this student, if it exists.
+        const existingStudentData = originalStudentsWithScores.find((originalStudent) => {
+            if (!originalStudent.student) return false;
+            return (originalStudent.student._id || originalStudent.student) === newId;
+        }); // If we found the student in the original list...
+
+        if (existingStudentData) {
+            // ✅ **THE FIX IS HERE**
+            // Reconstruct the object to preserve the scores, but ensure the 'student'
+            // field is just the ID string, which is what the backend expects for a reference.
+            return {
+                ...existingStudentData, // Copies all score fields (home_work, etc.)
+                student: newId // Overwrites the 'student' object with just its ID
+            };
+        } // Otherwise, this is a new student. Create a new object for them.
+
+        return { student: newId };
+    }); // 4. Prepare and send the request.
+
     const req = {
         students: studentsPayload
     };
@@ -75,10 +92,9 @@ const handleSubmit = async () => {
 // --- Lifecycle Hook ---
 onMounted(async () => {
     // 1. Fetch the list of all available students FIRST.
-    await fetchStudents();
+    await fetchStudents({ status: true }); // 2. THEN, if we are editing a class, populate the multiselect
+    // with the students already in that class.
 
-    // 2. THEN, if we are editing a class, populate the multiselect
-    //    with the students already in that class.
     if (props.datatoedit?.students) {
         // The `datatoedit` prop has a complex structure. We need to extract just the student IDs.
         // The `student` property can be null if a student was deleted from the DB, so we add a check.

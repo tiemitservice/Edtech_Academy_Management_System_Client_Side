@@ -4,7 +4,12 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 space-y-4 text-center">
                 <!-- Image Preview & Change -->
                 <div class="relative group w-fit mx-auto">
-                    <img class="object-cover object-center w-40 h-40 rounded-full border-2 border-primary" :src="previewImage || form.image" alt="avatar" />
+                    <img v-if="previewImage || form.image" class="object-cover object-center w-40 h-40 rounded-full border-2 border-primary" :src="previewImage || form.image" alt="User Avatar" />
+
+                    <div v-else class="w-40 h-40 rounded-full border-2 border-primary flex items-center justify-center bg-gray-100">
+                        <i class="pi pi-user text-gray-400" style="font-size: 5rem"></i>
+                    </div>
+
                     <div class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity w-40 h-40">
                         <label class="cursor-pointer text-white text-sm font-medium p-2">
                             {{ isUploading ? 'Uploading...' : 'Change Photo' }}

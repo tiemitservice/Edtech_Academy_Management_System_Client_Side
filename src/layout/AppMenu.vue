@@ -1,11 +1,11 @@
 <template>
     <ul class="layout-menu !z-20 hidden-print">
         <div class="size-40 overflow-hidden mx-auto">
-            <img class="object-contain" :src="data[0]?.image" alt="Company Logo" />
+            <img class="object-contain" :src="data && data.length > 0 ? data[0].image : ''" alt="Company Logo" />
         </div>
         <div class="w-full flex items-center justify-center">
             <span class="font-semibold text-primary px-2 text-center">
-                {{ data[0]?.name }}
+                {{ data && data.length > 0 ? data[0].name : '' }}
             </span>
         </div>
         <div class="mt-14">
@@ -31,7 +31,6 @@ onMounted(async () => {
 });
 const userStore = useUserStore();
 
-// The entire menu model now also checks if the user is a superadmin before checking individual permissions.
 const model = ref(
     [
         {
@@ -46,7 +45,8 @@ const model = ref(
             userStore.hasPermission('subjects:read') ||
             userStore.hasPermission('class schedule:read') ||
             userStore.hasPermission('assign teacher to class:update') ||
-            userStore.hasPermission('assign student to class:update')) && {
+            userStore.hasPermission('assign student to class:update') ||
+            userStore.hasPermission('feedback:read')) && {
             label: 'Academic',
             items: [
                 (userStore.isSuperadmin || userStore.hasPermission('classes:read')) && { label: 'Classes', icon: 'pi pi-book', to: '/class' },
@@ -55,12 +55,13 @@ const model = ref(
                 (userStore.isSuperadmin || userStore.hasPermission('subjects:read')) && { label: 'Subjects', icon: 'pi pi-book', to: '/subject' },
                 (userStore.isSuperadmin || userStore.hasPermission('class schedule:read')) && { label: 'Class Schedule', icon: 'pi pi-calendar', to: '/schedulelist' },
                 (userStore.isSuperadmin || userStore.hasPermission('assign teacher to class:update')) && { label: 'Assign Teacher to Class', icon: 'pi pi-user-plus', to: '/assign_teacher_to_class' },
-                (userStore.isSuperadmin || userStore.hasPermission('assign student to class:update')) && { label: 'Assign Student to Class', icon: 'pi pi-user-plus', to: '/assign_student_to_class' }
+                (userStore.isSuperadmin || userStore.hasPermission('assign student to class:update')) && { label: 'Assign Student to Class', icon: 'pi pi-user-plus', to: '/assign_student_to_class' },
+                (userStore.isSuperadmin || userStore.hasPermission('feedback:read')) && { label: 'Feedback', icon: 'pi pi-comment', to: '/feedback' }
             ].filter(Boolean)
         },
         // Students Section
         (userStore.isSuperadmin ||
-            userStore.hasPermission('student:read') ||
+            userStore.hasPermission('student list:read') ||
             userStore.hasPermission('student category:read') ||
             userStore.hasPermission('student attendance:read') ||
             userStore.hasPermission('student scores:read') ||
@@ -69,7 +70,7 @@ const model = ref(
             userStore.hasPermission('student class history:read')) && {
             label: 'Students',
             items: [
-                (userStore.isSuperadmin || userStore.hasPermission('student:read')) && { label: 'Student List', icon: 'pi pi-users', to: '/studentlist' },
+                (userStore.isSuperadmin || userStore.hasPermission('student list:read')) && { label: 'Student List', icon: 'pi pi-users', to: '/studentlist' },
                 (userStore.isSuperadmin || userStore.hasPermission('student category:read')) && { label: 'Student Category', icon: 'pi pi-bookmark', to: '/student_category' },
                 (userStore.isSuperadmin || userStore.hasPermission('student attendance:read')) && { label: 'Student Attendance', icon: 'pi pi-calendar-check', to: '/student_attendance' },
                 (userStore.isSuperadmin || userStore.hasPermission('student scores:read')) && { label: 'Student Scores', icon: 'pi pi-chart-line', to: '/student_score' },
@@ -112,7 +113,7 @@ const model = ref(
             label: 'Finance',
             items: [
                 (userStore.isSuperadmin || userStore.hasPermission('student payments tracking:read')) && { label: 'Student Payments Tracking', icon: 'pi pi-money-bill', to: '/studentpayment' },
-                // (userStore.isSuperadmin || userStore.hasPermission('course invoice:read')) && { label: 'Course Invoice', icon: 'pi pi-file', to: '/courinvoicelist' },
+                (userStore.isSuperadmin || userStore.hasPermission('course invoice:read')) && { label: 'Course Invoice', icon: 'pi pi-file', to: '/courinvoicelist' },
                 (userStore.isSuperadmin || userStore.hasPermission('course payment transactions:read')) && { label: 'Course Payment Transactions', icon: 'pi pi-minus-circle', to: '/courseinvoice_transaction' },
                 (userStore.isSuperadmin || userStore.hasPermission('book payment:read')) && { label: 'Book Payment', icon: 'pi pi-credit-card', to: '/bookpayment' },
                 (userStore.isSuperadmin || userStore.hasPermission('book payment transactions:read')) && { label: 'Book Payment Transactions', icon: 'pi pi-minus-circle', to: '/bookpayment_transaction' }
@@ -153,7 +154,7 @@ const model = ref(
             label: 'Payment Report',
             items: [
                 (userStore.isSuperadmin || userStore.hasPermission('student payment report:read')) && { label: 'Student Payment Report', icon: 'pi pi-chart-line', to: '/student_payment_report' },
-                // (userStore.isSuperadmin || userStore.hasPermission('student complete payment report:read')) && { label: 'Student Complete Payment Report', icon: 'pi pi-chart-line', to: '/student_complete_payment_report' },
+                (userStore.isSuperadmin || userStore.hasPermission('student complete payment report:read')) && { label: 'Student Complete Payment Report', icon: 'pi pi-chart-line', to: '/student_complete_payment_report' },
                 (userStore.isSuperadmin || userStore.hasPermission('book payment report:read')) && { label: 'Book Payment Report', icon: 'pi pi-chart-line', to: '/book_payment_report' },
                 (userStore.isSuperadmin || userStore.hasPermission('book stock history:read')) && { label: 'Book Stock History', icon: 'pi pi-chart-line', to: '/stock_history_report' }
             ].filter(Boolean)

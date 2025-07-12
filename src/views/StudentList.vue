@@ -16,7 +16,7 @@
                 <Button label="Apply Filter" @click="filterData" />
 
                 <div class="flex-shrink-0">
-                    <Button v-if="userStore.hasPermission('student:create')" @click="openModal" label="Add new" class="!text-white w-[100px]" />
+                    <Button @click="openModal" label="Add new" class="!text-white w-[100px]" />
                 </div>
             </div>
         </div>
@@ -71,8 +71,8 @@
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-info-circle" @click="openStaffModal(slotProps.data)" severity="success" rounded aria-label="Info" />
-                                    <Button v-if="userStore.hasPermission('student:update')" icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                    <Button v-if="userStore.hasPermission('student:delete')" @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
+                                    <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
+                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
                                 </div>
                             </template>
                         </Column>

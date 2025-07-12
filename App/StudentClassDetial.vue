@@ -1,5 +1,5 @@
 <template>
-    <div class="min-w-[1200px] w-full max-w-full h-[80vh] max-h-[80vh] overflow-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <div style="width: 1440px" class="min-w-[1200px] !w-[1200px] max-w-[1200px] h-[80vh] max-h-[80vh] overflow-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50 sticky top-0 z-10">
             <label class="text-base font-semibold text-gray-800">Class Details</label>
@@ -18,9 +18,9 @@
                 </div>
             </div>
 
-            <!-- Data Table or Not Found Message -->
+            <!-- Data Table -->
             <div>
-                <DataTable :value="datatoedit?.students" showGridlines tableStyle="min-width: 50rem" class="text-nowrap">
+                <DataTable :value="activeStudentsInClass" showGridlines stripedRows tableStyle="min-width: 50rem" class="text-nowrap">
                     <Column header="No" style="width: 3rem">
                         <template #body="slotProps">
                             {{ slotProps.index + 1 }}
@@ -97,21 +97,26 @@
                         </template>
                     </Column>
                 </DataTable>
-                <!-- This v-else now correctly shows when there are no students -->
             </div>
         </div>
-        <div v-else style="width: 1200px; height: 80vh" class="h-[80vh] flex items-center justify-center">
-            <p>No students found</p>
+        <div v-else class="h-[70vh] flex items-center justify-center">
+            <div class="text-center text-gray-500">
+                <i class="pi pi-users text-4xl mb-2"></i>
+                <p>No active students found in this class.</p>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { formatDate2 } from '@/composible/formatDate';
 import * as XLSX from 'xlsx';
 import NotFound from '@/views/pages/NotFound.vue';
-
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import { useFetch } from '@/composible/useFetch';
 // Define props passed from the parent component
 const props = defineProps({
     datatoedit: {
@@ -120,13 +125,32 @@ const props = defineProps({
     }
 });
 
-// Computed property to safely check if there are students to display
-const hasStudents = computed(() => {
-    return props.datatoedit && Array.isArray(props.datatoedit.students) && props.datatoedit.students.length > 0;
+// Fetch all students with status: true to optimize the initial load
+const { data: allActiveStudents, fetchData: fetchStudents } = useFetch('students');
+
+// This computed property will now hold only the active students who are in the current class
+const activeStudentsInClass = computed(() => {
+    // Ensure both the class data and the list of all active students are available
+    if (!props.datatoedit?.students || !Array.isArray(allActiveStudents.value)) {
+        return [];
+    }
+
+    // Create a set of active student IDs from the fetched list for efficient lookup
+    const activeStudentIds = new Set(allActiveStudents.value.map((s) => s._id));
+
+    // Filter the students from the current class (`datatoedit`)
+    // to include only those whose ID is in the activeStudentIds set.
+    return props.datatoedit.students.filter((classStudent) => {
+        const studentId = classStudent.student?._id || classStudent.student;
+        return activeStudentIds.has(studentId);
+    });
 });
 
-// --- Print and Export Logic ---
+const hasStudents = computed(() => {
+    return activeStudentsInClass.value && activeStudentsInClass.value.length > 0;
+});
 
+// --- Print and Export Logic using the filtered list ---
 const printStudentList = () => {
     if (!hasStudents.value) return;
 
@@ -168,26 +192,26 @@ const printStudentList = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        ${props.datatoedit.students
+                        ${activeStudentsInClass.value
                             .map(
                                 (s) => `
-                            <tr>
-                                <td>${s.student?.kh_name || ''}</td>
-                                <td>${s.student?.eng_name || ''}</td>
-                                <td>${s.student?.gender || ''}</td>
-                                <td>${formatDate2(s.student?.date_of_birth) || ''}</td>
-                                <td>${s.student?.phoneNumber || ''}</td>
-                                <td>${s.attendance_score ?? 0}</td>
-                                <td>${s.assignment_score ?? 0}</td>
-                                <td>${s.home_work ?? 0}</td>
-                                <td>${s.presentation ?? 0}</td>
-                                <td>${s.work_book ?? 0}</td>
-                                <td>${s.class_practice ?? 0}</td>
-                                <td>${s.revision_test ?? 0}</td>
-                                <td>${s.final_exam ?? 0}</td>
-                                <td>${s.total_score ?? 0}</td>
-                            </tr>
-                        `
+                        <tr>
+                            <td>${s.student?.kh_name || ''}</td>
+                            <td>${s.student?.eng_name || ''}</td>
+                            <td>${s.student?.gender || ''}</td>
+                            <td>${formatDate2(s.student?.date_of_birth) || ''}</td>
+                            <td>${s.student?.phoneNumber || ''}</td>
+                            <td>${s.attendance_score ?? 0}</td>
+                            <td>${s.assignment_score ?? 0}</td>
+                            <td>${s.home_work ?? 0}</td>
+                            <td>${s.presentation ?? 0}</td>
+                            <td>${s.work_book ?? 0}</td>
+                            <td>${s.class_practice ?? 0}</td>
+                            <td>${s.revision_test ?? 0}</td>
+                            <td>${s.final_exam ?? 0}</td>
+                            <td>${s.total_score ?? 0}</td>
+                        </tr>
+                    `
                             )
                             .join('')}
                     </tbody>
@@ -211,7 +235,7 @@ const exportStudentListToExcel = () => {
 
     const worksheetData = [
         ['Khmer Name', 'English Name', 'Gender', 'Date of Birth', 'Phone Number', 'Attendance Score', 'Class Practice', 'Home Work', 'Assignment Score', 'Presentation', 'Work Book', 'Revision Test', 'Final Exam', 'Total Score', 'Comments'],
-        ...props.datatoedit.students.map((s) => [
+        ...activeStudentsInClass.value.map((s) => [
             s.student?.kh_name || '',
             s.student?.eng_name || '',
             s.student?.gender || '',
@@ -239,6 +263,11 @@ const exportStudentListToExcel = () => {
 
     XLSX.writeFile(workbook, `Student_List_${props.datatoedit.name}.xlsx`);
 };
+
+onMounted(async () => {
+    // Fetch only active students when the component mounts
+    await fetchStudents({ status: true });
+});
 </script>
 
 <style scoped>

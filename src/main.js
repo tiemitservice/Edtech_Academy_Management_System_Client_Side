@@ -29,9 +29,9 @@ app.use(PrimeVue, {
             semantic: {
                 ...Aura.semantic,
                 primary: {
-                    50: '#0A008E',
+                    // 50: '#0A008E',
                     100: '#47AE6A',
-                    200: '#0071BC',
+                    200: '#0A008E',
                     300: '#8660e6',
                     400: '#0071BC',
                     500: '#0A008E',

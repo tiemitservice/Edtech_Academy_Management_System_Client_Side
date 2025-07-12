@@ -58,7 +58,7 @@ import TeacherAttendanceReport from '@/Reports/TeacherAttendanceReport.vue';
 import TeacherPermissionReport from '@/Reports/TeacherPermissionReport.vue';
 import PromoteStudentReport from '@/Reports/PromoteStudentReport.vue';
 import StudentPermissionReport from '@/Reports/StudentPermissionReport.vue';
-
+import FeedBack from '@/views/FeedBack.vue';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -304,6 +304,11 @@ const router = createRouter({
                     component: Holiday,
                     path: '/holiday',
                     name: 'holiday'
+                },
+                {
+                    component: FeedBack,
+                    path: '/feedback',
+                    name: 'feedback'
                 }
                 // {
                 //     path: '/student_mode',
@@ -382,6 +387,7 @@ const router = createRouter({
             name: 'error',
             component: () => import('@/views/pages/auth/Error.vue')
         }
+
         // app router
     ]
 });

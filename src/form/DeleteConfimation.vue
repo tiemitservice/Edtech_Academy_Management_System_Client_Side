@@ -49,6 +49,8 @@ export default {
             if (route.path === '/department') return props.datatoedit?.name;
             if (route.path === '/section') return props.datatoedit?.duration;
             if (route.path === '/holiday') return props.datatoedit?.year;
+            // feedbark route
+            if (route.path === '/feedback') return props.datatoedit?.feedback;
             return '';
         });
 

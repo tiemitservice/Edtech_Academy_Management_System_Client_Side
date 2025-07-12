@@ -123,6 +123,7 @@ const permissionModules = ref([
     { name: 'Class Schedule', actions: ['read'] },
     { name: 'Assign Teacher to Class', actions: ['update'] },
     { name: 'Assign Student to Class', actions: ['update'] },
+    { name: 'Feedback', actions: ['create', 'read', 'update', 'delete'] },
     // Students
     { name: 'Student List', actions: ['create', 'read', 'update', 'delete'] },
     { name: 'Student Category', actions: ['create', 'read', 'update', 'delete'] },
@@ -183,7 +184,6 @@ const form = reactive({
 const selectedImage = ref(null);
 const previewImage = ref(null);
 
-// Watch for changes to the role and auto-select all permissions for superadmin
 watch(
     () => form.role,
     (newRole) => {
@@ -194,7 +194,6 @@ watch(
                     allPermissions.push(`${module.name.toLowerCase()}:${action}`);
                 });
             });
-            // Use a Set to ensure uniqueness and then convert back to an array
             form.permissions = [...new Set(allPermissions)];
         }
     }

@@ -37,8 +37,11 @@
                         {{ user?.name }}
                     </span>
 
-                    <router-link to="/profile" class="layout-topbar-action rounded-full overflow-hidden !size-10">
-                        <img :src="user?.image" alt="User Profile" class="w-full h-full object-cover" />
+                    <router-link to="/profile" class="layout-topbar-action rounded-full overflow-hidden !size-10 flex items-center justify-center">
+                        <img v-if="user?.image" :src="user.image" alt="User Profile" class="w-full h-full object-cover" />
+                        <div v-else class="rounded-full border size-10 border-primary flex items-center justify-center">
+                            <i class="pi pi-user size-5 object-cover"></i>
+                        </div>
                     </router-link>
 
                     <Button plain @click="handleLogout" class="rounded-full overflow-hidden !size-10">
