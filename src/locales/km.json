@@ -1,0 +1,55 @@
+{
+    "dashboard": {
+        "welcomeMessage": "សូមស្វាគមន៍មកកាន់ សាលារៀន​ អ៊ែដធិច អាខាឌឺមី",
+        "welcomeSubtitle": "នេះគឺជាទិដ្ឋភាពទូទៅនៃសាលារបស់អ្នក។",
+        "stats": {
+            "totalStudents": "សិស្សសរុប",
+            "totalTeachers": "គ្រូបង្រៀនសរុប",
+            "totalClasses": "ថ្នាក់សរុប",
+            "totalSubjects": "មុខវិជ្ជាសរុប",
+            "totalBooks": "សៀវភៅសរុប",
+            "soldBooks": "សៀវភៅបានលក់",
+            "courseInvoices": "វិក្កយបត្រវគ្គសិក្សា"
+        },
+        "chart": {
+            "title": "ចំនួនសិស្សក្នុងមួយថ្នាក់"
+        },
+        "quickActions": {
+            "title": "សកម្មភាពរហ័ស",
+            "addStudent": "បន្ថែមសិស្សថ្មី",
+            "addTeacher": "បន្ថែមគ្រូថ្មី",
+            "createClass": "បង្កើតថ្នាក់ថ្មី",
+            "takeAttendance": "ពិនិត្យវត្តមាន"
+        }
+    },
+    "schedule": {
+        "title": "កាលវិភាគថ្នាក់",
+        "printButton": "បោះពុម្ពកាលវិភាគ",
+        "weeklySchedule": "កាលវិភាគប្រចាំសប្តាហ៍",
+        "teacher": "គ្រូបង្រៀន",
+        "subject": "មុខវិជ្ជា",
+        "students": "សិស្ស",
+        "noClasses": "គ្មានថ្នាក់",
+        "noData": "មិនមានទិន្នន័យកាលវិភាគទេ"
+    },
+    "day_of_week": {
+        "schdeule_list": "កាលវិភគ",
+        "sunday": "អាទិត្យ",
+        "monday": "ចន្ទ",
+        "tuesday": "អង្គារ",
+        "wednesday": "ពុធ",
+        "thursday": "ព្រហស្បតិ៍",
+        "friday": "សុក្រ",
+        "saturday": "សៅរ៍",
+        "print": "បោះពុម្ព"
+    },
+    "login": {
+        "welcome": "សូមស្វាគមន៍!",
+        "signInToContinue": "ចូលដើម្បីបន្ត",
+        "email": "អ៊ីមែល",
+        "emailPlaceholder": "អាសយដ្ឋានអ៊ីមែល",
+        "password": "ពាក្យសម្ងាត់",
+        "passwordPlaceholder": "ពាក្យសម្ងាត់",
+        "signInButton": "ចូល"
+    }
+}

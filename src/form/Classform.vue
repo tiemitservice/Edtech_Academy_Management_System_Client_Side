@@ -21,6 +21,11 @@
                 <label for="section" class="block text-sm font-medium text-gray-700"> Select Days </label>
                 <MultiSelect id="day_class" v-model="dayclass" :options="workDay" optionLabel="name" optionValue="name" filter show-clear placeholder="Select days of week" class="w-full" />
             </div>
+            <!-- Holiday -->
+            <div class="space-y-1 text-start">
+                <label for="holiday" class="block text-sm font-medium text-gray-700"> Holiday Schedule </label>
+                <Select id="holiday" :options="holidays" option-label="year" option-value="_id" v-model="selectHoliday" filter show-clear placeholder="Select a Holiday Year" class="w-full" />
+            </div>
 
             <div class="space-y-1 text-start">
                 <label for="section" class="block text-sm font-medium text-gray-700"> Section </label>
@@ -55,6 +60,7 @@ export default {
         const { data: students, fetchData: fetchStudents } = useFetch('students');
         const { data: section, fetchData: fetchSection } = useFetch('sections');
         const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
+        const { data: holidays, fetchData: fetchHolidays } = useFetch('holidays');
         const subject = ref(null);
         const workDay = ref([{ name: 'Monday' }, { name: 'Tuesday' }, { name: 'Wednesday' }, { name: 'Thursday' }, { name: 'Friday' }, { name: 'Saturday' }, { name: 'Sunday' }]);
         const duration = ref(null);
@@ -91,6 +97,7 @@ export default {
         const name = ref(null);
         const status = ref(true);
         const mark_as_complete = ref(true);
+        const selectHoliday = ref(null);
         const isSubmitting = ref(false);
         const isValidateName = ref(false);
         const validateName = () => {
@@ -115,7 +122,8 @@ export default {
                     status: status.value,
                     day_class: dayclass.value || [],
                     subject: subject.value,
-                    duration: duration.value
+                    duration: duration.value,
+                    holiday: selectHoliday.value
                 };
 
                 if (props.datatoedit) {
@@ -141,12 +149,14 @@ export default {
                 subject.value = props.datatoedit?.subject;
                 duration.value = props.datatoedit?.duration;
                 mark_as_complete.value = props.datatoedit.mark_as_complete;
+                selectHoliday.value = props.datatoedit.holiday;
                 console.log('prop.datatoedit', props.datatoedit);
             }
             await fetchStaff(filtersStaffs.value);
             await fetchStudents(filtersStudents.value);
             await fetchSection(filterSection.value);
             await fetchSubjects(filterSubjects.value);
+            await fetchHolidays();
         });
         return {
             staffs,
@@ -171,7 +181,9 @@ export default {
             duration,
             mark_as_complete,
             subjects,
-            subject
+            subject,
+            holidays,
+            selectHoliday
         };
     }
 };

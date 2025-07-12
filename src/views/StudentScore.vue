@@ -46,7 +46,7 @@
                     <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
                         <Column field="_id" header="ID" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.data._id }}</p>
+                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
                             </template>
                         </Column>
                         <!-- created at -->

@@ -14,7 +14,7 @@
                 <!-- Action Buttons -->
                 <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
-                <Button @click="openModal" label="Add new" />
+                <!-- <Button @click="openModal" label="Add new" /> -->
             </div>
         </div>
 

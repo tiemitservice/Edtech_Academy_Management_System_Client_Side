@@ -7,9 +7,9 @@
 
         <div>
             <div class="w-full flex items-start justify-center gap-5 p-5" v-if="datatoedit">
-                <div class="flex flex-col py-4 px-4 border w-[420px] rounded-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
+                <div v-if="datatoedit" class="flex flex-col py-4 px-4 border w-[420px] rounded-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
                     <p class="w-full text-lg text-black bg-white font-semibold text-start">Teacher Details</p>
-                    <div class="flex items-center justify-start space-x-4 sm:space-x-6">
+                    <div v-if="datatoedit.staff" class="flex items-center justify-start space-x-4 sm:space-x-6">
                         <img class="block size-24 overflow-hidden object-cover rounded-full sm:mx-0 sm:shrink-0" :src="formatStaffNestedField(datatoedit.staff, 'image')" alt="Woman's Face" />
                         <div class="text-center space-y-2 sm:text-left">
                             <div class="space-y-0.5">
@@ -33,7 +33,12 @@
                             </div>
                         </div>
                     </div>
+                    <div v-else class="flex flex-col items-center justify-center py-4 px-4 w-full h-[200px]">
+                        <i class="pi pi-user text-4xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-500 font-medium">No Teacher Details</p>
+                    </div>
                 </div>
+
                 <div class="py-4 px-4 border w-[420px] bg-white rounded-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
                     <div class="text-center space-y-2 sm:text-left">
                         <div class="space-y-2">

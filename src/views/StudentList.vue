@@ -10,7 +10,7 @@
                     <InputText v-model="searchQuery" placeholder="Search by name" class="min-w-[200px]" />
                 </IconField>
                 <Dropdown :options="genders" show-clear option-value="value" v-model="selectGender" option-label="label" placeholder="Filter by gender" class="min-w-[150px]" />
-                <Dropdown :options="category" show-clear option-value="name" v-model="selectCategory" option-label="name" placeholder="Filter by category" class="min-w-[150px]" />
+                <Dropdown :options="category" show-clear option-value="_id" v-model="selectCategory" option-label="name" placeholder="Filter by category" class="min-w-[150px]" />
                 <DatePicker selectionMode="range" show-button-bar v-model="selectDOB" placeholder="Filter by date of birth" class="min-w-[120px]" />
                 <DatePicker selectionMode="range" show-button-bar v-model="selectEntered" placeholder="Filter by entered" class="min-w-[120px]" />
                 <Button label="Apply Filter" @click="filterData" />

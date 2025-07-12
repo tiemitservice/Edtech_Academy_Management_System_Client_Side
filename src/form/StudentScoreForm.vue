@@ -37,7 +37,7 @@
             <!-- Action Buttons -->
             <div class="py-4 flex items-center justify-end gap-4">
                 <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
-                <Button :label="loading ? 'Saving Report...' : 'Save as Report'" :disabled="loading" :loading="loading" @click="submitScores" />
+                <Button :label="loading ? 'Saving...' : 'Save and Report'" :disabled="loading" :loading="loading" @click="submitScores" />
             </div>
         </div>
     </form>
@@ -57,16 +57,14 @@ const props = defineProps({
 const emit = defineEmits(['close', 'toast', 'save']);
 
 // --- Data Fetching ---
-// This composable will be used to POST to the 'scorereports' collection
-const { postData: postScoreReport, loading } = useFetch('scorereports');
-// This is needed to format the student names in the table
+const { postData: postScoreReport } = useFetch('scorereports');
+// **MODIFIED:** Added a separate useFetch instance to update the 'classes' collection
+const { updateData: updateClassScores, loading } = useFetch('classes');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 
 // --- Component State ---
-// Create a deep, editable copy of the students from the prop
 const editableStudents = ref(JSON.parse(JSON.stringify(props.datatoedit.students || [])));
 
-// Define the score fields for dynamic column generation
 const scoreFields = [
     { key: 'class_practice', label: 'Practice' },
     { key: 'home_work', label: 'Homework' },
@@ -79,35 +77,34 @@ const scoreFields = [
 
 // --- Helper Functions ---
 const formatStudentName = (studentData) => {
-    // The student data can either be a populated object or just an ID string
     const studentId = typeof studentData === 'object' ? studentData?._id : studentData;
     const student = students.value?.find((s) => s._id === studentId);
     return student?.eng_name || 'Loading...';
 };
 
 const calculateTotalScore = (student) => {
-    // Calculate the total by summing up all score fields for a given student
     const total = scoreFields.reduce((sum, field) => sum + (Number(student[field.key]) || 0), 0);
-    // Also include the attendance score in the total
     student.total_score = total + (Number(student.attendance_score) || 0);
 };
 
 // --- Form Submission ---
 const submitScores = async () => {
     try {
-        // **FIX:** The schema requires a single student_id. We will provide the ID
-        // of the first student in the class list to satisfy this requirement.
         if (!editableStudents.value || editableStudents.value.length === 0) {
             emit('toast', 'error', 'There are no students in this class to report.');
             return;
         }
+
         const firstStudentId = editableStudents.value[0].student?._id || editableStudents.value[0].student;
 
-        const payload = {
-            student_id: firstStudentId, // Satisfy the required top-level student_id
+        // **MODIFIED:** Create two separate payloads
+
+        // 1. Payload for the historical ScoreReport
+        const reportPayload = {
+            student_id: firstStudentId,
             class_id: props.datatoedit._id,
             duration: props.datatoedit.duration,
-            subject: props.datatoedit.subject,
+            subject_id: props.datatoedit.subject,
             students: editableStudents.value.map((s) => ({
                 student: s.student._id || s.student,
                 attendance_score: s.attendance_score || 0,
@@ -122,24 +119,27 @@ const submitScores = async () => {
             }))
         };
 
-        // Post the new score report to the database
-        await postScoreReport(payload);
+        // 2. Payload to update the "live" Class document with the latest scores
+        const classUpdatePayload = {
+            students: reportPayload.students // The structure is the same
+        };
 
-        emit('toast', 'create', 'Score report created successfully.');
-        emit('save'); // Notify parent component to refresh its data
+        // Execute both operations concurrently
+        await Promise.all([postScoreReport(reportPayload), updateClassScores(classUpdatePayload, props.datatoedit._id)]);
+
+        emit('toast', 'create', 'Scores saved and report created successfully.');
+
         emit('close');
     } catch (error) {
-        console.error('Error creating score report:', error);
-        const message = error.response?.data?.message || 'Failed to create report.';
+        console.error('Error submitting scores:', error);
+        const message = error.response?.data?.message || 'Failed to submit scores.';
         emit('toast', 'error', message);
     }
 };
 
 // --- Lifecycle Hook ---
 onMounted(async () => {
-    // Fetch the full student list to ensure names can be displayed correctly
     await fetchStudents();
-    // Initialize total scores for all students when the component loads
     editableStudents.value.forEach(calculateTotalScore);
 });
 </script>

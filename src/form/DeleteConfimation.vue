@@ -40,12 +40,15 @@ export default {
         const displayName = computed(() => {
             if (route.path === '/class') return props.datatoedit?.name;
             if (route.path === '/studentlist') return props.datatoedit?.eng_name;
+            if (route.path === '/subject') return props.datatoedit?.name;
+            if (route.path === '/student_category') return props.datatoedit?.name;
             if (route.path === '/staffpermission') {
                 return (props.datatoedit?.staff && formatStaffNestedField(props.datatoedit.staff, 'name')) || '';
             }
             if (route.path === '/posistion') return props.datatoedit.name;
             if (route.path === '/department') return props.datatoedit?.name;
             if (route.path === '/section') return props.datatoedit?.duration;
+            if (route.path === '/holiday') return props.datatoedit?.year;
             return '';
         });
 

@@ -76,7 +76,7 @@
                                         aria-label="Edit"
                                         @click="handleEdit(slotProps.data)"
                                     />
-                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
+                                    <Button :disabled="slotProps.data.transaction === 'undo'" @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
                                 </div>
                             </template>
                         </Column>

@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch } from 'vue';
 import { useFetch } from '@/composible/useFetch';
 
 const props = defineProps(['datatoedit']);
@@ -183,6 +183,23 @@ const form = reactive({
 const selectedImage = ref(null);
 const previewImage = ref(null);
 
+// Watch for changes to the role and auto-select all permissions for superadmin
+watch(
+    () => form.role,
+    (newRole) => {
+        if (newRole === 'superadmin') {
+            const allPermissions = [];
+            permissionModules.value.forEach((module) => {
+                module.actions.forEach((action) => {
+                    allPermissions.push(`${module.name.toLowerCase()}:${action}`);
+                });
+            });
+            // Use a Set to ensure uniqueness and then convert back to an array
+            form.permissions = [...new Set(allPermissions)];
+        }
+    }
+);
+
 const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -245,7 +262,6 @@ onMounted(() => {
         form.is_reminder = props.datatoedit.is_reminder;
         form.status = props.datatoedit.status;
 
-        // **FIX:** New robust recursive function to parse complex permission strings
         const flattenAndParse = (arr) => {
             let result = [];
             if (!Array.isArray(arr)) return result;

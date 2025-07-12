@@ -12,7 +12,7 @@
         </div>
 
         <!-- This is the A5 printable area -->
-        <div class="w-[820px] mx-auto p-6 border text-sm leading-relaxed font-khmer bg-white print-page">
+        <div v-if="invoice" class="w-[820px] mx-auto p-6 border text-sm leading-relaxed font-khmer bg-white print-page">
             <!-- Header -->
             <div class="flex items-center justify-center border-4 border-white">
                 <img class="w-40 h-40" :src="companies[0]?.invoice_logo" alt="Company Logo" onerror="this.style.display='none'" />
@@ -29,43 +29,40 @@
             <div class="space-y-2 mb-6">
                 <div class="flex items-center text-lg">
                     <span class="font-semibold w-32">លោក/លោកស្រី:</span>
-                    <p>{{ formatStudentNestedField(invoice?.student_id, 'kh_name') }}</p>
+                    <p>{{ formatStudentName(invoice.student_id) }}</p>
                 </div>
                 <div class="flex items-center text-lg">
                     <span class="font-semibold w-32">អាយុ:</span>
-                    <p>{{ calculateAge(formatStudentNestedField(invoice?.student_id, 'date_of_birth')) }} ឆ្នាំ</p>
+                    <p>{{ calculateAge(studentDetails?.date_of_birth) }} ឆ្នាំ</p>
                 </div>
                 <div class="flex items-center text-lg">
                     <span class="font-semibold w-32">ភេទ:</span>
-                    <p>{{ formatStudentNestedField(invoice?.student_id, 'gender') }}</p>
+                    <p>{{ studentDetails?.gender }}</p>
                 </div>
                 <div class="flex items-center text-lg">
                     <span class="font-semibold w-32">កម្រិតសិក្សា:</span>
-                    <p>{{ formatClassName(invoice?.course_id, 'name') }}</p>
+                    <p>{{ formatClassName(invoice.course_id) }}</p>
                 </div>
-
                 <div class="flex items-center text-lg">
                     <span class="font-semibold w-40 text-nowrap">ភ្ជាប់ជាមួយសៀវភៅ:</span>
                     <label class="mr-4"><input type="checkbox" class="mr-1" />ភ្ជាប់</label>
                     <label><input type="checkbox" class="mr-1" />មិនភ្ជាប់</label>
                 </div>
-
                 <div class="flex items-center text-lg text-nowrap">
                     <span class="font-semibold pr-5">Phone Number / Telegram:</span>
-                    <p>{{ formatStudentNestedField(invoice?.student_id, 'phoneNumber') || '.........................' }}</p>
+                    <p>{{ studentDetails?.phoneNumber || '.........................' }}</p>
                 </div>
-
                 <div class="flex items-center text-lg">
                     <span class="font-semibold w-32">ម៉ោងសិក្សា:</span>
-                    <p>{{ formatClassName(invoice?.course_id, 'day_class') || '.........................' }}</p>
+                    <p>{{ classDetails?.day_class?.join(', ') || '.........................' }}</p>
                 </div>
             </div>
 
             <!-- Footer Info -->
             <div class="flex items-center text-lg mb-4 space-x-4">
                 <span class="font-semibold w-32">បានបង់ប្រាក់ចំនួន:</span>
-                <span> {{ invoice?.final_price }} $ </span>
-                <span>{{ formatNumber(companies[0]?.currencey * invoice?.final_price, 'km-KH') }} ៛</span>
+                <span> {{ invoice.final_price }} $ </span>
+                <span>{{ formatNumber(companies[0]?.currencey * invoice.final_price, 'km-KH') }} ៛</span>
             </div>
 
             <div class="flex items-center text-lg mb-6">
@@ -74,13 +71,11 @@
                 </div>
                 <div class="flex items-center">
                     <span class="">ថ្ងៃទី</span>
-                    <span class="mx-2">{{ formatDateParts(invoice?.createdAt).day }}</span>
-
+                    <span class="mx-2">{{ formatDateParts(invoice.createdAt).day }}</span>
                     <span>ខែ</span>
-                    <span class="mx-2">{{ formatDateParts(invoice?.createdAt).month }}</span>
-
+                    <span class="mx-2">{{ formatDateParts(invoice.createdAt).month }}</span>
                     <span>ឆ្នាំ</span>
-                    <span>{{ formatDateParts(invoice?.createdAt).year }}</span>
+                    <span>{{ formatDateParts(invoice.createdAt).year }}</span>
                 </div>
             </div>
 
@@ -98,64 +93,81 @@
                 <div>- លេខទូរស័ព្ទ៖ 099 54 54 49 / 086 54 54 49</div>
             </div>
         </div>
+        <div v-else-if="!loading" class="text-center p-8">
+            <p>Invoice not found.</p>
+        </div>
+        <div v-else class="text-center p-8">
+            <i class="pi pi-spin pi-spinner text-3xl"></i>
+        </div>
     </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useFetch } from '@/composible/useFetch';
 import { formatDateParts, calculateAge } from '@/composible/formatDate';
 import { formatNumber } from '@/composible/useFormat';
 
-export default {
-    setup() {
-        const route = useRoute();
-        const router = useRouter();
-        const id = ref(route.params.id);
-        const { data: classes, fetchData: fetchClasses } = useFetch('classes');
-        const { data: students, fetchData: fetchStudents } = useFetch('students');
-        const { data: courseinvoices, fetchData: fetchCourseInvoices } = useFetch('courseinvoices');
-        const { data: companies, fetchData: fetchCompanies } = useFetch('companies');
+// --- Composables ---
+const route = useRoute();
+const router = useRouter();
+const id = ref(route.params.id);
 
-        const handlePrint = () => {
-            window.print();
-        };
+// --- Data Fetching ---
+// **MODIFIED:** Now fetches a single invoice, not the whole list.
+const { data: invoiceData, fetchData: fetchCourseInvoice, loading } = useFetch('studentinvoicegenerates');
+const { data: classes, fetchData: fetchClasses } = useFetch('classes');
+const { data: students, fetchData: fetchStudents } = useFetch('students');
+const { data: companies, fetchData: fetchCompanies } = useFetch('companies');
 
-        const invoice = computed(() => courseinvoices.value?.find((invoice) => invoice._id === id.value));
+// --- Component State ---
+// This ref will hold the single invoice object.
+const invoice = ref(null);
 
-        const formatClassName = (id, fieldPath, fallback = 'Unknown') => {
-            const className = classes.value?.find((cl) => cl._id?.toString() === id?.toString());
-            if (!className) return fallback;
-            try {
-                const result = fieldPath.split('.').reduce((obj, key) => obj?.[key], className);
-                return Array.isArray(result) ? result.join(', ') : (result ?? fallback);
-            } catch (err) {
-                return fallback;
-            }
-        };
+// --- Computed Properties for details ---
+const studentDetails = computed(() => {
+    if (!invoice.value || !Array.isArray(students.value)) return null;
+    return students.value.find((s) => s._id === invoice.value.student_id);
+});
 
-        const formatStudentNestedField = (id, fieldPath, fallback = 'Unknown') => {
-            const student = students.value?.find((s) => s._id?.toString() === id?.toString());
-            if (!student) return fallback;
-            try {
-                const result = fieldPath.split('.').reduce((obj, key) => obj?.[key], student);
-                return Array.isArray(result) ? result.join(', ') : (result ?? fallback);
-            } catch (err) {
-                return fallback;
-            }
-        };
+const classDetails = computed(() => {
+    if (!invoice.value || !Array.isArray(classes.value)) return null;
+    return classes.value.find((c) => c._id === invoice.value.course_id);
+});
 
-        onMounted(async () => {
-            await fetchClasses();
-            await fetchStudents();
-            await fetchCourseInvoices();
-            await fetchCompanies();
-        });
-
-        return { id, formatClassName, formatStudentNestedField, invoice, formatDateParts, calculateAge, companies, formatNumber, handlePrint, router };
-    }
+// --- Methods ---
+const handlePrint = () => {
+    window.print();
 };
+
+const formatClassName = (classId) => {
+    if (!classId || !Array.isArray(classes.value)) return 'Unknown';
+    return classes.value.find((c) => c._id === classId)?.name || 'Unknown';
+};
+
+const formatStudentName = (studentId) => {
+    if (!studentId || !Array.isArray(students.value)) return 'Unknown';
+    return students.value.find((s) => s._id === studentId)?.kh_name || 'Unknown';
+};
+
+// --- Lifecycle Hook ---
+onMounted(async () => {
+    // Fetch all necessary data concurrently.
+    await Promise.all([
+        fetchClasses(),
+        fetchStudents(),
+        fetchCompanies(),
+        // **MODIFIED:** Fetch only the specific invoice by its ID.
+        fetchCourseInvoice({ _id: id.value })
+    ]);
+
+    // After fetching, assign the single invoice object to our ref.
+    // The API returns an array even for a single item, so we take the first element.
+    if (Array.isArray(invoiceData.value) && invoiceData.value.length > 0) {
+        invoice.value = invoiceData.value[0];
+    }
+});
 </script>
 
 <style>

@@ -112,7 +112,7 @@ const model = ref(
             label: 'Finance',
             items: [
                 (userStore.isSuperadmin || userStore.hasPermission('student payments tracking:read')) && { label: 'Student Payments Tracking', icon: 'pi pi-money-bill', to: '/studentpayment' },
-                (userStore.isSuperadmin || userStore.hasPermission('course invoice:read')) && { label: 'Course Invoice', icon: 'pi pi-file', to: '/courinvoicelist' },
+                // (userStore.isSuperadmin || userStore.hasPermission('course invoice:read')) && { label: 'Course Invoice', icon: 'pi pi-file', to: '/courinvoicelist' },
                 (userStore.isSuperadmin || userStore.hasPermission('course payment transactions:read')) && { label: 'Course Payment Transactions', icon: 'pi pi-minus-circle', to: '/courseinvoice_transaction' },
                 (userStore.isSuperadmin || userStore.hasPermission('book payment:read')) && { label: 'Book Payment', icon: 'pi pi-credit-card', to: '/bookpayment' },
                 (userStore.isSuperadmin || userStore.hasPermission('book payment transactions:read')) && { label: 'Book Payment Transactions', icon: 'pi pi-minus-circle', to: '/bookpayment_transaction' }
@@ -153,7 +153,7 @@ const model = ref(
             label: 'Payment Report',
             items: [
                 (userStore.isSuperadmin || userStore.hasPermission('student payment report:read')) && { label: 'Student Payment Report', icon: 'pi pi-chart-line', to: '/student_payment_report' },
-                (userStore.isSuperadmin || userStore.hasPermission('student complete payment report:read')) && { label: 'Student Complete Payment Report', icon: 'pi pi-chart-line', to: '/student_complete_payment_report' },
+                // (userStore.isSuperadmin || userStore.hasPermission('student complete payment report:read')) && { label: 'Student Complete Payment Report', icon: 'pi pi-chart-line', to: '/student_complete_payment_report' },
                 (userStore.isSuperadmin || userStore.hasPermission('book payment report:read')) && { label: 'Book Payment Report', icon: 'pi pi-chart-line', to: '/book_payment_report' },
                 (userStore.isSuperadmin || userStore.hasPermission('book stock history:read')) && { label: 'Book Stock History', icon: 'pi pi-chart-line', to: '/stock_history_report' }
             ].filter(Boolean)

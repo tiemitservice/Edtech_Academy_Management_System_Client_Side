@@ -8,7 +8,7 @@ import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
 import '@/assets/styles.scss';
 import { createPinia } from 'pinia';
-
+import i18n from './i18n';
 const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia); // ✅ Install Pinia first
@@ -48,7 +48,7 @@ app.use(PrimeVue, {
         }
     }
 });
-
+app.use(i18n);
 app.use(ToastService);
 app.use(ConfirmationService);
 app.mount('#app');

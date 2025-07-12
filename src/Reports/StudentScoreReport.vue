@@ -24,7 +24,7 @@
                 <div class="flex justify-between items-center mb-4 border-b pb-4">
                     <div>
                         <h3 class="text-xl font-bold text-primary">{{ formatClassName(selectedReport.class_id) }}</h3>
-                        <p class="text-sm text-gray-600">Subject: {{ formatSubjectName(selectedReport.subject_id) }} | Report Date: {{ formatDate(selectedReport.createdAt) }}</p>
+                        <p class="text-sm text-gray-600">Subject: {{ formatSubjectName(selectedReport.subject) }} | Report Date: {{ formatDate(selectedReport.createdAt) }}</p>
                     </div>
                     <div>
                         <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
@@ -126,7 +126,7 @@ const printReport = () => {
     if (!selectedReport.value) return;
     const report = selectedReport.value;
     const className = formatClassName(report.class_id);
-    const subjectName = formatSubjectName(report.subject_id);
+    const subjectName = formatSubjectName(report.subject);
     const reportDate = formatDate(report.createdAt);
 
     let tableRows = '';

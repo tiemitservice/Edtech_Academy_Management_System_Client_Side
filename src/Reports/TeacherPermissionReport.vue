@@ -5,7 +5,7 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Teacher Permission Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.teacherId" :options="teachers" filter optionLabel="en_name" optionValue="_id" placeholder="Filter by Teacher" showClear class="min-w-[180px]" />
+                <Select v-model="filters.teacherId" :options="teachers" filter optionLabel="name" optionValue="_id" placeholder="Filter by Teacher" showClear class="min-w-[180px]" />
                 <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" placeholder="Filter by Date" class="min-w-[220px]" />
                 <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
@@ -116,7 +116,7 @@ watch(rawReports, applyFilters);
 // --- HELPER & FORMATTING FUNCTIONS ---
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : 'N/A');
 // **FIX:** Changed to use 'en_name' to match the data structure used in the Select component.
-const formatTeacherName = (id) => teachers.value?.find((t) => t._id === id)?.en_name || 'N/A';
+const formatTeacherName = (id) => teachers.value?.find((t) => t._id === id)?.name || 'N/A';
 const getStatusSeverity = (status) => {
     const severityMap = { accepted: 'success', rejected: 'danger', pending: 'warning' };
     return severityMap[status] || 'info';

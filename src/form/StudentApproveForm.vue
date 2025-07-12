@@ -100,7 +100,8 @@ const handleSubmit = async () => {
             permissent_status: formState.value.status,
             reason: formState.value.reason,
             hold_date: formState.value.hold_date.map((date) => moment(date).format('YYYY-MM-DD')),
-            sent_to: formState.value.approve_by
+            sent_to: formState.value.approve_by,
+            created_by: props.datatoedit.created_by === null || props.datatoedit.created_by === undefined ? user.value.id : 'admin'
         };
 
         let reportPromise = Promise.resolve();

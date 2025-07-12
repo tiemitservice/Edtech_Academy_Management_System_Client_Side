@@ -7,16 +7,16 @@
             <div class="flex items-center gap-4 flex-wrap">
                 <!-- Filter by Staff -->
                 <div class="flex items-center gap-2">
-                    <label for="staff_filter" class="text-sm font-medium">Staff:</label>
+                    <!-- <label for="staff_filter" class="text-sm font-medium">Staff:</label> -->
                     <Select v-model="filterStaffId" :options="staffs" filter optionLabel="name" optionValue="_id" placeholder="All Staff" showClear inputId="staff_filter" class="min-w-[180px]" />
                 </div>
                 <!-- Filter by a single day -->
                 <div class="flex items-center gap-2">
-                    <label for="date_filter" class="text-sm font-medium">Date:</label>
+                    <!-- <label for="date_filter" class="text-sm font-medium">Date:</label> -->
                     <Calendar v-model="filterDate" dateFormat="yy-mm-dd" showIcon inputId="date_filter" />
                 </div>
                 <!-- Apply Filter Button -->
-                <Button @click="applyFilters" label="Filter" icon="pi pi-filter" />
+                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
                 <!-- Add New Button -->
                 <Button @click="openModal" label="Add new" />
             </div>

@@ -5,11 +5,9 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Student Payment Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.year" :options="years" placeholder="Year" showClear class="min-w-[120px]" />
-                <Select v-model="filters.month" :options="months" optionLabel="name" optionValue="value" placeholder="Month" showClear class="min-w-[120px]" />
-                <Select v-model="filters.day" :options="days" placeholder="Day" showClear class="min-w-[100px]" />
-                <Select v-model="filters.classId" :options="classesForSelectedYear" filter optionLabel="name" optionValue="_id" placeholder="Filter by Class" showClear class="min-w-[180px]" />
+                <Select v-model="filters.period" :options="periodOptions" optionLabel="label" optionValue="value" class="min-w-[180px]" />
                 <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" placeholder="Filter by Student" showClear class="min-w-[180px]" />
+                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="Filter by Class" showClear class="min-w-[180px]" />
                 <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
             </div>
@@ -81,38 +79,38 @@ const { data: classes, fetchData: fetchClasses } = useFetch('classes');
 const filteredReports = ref([]);
 
 // --- FILTERING LOGIC ---
-const filters = ref({ studentId: null, classId: null, day: null, month: null, year: null });
-const years = ref(Array.from({ length: 10 }, (_, i) => moment().year() - 5 + i));
-const months = ref(moment.months().map((m, i) => ({ name: m, value: i + 1 })));
-const days = ref(Array.from({ length: 31 }, (_, i) => i + 1));
+const filters = ref({ studentId: null, classId: null, period: 'current_month' });
 
-// **NEW:** Computed property to filter classes based on the selected year.
-const classesForSelectedYear = computed(() => {
-    if (!filters.value.year || !Array.isArray(classes.value)) {
-        return [];
-    }
-    return classes.value.filter((c) => moment(c.createdAt).year() === filters.value.year);
-});
-
-// **NEW:** Watch for changes in the year filter to reset the class filter.
-watch(
-    () => filters.value.year,
-    () => {
-        filters.value.classId = null;
-    }
-);
+const periodOptions = ref([
+    { label: 'Current Month', value: 'current_month' },
+    { label: 'Last Month', value: 'last_month' },
+    { label: 'Last 3 Months', value: 'last_3_months' }
+]);
 
 const isFilterActive = computed(() => {
-    const now = moment();
-    return filters.value.studentId !== null || filters.value.classId !== null || filters.value.day !== null || filters.value.month !== now.month() + 1 || filters.value.year !== now.year();
+    return filters.value.studentId !== null || filters.value.classId !== null || filters.value.period !== 'current_month';
 });
 
 const applyFilters = () => {
     let dataToFilter = [...rawReports.value];
 
-    if (filters.value.year) dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).year() === filters.value.year);
-    if (filters.value.month) dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).month() + 1 === filters.value.month);
-    if (filters.value.day) dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).date() === filters.value.day);
+    // Time-based filtering
+    const now = moment();
+    switch (filters.value.period) {
+        case 'current_month':
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(now, 'month'));
+            break;
+        case 'last_month':
+            const lastMonth = now.clone().subtract(1, 'month');
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(lastMonth, 'month'));
+            break;
+        case 'last_3_months':
+            const threeMonthsAgo = now.clone().subtract(3, 'months');
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isAfter(threeMonthsAgo));
+            break;
+    }
+
+    // Additional filters
     if (filters.value.studentId) dataToFilter = dataToFilter.filter((r) => r.student_id === filters.value.studentId);
     if (filters.value.classId) dataToFilter = dataToFilter.filter((r) => r.course_id === filters.value.classId);
 
@@ -120,10 +118,7 @@ const applyFilters = () => {
 };
 
 const setDefaultFilters = () => {
-    const now = moment();
-    filters.value.year = now.year();
-    filters.value.month = now.month() + 1;
-    filters.value.day = null;
+    filters.value.period = 'current_month';
     filters.value.studentId = null;
     filters.value.classId = null;
 };
@@ -133,7 +128,7 @@ const clearFilters = () => {
     applyFilters();
 };
 
-watch(rawReports, applyFilters);
+watch(rawReports, applyFilters, { deep: true });
 
 // --- HELPER & FORMATTING FUNCTIONS ---
 const formatDate = (date) => moment(date).format('YYYY-MM-DD');

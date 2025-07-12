@@ -1,6 +1,5 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
-        <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
             <label class="text-base font-semibold text-gray-800">Regenerate Invoice</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
@@ -34,10 +33,9 @@ const props = defineProps({
 const emit = defineEmits(['close', 'toast']);
 
 // Composables for data fetching
-const { updateData } = useFetch('courseinvoices');
+const { updateData } = useFetch('studentinvoicegenerates');
 
 // Component state
-const mark_as_completed = ref(true); // Default to false for regeneration
 const isSubmitting = ref(false);
 
 /**
@@ -53,7 +51,8 @@ const handleSubmit = async () => {
     isSubmitting.value = true;
     try {
         const payload = {
-            mark_as_completed: mark_as_completed.value
+            status: true,
+            transaction: 'undo'
         };
 
         await updateData(payload, props.datatoedit._id);
@@ -73,9 +72,5 @@ const handleSubmit = async () => {
 /**
  * Lifecycle hook to set the initial state when the component mounts.
  */
-onMounted(() => {
-    // The form's purpose is to set the status to false (pending),
-    // so we initialize the toggle to 'false'.
-    mark_as_completed.value = false;
-});
+onMounted(() => {});
 </script>

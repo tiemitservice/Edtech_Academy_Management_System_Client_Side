@@ -59,7 +59,8 @@ const handleSubmit = async () => {
     try {
         // 1. Mark the book payment as not completed (pending)
         const paymentUpdatePayload = {
-            mark_as_completed: false
+            mark_as_completed: false,
+            transaction: 'undo'
         };
         await updateBookPayment(paymentUpdatePayload, props.datatoedit._id);
 

@@ -38,7 +38,7 @@
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
                             <label for="" class="text-lg font-medium text-primary"> Type : </label>
-                            <p>{{ datatoedit?.student_type }}</p>
+                            <p>{{ formatCategoryNameById(datatoedit?.student_type) }}</p>
                         </div>
                     </div>
                     <div class="p-4 border rounded-lg">
@@ -167,9 +167,23 @@ import provinceJson from '@/json/province.json';
 import districtJson from '@/json/district.json';
 import communeJson from '@/json/commune.json';
 import villageJson from '@/json/village.json';
+import { useFetch } from '@/composible/useFetch';
 export default {
     props: ['datatoedit'],
     setup(props, { emit }) {
+        const { data: category, fetchData: fetchCategory } = useFetch('student_categories');
+        const formatCategoryNameById = (id) => {
+            // 1. Add a guard to ensure 'category.value' is an array and an 'id' was provided.
+            if (!Array.isArray(category.value) || !id) {
+                return 'N/A';
+            }
+
+            // 2. Your original find logic is correct.
+            const categoryObj = category.value.find((c) => c._id === id);
+
+            // 3. Return the name or 'N/A' if not found.
+            return categoryObj?.name || 'N/A';
+        };
         function getAddressName(address) {
             if (!address) return {};
 
@@ -212,15 +226,17 @@ export default {
             };
         }
 
-        onMounted(() => {
+        onMounted(async () => {
             if (props.datatoedit) {
                 console.log('Data to edit:', props.datatoedit);
             }
+            await fetchCategory();
         });
         return {
             formatDate2,
             getAddressName,
-            getFamilyAddressName
+            getFamilyAddressName,
+            formatCategoryNameById
         };
     }
 };

@@ -41,11 +41,6 @@
                             {{ formatYear(data.createdAt) }}
                         </template>
                     </Column>
-                    <Column header="Action">
-                        <template #body="{ data }">
-                            <Button icon="pi pi-print" @click="handleGenerateInvoice(data)" />
-                        </template>
-                    </Column>
                 </DataTable>
                 <NotFound v-else-if="searched" message="No active classes found for the selected student." />
                 <div v-else class="text-center p-8 bg-white rounded-lg shadow-md">

@@ -1,0 +1,56 @@
+{
+    "schoolName": "Ed-Tech Academy",
+    "dashboard": {
+        "welcomeMessage": "Welcome to Ed-Tech Academy",
+        "welcomeSubtitle": "Here is an overview of your school.",
+        "stats": {
+            "totalStudents": "Total Students",
+            "totalTeachers": "Total Teachers",
+            "totalClasses": "Total Classes",
+            "totalSubjects": "Total Subjects",
+            "totalBooks": "Total Books",
+            "soldBooks": "Books Sold",
+            "courseInvoices": "Course Invoices"
+        },
+        "chart": {
+            "title": "Number of Students per Class"
+        },
+        "quickActions": {
+            "title": "Quick Actions",
+            "addStudent": "Add New Student",
+            "addTeacher": "Add New Teacher",
+            "createClass": "Create New Class",
+            "takeAttendance": "Take Attendance"
+        }
+    },
+    "schedule": {
+        "title": "Class Schedule",
+        "printButton": "Print Schedule",
+        "weeklySchedule": "Weekly Class Schedule",
+        "teacher": "Teacher",
+        "subject": "Subject",
+        "students": "Students",
+        "noClasses": "No classes",
+        "noData": "No schedule data available."
+    },
+    "day_of_week": {
+        "schdeule_list": "Schedule List",
+        "sunday": "Sunday",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "print": "Print"
+    },
+    "login": {
+        "welcome": "Welcome!",
+        "signInToContinue": "Sign in to continue",
+        "email": "Email",
+        "emailPlaceholder": "Email address",
+        "password": "Password",
+        "passwordPlaceholder": "Password",
+        "signInButton": "Sign In"
+    }
+}

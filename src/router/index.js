@@ -36,7 +36,7 @@ import CourInvoiceList from '@/views/CourInvoiceList.vue';
 import Users from '@/views/Users.vue';
 import SchoolInfo from '@/views/SchoolInfo.vue';
 import ResetPassword from '@/views/ResetPassword.vue';
-
+import Holiday from '@/views/Holiday.vue';
 import CourseInvoice from '@/views/CourseInvoice.vue';
 import CourseInvoceTransaction from '@/views/CourseInvoceTransaction.vue';
 import BookPayment from '@/views/BookPayment.vue';
@@ -299,6 +299,11 @@ const router = createRouter({
                     component: StudentPermissionReport,
                     path: '/student_permission_report',
                     name: 'student_permission_report'
+                },
+                {
+                    component: Holiday,
+                    path: '/holiday',
+                    name: 'holiday'
                 }
                 // {
                 //     path: '/student_mode',
