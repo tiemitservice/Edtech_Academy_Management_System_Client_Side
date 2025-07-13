@@ -75,8 +75,8 @@
                         </Column>
                         <Column header="Actions" style="min-width: 150px">
                             <template #body="slotProps">
-                                <div class="flex space-x-2">
-                                    <Button icon="pi pi-check-square" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
+                                <div>
+                                    <Button icon="pi pi-check-square" severity="warn" rounded @click="handleEdit(slotProps.data)" />
                                 </div>
                             </template>
                         </Column>

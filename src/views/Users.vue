@@ -53,7 +53,7 @@
                                 <div class="flex space-x-2">
                                     <!-- <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" icon="pi pi-info-circle" @click="openStaffModal(slotProps.data)" severity="success" rounded aria-label="Info" /> -->
                                     <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                    <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" @click="handleDelete(slotProps.data._id)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
+                                    <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
                                 </div>
                             </template>
                         </Column>
@@ -64,6 +64,9 @@
         <Dialog v-model:visible="isOpen" class="w-full md:w-1/2 !p-0" modal :closable="false">
             <component :is="currentComponent" @close="handleClose" :datatoedit="datatoedit" />
         </Dialog>
+        <Dialog v-model:visible="isDelete" class="w-fit" modal :closable="false">
+            <DeleteConfimation :deleteData="deleteData" :datatoedit="datatoedit" :collection="collection" @close="handleCloseDelete" @toast="showToast" />
+        </Dialog>
     </div>
 </template>
 
@@ -73,15 +76,29 @@ import useAuth from '@/composible/useAuth';
 import { useFetch } from '@/composible/useFetch';
 import socket from '@/composible/socket';
 import UsersForm from '@/form/UsersForm.vue';
-
+import DeleteConfimation from '@/form/DeleteConfimation.vue';
 export default {
     components: {
-        UsersForm
+        UsersForm,
+        DeleteConfimation
     },
     setup() {
         const { user } = useAuth();
+        const isDelete = ref(false);
+        const deleteData = ref(null);
+
+        const handleDeleteConfirm = async (id, doc) => {
+            deleteData.value = id;
+            isDelete.value = true;
+            datatoedit.value = doc;
+        };
+        const handleCloseDelete = () => {
+            isDelete.value = false;
+            deleteData.value = null;
+        };
         const currentComponent = ref(null);
-        const { data: users, fetchData: fetchUsers, deleteData } = useFetch('users');
+        const collection = ref('users');
+        const { data: users, fetchData: fetchUsers } = useFetch(collection.value);
         const filters = ref({
             status: 'true',
             limit: 10,
@@ -103,6 +120,7 @@ export default {
         };
 
         const handleClose = () => {
+            datatoedit.value = null;
             isOpen.value = false;
         };
         const handleDatabaseUpdate = async () => {
@@ -135,7 +153,12 @@ export default {
             filters,
             handleEdit,
             datatoedit,
-            user
+            user,
+            handleDeleteConfirm,
+            isDelete,
+            deleteData,
+            handleCloseDelete,
+            collection
         };
     }
 };

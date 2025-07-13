@@ -49,6 +49,11 @@ export default {
             if (route.path === '/department') return props.datatoedit?.name;
             if (route.path === '/section') return props.datatoedit?.duration;
             if (route.path === '/holiday') return props.datatoedit?.year;
+            if (route.path === '/users') return props.datatoedit?.name;
+            if (route.path === '/studentpermission') return props.datatoedit?.reason;
+            if (route.path === '/staff') return props.datatoedit?.en_name;
+            if (route.path === '/book') return props.datatoedit?.name;
+            if (route.path === '/bookcategory') return props.datatoedit?.name;
             // feedbark route
             if (route.path === '/feedback') return props.datatoedit?.feedback;
             return '';
