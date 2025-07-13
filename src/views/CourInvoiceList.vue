@@ -11,8 +11,6 @@
                 <!-- Separate Apply and Clear Buttons -->
                 <Button @click="filterData" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear Filter" icon="pi pi-times" class="p-button-secondary" />
-                <!-- buttons -->
-                <!-- <Button @click="openModal" label="Add new" /> -->
             </div>
         </div>
 
@@ -20,31 +18,53 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="!loading && data.length > 0">
                     <DataTable :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
+                        <Column field="invoice_id" header="Invoice ID" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
-                            </template>
-                        </Column>
-
-                        <Column field="createdAt" header="createdAt" sortable style="min-width: 150px">
-                            <template #body="slotProps">
-                                <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
+                                <p class="font-bold text-blue-600">{{ slotProps.data.invoice_id }}</p>
                             </template>
                         </Column>
 
                         <Column field="student_id" header="Student" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ formatStudentNestedField(slotProps.data.student_id, 'eng_name') }}</div>
+                                <div class="font-semibold">{{ formatStudentNestedField(slotProps.data.student_id, 'eng_name') }}</div>
                             </template>
                         </Column>
 
                         <Column field="course_id" header="Course" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ formatClassName(slotProps.data.course_id, 'name') }}</div>
+                                <div class="font-semibold">{{ formatClassName(slotProps.data.course_id, 'name') }}</div>
                             </template>
                         </Column>
 
-                        <Column field="mark_as_completed" header="Status" sortable style="min-width: 150px">
+                        <Column field="amount" header="Amount" sortable style="min-width: 120px">
+                            <template #body="slotProps"> ${{ slotProps.data.amount?.toFixed(2) }} </template>
+                        </Column>
+
+                        <Column field="discount" header="Discount" sortable style="min-width: 120px">
+                            <template #body="slotProps"> {{ slotProps.data.discount }}% </template>
+                        </Column>
+
+                        <Column field="final_price" header="Final Price" sortable style="min-width: 120px">
+                            <template #body="slotProps">
+                                <span class="font-bold text-green-600">${{ slotProps.data.final_price?.toFixed(2) }}</span>
+                            </template>
+                        </Column>
+
+                        <Column field="first_payment_date" header="First Payment" sortable style="min-width: 150px">
+                            <template #body="slotProps">
+                                {{ formatDate2(slotProps.data.first_payment_date) }}
+                            </template>
+                        </Column>
+
+                        <Column field="next_payment_date" header="Next Payment" sortable style="min-width: 150px">
+                            <template #body="slotProps">
+                                {{ formatDate2(slotProps.data.next_payment_date) }}
+                            </template>
+                        </Column>
+
+                        <Column field="payment_type" header="Type" sortable style="min-width: 120px"></Column>
+
+                        <Column field="status" header="Status" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <Tag :severity="slotProps.data.status === false ? 'success' : 'danger'" :value="slotProps.data.status ? 'Pending' : 'Completed'"></Tag>
                             </template>
@@ -53,14 +73,7 @@
                         <Column header="Actions" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
-                                    <Button
-                                        icon="pi pi-undo
-"
-                                        severity="warn"
-                                        rounded
-                                        aria-label="Edit"
-                                        @click="handleEdit(slotProps.data)"
-                                    />
+                                    <Button icon="pi pi-undo" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" v-tooltip.top="'Mark as Pending'" />
                                 </div>
                             </template>
                         </Column>
@@ -113,6 +126,7 @@ import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Select from 'primevue/select';
+import Tag from 'primevue/tag';
 
 const collection = ref('studentinvoicegenerates');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);

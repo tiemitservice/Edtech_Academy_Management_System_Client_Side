@@ -16,7 +16,7 @@
         <!-- Action Buttons -->
         <div class="flex justify-end gap-2 p-4 bg-gray-50 border-t">
             <Button label="Cancel" @click="$emit('close')" severity="secondary" outlined />
-            <Button :label="isSubmitting ? 'Processing...' : 'Save & Print'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+            <Button :label="isSubmitting ? 'Processing...' : 'Print'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>

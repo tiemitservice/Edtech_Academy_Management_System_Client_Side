@@ -148,6 +148,12 @@ import { useToast } from 'primevue/usetoast';
 import moment from 'moment';
 import { formatDate2 } from '@/composible/formatDate';
 
+// PrimeVue components
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Select from 'primevue/select';
+
 const collection = ref('studentinvoicegenerates');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const { data: students, fetchData: fetchStudents } = useFetch('students');
@@ -172,7 +178,6 @@ const periodOptions = ref([
 ]);
 
 const isFilterActive = computed(() => {
-    const now = moment();
     return filters.value.period !== 'current_month' || filters.value.studentId !== null || filters.value.classId !== null;
 });
 
@@ -235,11 +240,11 @@ const getHighlightClass = (data) => {
     const nextPayment = moment(data.next_payment_date, 'YYYY-MM-DD').startOf('day');
     if (!nextPayment.isValid()) return null;
     if (nextPayment.isBefore(today)) {
-        return 'text-[#DC2626]';
+        return 'text-[#DC2626]'; // Red for overdue
     }
     const daysUntilPayment = nextPayment.diff(today, 'days');
     if (daysUntilPayment >= 0 && daysUntilPayment <= 5) {
-        return 'text-[#F97316]';
+        return 'text-[#F97316]'; // Orange for upcoming
     }
     return null;
 };
@@ -282,18 +287,6 @@ function openModal() {
     isOpen.value = true;
     datatoedit.value = null;
 }
-
-const formatStudentName = (studentId) => {
-    if (!students.value) return '...';
-    const student = students.value.find((s) => s._id === studentId);
-    return student ? student.eng_name : 'N/A';
-};
-
-const formatClassName = (classId) => {
-    if (!classes.value) return '...';
-    const course = classes.value.find((c) => c._id === classId);
-    return course ? course.name : 'N/A';
-};
 
 onMounted(async () => {
     await Promise.all([fetchData(), fetchStudents(), fetchClasses()]);

@@ -59,6 +59,8 @@ import TeacherPermissionReport from '@/Reports/TeacherPermissionReport.vue';
 import PromoteStudentReport from '@/Reports/PromoteStudentReport.vue';
 import StudentPermissionReport from '@/Reports/StudentPermissionReport.vue';
 import FeedBack from '@/views/FeedBack.vue';
+
+import Registration from '@/Registration.vue';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -376,6 +378,11 @@ const router = createRouter({
             path: '/auth/login',
             name: 'login',
             component: () => import('@/views/pages/auth/Login.vue')
+        },
+        {
+            path: '/auth/register',
+            name: 'register',
+            component: Registration
         },
         {
             path: '/auth/access',
