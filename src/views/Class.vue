@@ -12,8 +12,9 @@
                     <InputText placeholder="Search by name" v-model="searchQuery" class="w-full" />
                 </IconField>
                 <div class="flex items-center gap-4">
-                    <DatePicker v-model="createdAt_select" selectionMode="range" show-icon show-button-bar placeholder="Filter by created at" />
-                    <Button @click="filterData" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700" /> <Button @click="openModal" label="Add new" />
+                    <!-- <DatePicker v-model="createdAt_select" selectionMode="range" show-icon show-button-bar placeholder="Filter by created at" /> -->
+                    <!-- <Button @click="filterData" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700" />  -->
+                    <Button @click="openModal" label="Add new" />
                 </div>
             </div>
         </div>
@@ -233,15 +234,15 @@ const filterData = () => {
 
     setTimeout(() => {
         const q = searchQuery.value.trim().toLowerCase();
-        const start = Array.isArray(createdAt_select.value) ? createdAt_select.value[0] : createdAt_select.value?.start;
-        const end = Array.isArray(createdAt_select.value) ? createdAt_select.value[1] : createdAt_select.value?.end;
+        // const start = Array.isArray(createdAt_select.value) ? createdAt_select.value[0] : createdAt_select.value?.start;
+        // const end = Array.isArray(createdAt_select.value) ? createdAt_select.value[1] : createdAt_select.value?.end;
 
         data.value =
             rawData.value?.filter((item) => {
                 const matchesName = !q || item.name?.toLowerCase().includes(q);
-                const matchesCreatedAt = !start || !end ? true : moment(item.createdAt).isBetween(moment(start).startOf('day'), moment(end).endOf('day'), undefined, '[]');
+                // const matchesCreatedAt = !start || !end ? true : moment(item.createdAt).isBetween(moment(start).startOf('day'), moment(end).endOf('day'), undefined, '[]');
                 const isCompleted = item.mark_as_completed === true;
-                return matchesName && matchesCreatedAt && isCompleted;
+                return matchesName && isCompleted;
             }) || [];
 
         console.log('Filtered data:', data.value);

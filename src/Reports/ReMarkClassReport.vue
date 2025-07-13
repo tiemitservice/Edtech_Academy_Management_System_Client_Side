@@ -1,179 +1,360 @@
 <template>
-    <section class="px-4 mx-auto">
-        <!-- Header and Filter Controls -->
-        <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Class Completion Reports</label>
-            <div class="flex items-center gap-2 flex-wrap justify-end">
-                <!-- Filters -->
-                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
-                <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" placeholder="* Select a Date" class="min-w-[200px]" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId || !filters.date" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
+    <div class="space-y-4 main-content">
+        <div class="py-2 flex flex-col md:flex-row justify-between items-center mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
+            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Class History</label>
+
+            <!-- Filters and search -->
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="flex flex-col">
+                    <label for="student-select" class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Select Student <span><span class="text-red-500">*</span></span>
+                    </label>
+                    <Dropdown id="student-select" v-model="selectedStudent" showClear filter :options="studentOptions" optionLabel="eng_name" optionValue="_id" placeholder="Select Student" class="w-full md:w-64" />
+                </div>
+                <div class="flex gap-2 items-end">
+                    <Button label="Apply Filter" @click="applyFilter" :loading="loading" />
+                    <!-- <Button label="Fetch Report" @click="fetchScoreReport" :loading="reportFetching" severity="secondary" /> -->
+                </div>
             </div>
         </div>
-
-        <!-- Report Display Area -->
-        <div v-if="!loading">
-            <!-- Initial Prompt -->
-            <div v-if="!selectedReport && !searched" class="text-center p-8 bg-white rounded-lg shadow-md">
-                <p class="text-gray-500">Please select a class and a date to view its completion report.</p>
-            </div>
-
-            <!-- Report Details and Table (v-else-if) -->
-            <div v-else-if="selectedReport" class="py-2 bg-white p-4 rounded-lg shadow-md">
-                <div class="flex justify-between items-center mb-4 border-b pb-4">
-                    <div>
-                        <h3 class="text-xl font-bold text-primary">{{ formatClassName(selectedReport.class_id) }}</h3>
-                        <p class="text-sm text-gray-600">Subject: {{ formatSubjectName(selectedReport.subject_id) }} | Duration: {{ formatDurationName(selectedReport.duration) }} | Report Date: {{ formatDate(selectedReport.createdAt) }}</p>
-                    </div>
-                    <div>
-                        <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
-                        <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
-                    </div>
-                </div>
-                <DataTable :value="selectedReport.student_id" showGridlines responsiveLayout="scroll" size="small">
-                    <Column header="No." headerStyle="width: 3rem">
-                        <template #body="slotProps">{{ slotProps.index + 1 }}</template>
+        <div class="flex flex-col">
+            <div class="overflow-x-auto">
+                <DataTable :value="filteredClasses" showGridlines class="mt-4" v-if="filteredClasses.length > 0">
+                    <Column field="name" header="Class Name" />
+                    <Column field="subject" header="Subject">
+                        <template #body="{ data }">
+                            {{ formatSubject(data.subject) }}
+                        </template>
                     </Column>
-                    <Column header="Student Name">
-                        <template #body="{ data }">{{ formatStudentName(data) }}</template>
+                    <Column field="staff" header="Teacher">
+                        <template #body="{ data }">
+                            {{ formatStaffName(data.staff) }}
+                        </template>
                     </Column>
-                    <Column header="Gender">
-                        <template #body="{ data }">{{ formatStudentInfo(data, 'gender') }}</template>
+                    <Column field="duration" header="Section">
+                        <template #body="{ data }">
+                            {{ formatDuration(data.duration) }}
+                        </template>
                     </Column>
-                    <Column header="Phone Number">
-                        <template #body="{ data }">{{ formatStudentInfo(data, 'phoneNumber') }}</template>
+                    <Column field="createdAt" header="Year">
+                        <template #body="{ data }">
+                            {{ formatYear(data.createdAt) }}
+                        </template>
+                    </Column>
+                    <Column header="Actions">
+                        <template #body="{ data }">
+                            <div class="flex gap-2">
+                                <!-- Updated button to call printReport -->
+                                <Button icon="pi pi-print" @click="printReport(data)" v-tooltip.top="'Print Score Report'" />
+                            </div>
+                        </template>
                     </Column>
                 </DataTable>
+                <NotFound v-else-if="searched" message="No class history found for the selected student." />
+                <div v-else class="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                    <p class="text-gray-500 dark:text-gray-400">Please select a student and apply the filter to see their class history.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display Fetched Score Report -->
+        <div v-if="fetchedReport" class="mt-8">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Saved Score Report</h3>
+            <DataTable :value="[fetchedReport]" showGridlines>
+                <Column field="student_id" header="Student">
+                    <template #body="{ data }">
+                        {{ student.find((s) => s._id === data.student_id)?.eng_name || 'N/A' }}
+                    </template>
+                </Column>
+                <Column field="class_id" header="Class">
+                    <template #body="{ data }">
+                        {{ classes.find((c) => c._id === data.class_id)?.name || 'N/A' }}
+                    </template>
+                </Column>
+                <Column field="total_score" header="Total Score"></Column>
+                <Column field="createdAt" header="Date Saved">
+                    <template #body="{ data }">
+                        {{ moment(data.createdAt).format('YYYY-MM-DD HH:mm') }}
+                    </template>
+                </Column>
+            </DataTable>
+        </div>
+
+        <Toast position="top-right" />
+    </div>
+
+    <!-- This section is hidden by default and will only be visible for printing -->
+    <div class="printable-area">
+        <div v-if="reportDataToPrint" class="p-8 font-sans">
+            <h1 class="text-2xl font-bold mb-6 text-center">លទ្ធផលការសិក្សា</h1>
+
+            <!-- Updated Header with Student Image -->
+            <div class="flex items-start justify-between mb-8">
+                <div class="text-base space-y-1">
+                    <p><strong>ឈ្មោះ:</strong> {{ reportDataToPrint.studentInfo.eng_name }}</p>
+                    <p><strong>ថ្នាក់:</strong> {{ reportDataToPrint.classData.name }}</p>
+                    <p><strong>គ្រូបង្រៀន:</strong> {{ formatStaffName(reportDataToPrint.classData.staff) }}</p>
+                    <p><strong>ឆ្នាំ:</strong> {{ formatYear(reportDataToPrint.classData.createdAt) }}</p>
+                </div>
+                <div>
+                    <img :src="reportDataToPrint.studentInfo.image" alt="Student Profile" class="w-28 h-28 object-cover rounded-md border-2 border-gray-300" @error="$event.target.src = 'https://placehold.co/112x112/e2e8f0/718096?text=No+Image'" />
+                </div>
             </div>
 
-            <!-- No reports found message (v-else) -->
-            <div v-else>
-                <NotFound :message="`No completion reports found for '${formatClassName(filters.classId)}' on the selected date.`" />
-            </div>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700">
+                        <th class="p-3 border border-gray-300">តាមរាងពិន្ទុ</th>
+                        <th class="p-3 border border-gray-300 text-right">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="score in reportDataToPrint.scores" :key="score.label" class="border-b">
+                        <td class="p-3 border border-gray-300">{{ score.label }}</td>
+                        <td class="p-3 border border-gray-300 text-right">{{ score.value }}</td>
+                    </tr>
+                    <tr class="font-bold bg-gray-100">
+                        <td class="p-3 border border-gray-300">Total Score</td>
+                        <td class="p-3 border border-gray-300 text-right">{{ reportDataToPrint.total_score }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <div v-else>
-            <Laoding />
-        </div>
-    </section>
+    </div>
 </template>
 
-<script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useFetch } from '../composible/useFetch';
-import moment from 'moment';
-import * as XLSX from 'xlsx';
+<style>
+/* These styles are applied globally but only take effect during printing */
+@media print {
+    body,
+    html {
+        visibility: hidden;
+    }
 
-// Import UI components
-import Select from 'primevue/select';
+    /* Hide the main application content */
+    .main-content,
+    .p-toast,
+    .p-tooltip,
+    #app-sidebar,
+    #app-header {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* Ensure the printable area is the only thing visible */
+    .printable-area,
+    .printable-area * {
+        visibility: visible;
+    }
+
+    .printable-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: auto;
+        padding: 20px; /* Add some padding for print */
+        margin: 0;
+    }
+
+    /* Ensure the body has no margins or padding in print mode */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+</style>
+
+<script setup>
+import { ref, computed, onMounted, nextTick } from 'vue';
+import { useFetch } from '@/composible/useFetch';
+import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Calendar from 'primevue/calendar';
-import Laoding from '@/views/pages/Laoding.vue';
+import moment from 'moment';
+import { useToast } from 'primevue/usetoast';
 import NotFound from '@/views/pages/NotFound.vue';
 
-// --- DATA FETCHING ---
-const { data: rawReports, loading, fetchData: fetchReports } = useFetch('markclassreports');
+// --- Data Fetching ---
+const { data: student, fetchData: fetchStudents } = useFetch('students');
 const { data: classes, fetchData: fetchClasses } = useFetch('classes');
-const { data: students, fetchData: fetchStudents } = useFetch('students');
-const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
+const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
+const { data: staffs, fetchData: fetchStaff } = useFetch('staffs');
+const { data: scoreReports, fetchData: fetchScoreReports, loading: reportFetching } = useFetch('scorereportcompleteds');
 
-// --- COMPONENT STATE ---
-const selectedReport = ref(null);
+// --- Component State ---
+const selectedStudent = ref(null);
+const filteredClasses = ref([]);
+const loading = ref(false);
 const searched = ref(false);
+const toast = useToast();
+const reportDataToPrint = ref(null);
+const fetchedReport = ref(null); // To store the fetched report
 
-// --- FILTERING LOGIC ---
-const filters = ref({ classId: null, date: null });
+// --- Computed Properties ---
+const studentOptions = computed(
+    () =>
+        student.value?.map((s) => ({
+            _id: s._id,
+            eng_name: s.eng_name,
+            kh_name: s.kh_name,
+            image: s.image
+        })) || []
+);
 
-const isFilterActive = computed(() => {
-    return filters.value.classId !== null || filters.value.date !== null;
-});
+// --- Formatting Functions ---
+const formatSubject = (id) => subjects.value?.find((s) => s._id === id)?.name || 'N/A';
+const formatDuration = (id) => sections.value?.find((s) => s._id === id)?.duration || 'N/A';
+const formatStaffName = (id) => staffs.value?.find((s) => s._id === id)?.en_name || 'N/A';
+const formatYear = (date) => moment(date).format('YYYY');
 
-const applyFilters = () => {
+// --- Toast Notification ---
+const showToast = (payload) => {
+    const action = typeof payload === 'string' ? payload : payload.action;
+    const customMessage = typeof payload === 'object' ? payload.message : null;
+    const severity = action === 'error' ? 'error' : 'success';
+    const summary = action === 'error' ? 'Error' : 'Success';
+    toast.add({ severity, summary: customMessage || summary, life: 3000 });
+};
+
+// --- Filter Logic ---
+const applyFilter = () => {
     searched.value = true;
-    if (!filters.value.classId || !filters.value.date) {
-        selectedReport.value = null;
+    fetchedReport.value = null; // Clear previous report
+    if (!selectedStudent.value) {
+        filteredClasses.value = [];
+        showToast({ action: 'error', message: 'Please select a student to filter' });
         return;
     }
-    const selectedDate = moment(filters.value.date);
+    loading.value = true;
+    setTimeout(() => {
+        const result =
+            classes.value?.filter(
+                (cls) =>
+                    cls.mark_as_completed === false &&
+                    cls.students?.some((s) => {
+                        const studentId = typeof s.student === 'object' ? s.student._id : s.student;
+                        return studentId === selectedStudent.value;
+                    })
+            ) || [];
+        filteredClasses.value = result;
+        loading.value = false;
+        if (result.length > 0) {
+            showToast({ action: 'found', message: `Found ${result.length} class(es)` });
+        } else {
+            showToast({ action: 'not_found', message: 'No classes found for the selected student' });
+        }
+    }, 300);
+};
 
-    const dataToFilter = rawReports.value.filter((r) => r.class_id === filters.value.classId && moment(r.createdAt).isSame(selectedDate, 'day'));
+// --- Fetch Score Report Logic ---
+const fetchScoreReport = async () => {
+    if (!selectedStudent.value) {
+        showToast({ action: 'error', message: 'Please select a student first.' });
+        return;
+    }
+    await fetchScoreReports(); // Fetch all reports
+    const report = scoreReports.value?.find((r) => r.student_id === selectedStudent.value);
 
-    if (dataToFilter.length > 0) {
-        dataToFilter.sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)));
-        selectedReport.value = dataToFilter[0];
+    if (report) {
+        // Recalculate total score on the client side to ensure it's always correct
+        report.total_score =
+            (report.attendance_score ?? 0) + (report.class_practice ?? 0) + (report.home_work ?? 0) + (report.assignment_score ?? 0) + (report.presentation ?? 0) + (report.work_book ?? 0) + (report.revision_test ?? 0) + (report.final_exam ?? 0);
+
+        fetchedReport.value = report;
+        showToast({ message: 'Report found!' });
     } else {
-        selectedReport.value = null;
+        fetchedReport.value = null;
+        showToast({ action: 'error', message: 'No saved report found for this student.' });
     }
 };
 
-const clearFilters = () => {
-    filters.value.classId = null;
-    filters.value.date = null;
-    selectedReport.value = null;
-    searched.value = false;
+// --- Image Preloader ---
+const preloadImage = (src) => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
 };
 
-// --- HELPER & FORMATTING FUNCTIONS ---
-const formatDate = (date) => moment(date).format('YYYY-MM-DD');
-const formatClassName = (id) => classes.value?.find((c) => c._id === id)?.name || 'N/A';
-const formatStudentName = (id) => students.value?.find((s) => s._id === id)?.eng_name || 'N/A';
-const formatSubjectName = (id) => subjects.value?.find((s) => s._id === id)?.name || 'N/A';
-const formatDurationName = (id) => sections.value?.find((s) => s._id === id)?.name || 'N/A';
-const formatStudentInfo = (id, field) => students.value?.find((s) => s._id === id)?.[field] || 'N/A';
+// --- Print Handler (No Submission) ---
+const printReport = async (classData) => {
+    if (!selectedStudent.value) {
+        showToast({ action: 'error', message: 'Please select a student first.' });
+        return;
+    }
 
-// --- ACTIONS ---
-const printReport = () => {
-    if (!selectedReport.value) return;
-    const report = selectedReport.value;
-    const className = formatClassName(report.class_id);
-    let tableRows = report.student_id
-        .map(
-            (id) => `
-        <tr>
-            <td>${formatStudentName(id)}</td>
-            <td>${formatStudentInfo(id, 'gender')}</td>
-            <td>${formatStudentInfo(id, 'phoneNumber')}</td>
-        </tr>
-    `
-        )
-        .join('');
+    const studentInfo = student.value.find((s) => s._id === selectedStudent.value);
+    const studentScores = classData.students.find((s) => (s.student?._id || s.student) === selectedStudent.value);
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <html><head><title>Student List - ${className}</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 20px; } h1 { text-align: center; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
-            @page { size: A4 portrait; }
-        </style></head><body>
-        <h1>Student List for ${className}</h1>
-        <table><thead><tr><th>Name</th><th>Gender</th><th>Phone</th></tr></thead><tbody>${tableRows}</tbody></table>
-        </body></html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
+    if (!studentInfo || !studentScores) {
+        showToast({ action: 'error', message: 'Could not find score details for this student.' });
+        return;
+    }
+
+    // Calculate the total score by summing up all individual scores
+    const calculatedTotalScore =
+        (studentScores.attendance_score ?? 0) +
+        (studentScores.class_practice ?? 0) +
+        (studentScores.home_work ?? 0) +
+        (studentScores.assignment_score ?? 0) +
+        (studentScores.presentation ?? 0) +
+        (studentScores.work_book ?? 0) +
+        (studentScores.revision_test ?? 0) +
+        (studentScores.final_exam ?? 0);
+
+    // Populate the data structure for the printable view
+    reportDataToPrint.value = {
+        studentInfo,
+        classData,
+        scores: [
+            { label: 'Attendance Score', value: studentScores.attendance_score ?? 0 },
+            { label: 'Class Practice', value: studentScores.class_practice ?? 0 },
+            { label: 'Homework', value: studentScores.home_work ?? 0 },
+            { label: 'Assignment Score', value: studentScores.assignment_score ?? 0 },
+            { label: 'Presentation', value: studentScores.presentation ?? 0 },
+            { label: 'Workbook', value: studentScores.work_book ?? 0 },
+            { label: 'Revision Test', value: studentScores.revision_test ?? 0 },
+            { label: 'Final Exam', value: studentScores.final_exam ?? 0 }
+        ],
+        total_score: calculatedTotalScore
+    };
+
+    try {
+        // Wait for Vue to update the DOM with the report data
+        await nextTick();
+
+        // Preload the student's image
+        if (studentInfo.image) {
+            await preloadImage(studentInfo.image);
+        }
+
+        // This function will be called after the print dialog is closed
+        const handleAfterPrint = () => {
+            reportDataToPrint.value = null; // Hide the printable area
+            window.removeEventListener('afterprint', handleAfterPrint); // Clean up the event listener
+        };
+
+        window.addEventListener('afterprint', handleAfterPrint);
+
+        // Add a small delay to ensure rendering is complete
+        setTimeout(() => {
+            // Trigger the browser's native print dialog
+            window.print();
+        }, 100); // 100ms delay
+    } catch (error) {
+        console.error('Could not preload image for printing:', error);
+        showToast({ action: 'error', message: 'Could not load image for printing.' });
+        reportDataToPrint.value = null; // Also hide on error
+    }
 };
 
-const exportReportToExcel = () => {
-    if (!selectedReport.value) return;
-    const report = selectedReport.value;
-    const dataToExport = report.student_id.map((id) => ({
-        'Student Name': formatStudentName(id),
-        Gender: formatStudentInfo(id, 'gender'),
-        'Phone Number': formatStudentInfo(id, 'phoneNumber')
-    }));
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
-    XLSX.writeFile(workbook, `StudentList_${formatClassName(report.class_id)}.xlsx`);
-};
-
-// --- LIFECYCLE HOOK ---
+// --- Lifecycle Hook ---
 onMounted(async () => {
-    await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchSubjects(), fetchSections()]);
+    await Promise.allSettled([fetchClasses(), fetchStudents(), fetchSections(), fetchSubjects(), fetchStaff()]);
 });
 </script>

@@ -78,10 +78,10 @@ import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
 
 import Toast from 'primevue/toast';
-const { data: staffs, fetchData: fetchStaff } = useFetch('users');
+const { data: staffs, fetchData: fetchStaff } = useFetch('students');
 const formatStaffName = (staffId) => {
     const staff = staffs.value?.find((s) => s._id === staffId);
-    return staff ? staff.name : 'Unknown';
+    return staff ? staff.eng_name : 'Unknown';
 };
 
 // --- Component State ---

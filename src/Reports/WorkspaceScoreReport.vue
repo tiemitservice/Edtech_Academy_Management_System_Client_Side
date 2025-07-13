@@ -11,9 +11,9 @@
                     </label>
                     <Dropdown id="student-select" v-model="selectedStudent" showClear filter :options="studentOptions" optionLabel="eng_name" optionValue="_id" placeholder="Select Student" class="w-full md:w-64" />
                 </div>
-                <div>
-                    <label class="invisible mb-1 select-none">&nbsp;</label>
+                <div class="flex gap-2 items-end">
                     <Button label="Apply Filter" @click="applyFilter" :loading="loading" />
+                    <Button label="Fetch Report" @click="fetchScoreReport" :loading="reportFetching" severity="secondary" />
                 </div>
             </div>
         </div>
@@ -45,7 +45,7 @@
                         <template #body="{ data }">
                             <div class="flex gap-2">
                                 <!-- Updated button to call printReport -->
-                                <Button icon="pi pi-print" severity="info" @click="printReport(data)" v-tooltip.top="'Print and Save Score Report'" />
+                                <Button icon="pi pi-print" severity="info" @click="printReport(data)" v-tooltip.top="'Print Score Report'" />
                             </div>
                         </template>
                     </Column>
@@ -56,6 +56,30 @@
                 </div>
             </div>
         </div>
+
+        <!-- Display Fetched Score Report -->
+        <div v-if="fetchedReport" class="mt-8">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Saved Score Report</h3>
+            <DataTable :value="[fetchedReport]" showGridlines>
+                <Column field="student_id" header="Student">
+                    <template #body="{ data }">
+                        {{ student.find((s) => s._id === data.student_id)?.eng_name || 'N/A' }}
+                    </template>
+                </Column>
+                <Column field="class_id" header="Class">
+                    <template #body="{ data }">
+                        {{ classes.find((c) => c._id === data.class_id)?.name || 'N/A' }}
+                    </template>
+                </Column>
+                <Column field="total_score" header="Total Score"></Column>
+                <Column field="createdAt" header="Date Saved">
+                    <template #body="{ data }">
+                        {{ moment(data.createdAt).format('YYYY-MM-DD HH:mm') }}
+                    </template>
+                </Column>
+            </DataTable>
+        </div>
+
         <Toast position="top-right" />
     </div>
 
@@ -144,10 +168,13 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { useFetch } from '@/composible/useFetch';
-
+import Dropdown from 'primevue/dropdown';
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 import moment from 'moment';
 import { useToast } from 'primevue/usetoast';
-import NotFound from './pages/NotFound.vue';
+import NotFound from '@/views/pages/NotFound.vue';
 
 // --- Data Fetching ---
 const { data: student, fetchData: fetchStudents } = useFetch('students');
@@ -155,8 +182,7 @@ const { data: classes, fetchData: fetchClasses } = useFetch('classes');
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
 const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
 const { data: staffs, fetchData: fetchStaff } = useFetch('staffs');
-// --- Data Submission ---
-const { postData } = useFetch('scorereportcompleteds');
+const { data: scoreReports, fetchData: fetchScoreReports, loading: reportFetching } = useFetch('scorereportcompleteds');
 
 // --- Component State ---
 const selectedStudent = ref(null);
@@ -164,8 +190,8 @@ const filteredClasses = ref([]);
 const loading = ref(false);
 const searched = ref(false);
 const toast = useToast();
-// This ref will hold the data for the printable report
 const reportDataToPrint = ref(null);
+const fetchedReport = ref(null); // To store the fetched report
 
 // --- Computed Properties ---
 const studentOptions = computed(
@@ -188,14 +214,15 @@ const formatYear = (date) => moment(date).format('YYYY');
 const showToast = (payload) => {
     const action = typeof payload === 'string' ? payload : payload.action;
     const customMessage = typeof payload === 'object' ? payload.message : null;
-    const severity = action === 'error' ? 'error' : 'success'; // Changed default to success
-    const summary = action === 'error' ? 'Error' : 'Success'; // Changed default to Success
+    const severity = action === 'error' ? 'error' : 'success';
+    const summary = action === 'error' ? 'Error' : 'Success';
     toast.add({ severity, summary: customMessage || summary, life: 3000 });
 };
 
 // --- Filter Logic ---
 const applyFilter = () => {
     searched.value = true;
+    fetchedReport.value = null; // Clear previous report
     if (!selectedStudent.value) {
         filteredClasses.value = [];
         showToast({ action: 'error', message: 'Please select a student to filter' });
@@ -222,7 +249,39 @@ const applyFilter = () => {
     }, 300);
 };
 
-// --- Modified Print and Submit Handler ---
+// --- Fetch Score Report Logic ---
+const fetchScoreReport = async () => {
+    if (!selectedStudent.value) {
+        showToast({ action: 'error', message: 'Please select a student first.' });
+        return;
+    }
+    await fetchScoreReports(); // Fetch all reports
+    const report = scoreReports.value?.find((r) => r.student_id === selectedStudent.value);
+
+    if (report) {
+        // Recalculate total score on the client side to ensure it's always correct
+        report.total_score =
+            (report.attendance_score ?? 0) + (report.class_practice ?? 0) + (report.home_work ?? 0) + (report.assignment_score ?? 0) + (report.presentation ?? 0) + (report.work_book ?? 0) + (report.revision_test ?? 0) + (report.final_exam ?? 0);
+
+        fetchedReport.value = report;
+        showToast({ message: 'Report found!' });
+    } else {
+        fetchedReport.value = null;
+        showToast({ action: 'error', message: 'No saved report found for this student.' });
+    }
+};
+
+// --- Image Preloader ---
+const preloadImage = (src) => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+};
+
+// --- Print Handler (No Submission) ---
 const printReport = async (classData) => {
     if (!selectedStudent.value) {
         showToast({ action: 'error', message: 'Please select a student first.' });
@@ -237,75 +296,60 @@ const printReport = async (classData) => {
         return;
     }
 
-    // 1. Prepare the payload for the 'scorereportcompleteds' collection
-    const scoreReportPayload = {
-        student_id: studentInfo._id,
-        class_id: classData._id,
-        subject_id: classData.subject,
-        duration: classData.duration,
-        attendance_score: studentScores.attendance_score ?? 0,
-        class_practice: studentScores.class_practice ?? 0,
-        home_work: studentScores.home_work ?? 0,
-        assignment_score: studentScores.assignment_score ?? 0,
-        presentation: studentScores.presentation ?? 0,
-        work_book: studentScores.work_book ?? 0,
-        revision_test: studentScores.revision_test ?? 0,
-        final_exam: studentScores.final_exam ?? 0,
-        total_score: studentScores.total_score ?? 0
+    // Calculate the total score by summing up all individual scores
+    const calculatedTotalScore =
+        (studentScores.attendance_score ?? 0) +
+        (studentScores.class_practice ?? 0) +
+        (studentScores.home_work ?? 0) +
+        (studentScores.assignment_score ?? 0) +
+        (studentScores.presentation ?? 0) +
+        (studentScores.work_book ?? 0) +
+        (studentScores.revision_test ?? 0) +
+        (studentScores.final_exam ?? 0);
+
+    // Populate the data structure for the printable view
+    reportDataToPrint.value = {
+        studentInfo,
+        classData,
+        scores: [
+            { label: 'Attendance Score', value: studentScores.attendance_score ?? 0 },
+            { label: 'Class Practice', value: studentScores.class_practice ?? 0 },
+            { label: 'Homework', value: studentScores.home_work ?? 0 },
+            { label: 'Assignment Score', value: studentScores.assignment_score ?? 0 },
+            { label: 'Presentation', value: studentScores.presentation ?? 0 },
+            { label: 'Workbook', value: studentScores.work_book ?? 0 },
+            { label: 'Revision Test', value: studentScores.revision_test ?? 0 },
+            { label: 'Final Exam', value: studentScores.final_exam ?? 0 }
+        ],
+        total_score: calculatedTotalScore
     };
 
     try {
-        // 2. Submit the data to the server
-        const response = await postData(scoreReportPayload);
-        if (response) {
-            showToast({ message: 'Score report saved successfully!' });
+        // Wait for Vue to update the DOM with the report data
+        await nextTick();
 
-            // 3. Populate the data for the printable view
-            reportDataToPrint.value = {
-                studentInfo,
-                classData,
-                scores: [
-                    { label: 'Attendance Score', value: studentScores.attendance_score ?? 0 },
-                    { label: 'Class Practice', value: studentScores.class_practice ?? 0 },
-                    { label: 'Homework', value: studentScores.home_work ?? 0 },
-                    { label: 'Assignment Score', value: studentScores.assignment_score ?? 0 },
-                    { label: 'Presentation', value: studentScores.presentation ?? 0 },
-                    { label: 'Workbook', value: studentScores.work_book ?? 0 },
-                    { label: 'Revision Test', value: studentScores.revision_test ?? 0 },
-                    { label: 'Final Exam', value: studentScores.final_exam ?? 0 }
-                ],
-                total_score: studentScores.total_score ?? 0
-            };
-
-            // 4. Wait for Vue to update the DOM
-            await nextTick();
-
-            // 5. Preload the image to ensure it's ready for printing
-            const imageToLoad = new Image();
-            imageToLoad.src = studentInfo.image || 'https://placehold.co/112x112/e2e8f0/718096?text=No+Image';
-
-            // --- ✨ NEW: Function to handle printing and cleanup ---
-            const handlePrintAndCleanup = () => {
-                // Trigger the browser's native print dialog
-                window.print();
-                // After printing (or canceling), hide the printable area by resetting the data
-                reportDataToPrint.value = null;
-            };
-
-            // When the image is loaded, call the print and cleanup function
-            imageToLoad.onload = handlePrintAndCleanup;
-
-            // If the image fails to load, still print but with the placeholder/broken image
-            imageToLoad.onerror = () => {
-                console.error('Image failed to load for printing.');
-                handlePrintAndCleanup();
-            };
-        } else {
-            showToast({ action: 'error', message: 'Failed to save the score report.' });
+        // Preload the student's image
+        if (studentInfo.image) {
+            await preloadImage(studentInfo.image);
         }
+
+        // This function will be called after the print dialog is closed
+        const handleAfterPrint = () => {
+            reportDataToPrint.value = null; // Hide the printable area
+            window.removeEventListener('afterprint', handleAfterPrint); // Clean up the event listener
+        };
+
+        window.addEventListener('afterprint', handleAfterPrint);
+
+        // Add a small delay to ensure rendering is complete
+        setTimeout(() => {
+            // Trigger the browser's native print dialog
+            window.print();
+        }, 100); // 100ms delay
     } catch (error) {
-        console.error('Error submitting score report:', error);
-        showToast({ action: 'error', message: error.message || 'An unexpected error occurred.' });
+        console.error('Could not preload image for printing:', error);
+        showToast({ action: 'error', message: 'Could not load image for printing.' });
+        reportDataToPrint.value = null; // Also hide on error
     }
 };
 
