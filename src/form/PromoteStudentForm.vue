@@ -91,8 +91,7 @@ const handleSubmit = async () => {
         await Promise.all([updateData(toClassPayload, toClassId.value), updateData(fromClassPayload, props.datatoedit._id), postPromoteReport(reportPayload)]);
 
         // 4. Emit events on success
-        emit('toast', 'update', 'Students promoted successfully.');
-        emit('save');
+        emit('toast', 'update');
         emit('close');
     } catch (e) {
         console.error('Error promoting students:', e);

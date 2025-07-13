@@ -149,8 +149,12 @@ const courseInvoiceCount = computed(() => courseInvoices.value?.length || 0);
 
 // --- Chart Data and Options ---
 const chartData = computed(() => {
-    const classLabels = classes.value?.map((c) => c.name) || [];
-    const studentCounts = classes.value?.map((c) => c.students.length) || [];
+    // First, filter for classes where mark_as_completed is true
+    const completedClasses = classes.value?.filter((c) => c.mark_as_completed === true) || [];
+
+    // Then, create the labels and data from the filtered array
+    const classLabels = completedClasses.map((c) => c.name);
+    const studentCounts = completedClasses.map((c) => c.students.length);
 
     return {
         labels: classLabels,

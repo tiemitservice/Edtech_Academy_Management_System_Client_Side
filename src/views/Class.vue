@@ -29,11 +29,11 @@
                             </template>
                         </Column>
                         <!-- created at -->
-                        <Column field="createdAt" header="Created at" style="min-width: 150px">
+                        <!-- <Column field="createdAt" header="Created at" style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
                             </template>
-                        </Column>
+                        </Column> -->
                         <Column field="name" header="Name" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
@@ -63,7 +63,7 @@
                                     <Button @click="handleClassDetails(slotProps.data)" icon="pi pi-user" severity="success" rounded aria-label="Info" />
                                     <Button @click="handleStudentClassDetail(slotProps.data)" icon="pi pi-users" rounded aria-label="Info" />
                                     <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                    <Button icon="pi pi-bookmark-fill" severity="warn" rounded aria-label="Edit" @click="handleMarkClass(slotProps.data)" :disabled="slotProps.data?.students?.length <= 0" />
+                                    <Button icon="pi pi-bookmark-fill" severity="warn" rounded aria-label="Edit" @click="handleMarkClass(slotProps.data)" />
                                     <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" :disabled="slotProps.data?.students?.length" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
                                 </div>
                             </template>

@@ -23,7 +23,7 @@
                             <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
                         </div>
                     </div>
-                    <DataTable :value="filteredReports" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                    <DataTable :value="filteredReports" striped-rows="true" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
                         <Column field="createdAt" header="Report Date" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>

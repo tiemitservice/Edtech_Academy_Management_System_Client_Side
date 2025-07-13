@@ -21,7 +21,7 @@
                 <h1 class="text-lg font-bold">បង្កាន់ដៃបង់ប្រាក់ (RECEIPT)</h1>
                 <div class="flex items-center text-lg">
                     <span class="mr-2">បង្កាន់ដៃលេខៈ</span>
-                    <span class="px-4 font-semibold">{{ id }}</span>
+                    <span class="px-4 font-semibold"> 00{{ invoice?.invoice_id }}</span>
                 </div>
             </div>
 

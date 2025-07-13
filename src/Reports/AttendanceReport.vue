@@ -32,7 +32,7 @@
                     </div>
                 </div>
 
-                <DataTable :value="selectedReport.students" showGridlines responsiveLayout="scroll" size="small">
+                <DataTable :value="selectedReport.students" showGridlines striped-rows="true" responsiveLayout="scroll" size="large">
                     <Column header="No." headerStyle="width: 3rem">
                         <template #body="slotProps">{{ slotProps.index + 1 }}</template>
                     </Column>

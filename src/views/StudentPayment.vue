@@ -188,6 +188,9 @@ const applyFilters = () => {
         class_name: classes.value.find((c) => c._id === report.course_id)?.name || 'Unknown'
     }));
 
+    // --- Default filter for status: true ---
+    processed = processed.filter((item) => item.status === true);
+
     // Time-based filtering
     const now = moment();
     switch (filters.value.period) {
@@ -260,8 +263,8 @@ const handleCloseReset = async () => {
     await fetchData();
 };
 const handleEdit = (doc) => {
-    datatoedit.value = doc;
     openModal();
+    datatoedit.value = doc;
 };
 const handleClose = () => {
     isOpen.value = false;
@@ -276,8 +279,8 @@ function closeModal() {
     datatoedit.value = null;
 }
 function openModal() {
-    datatoedit.value = null;
     isOpen.value = true;
+    datatoedit.value = null;
 }
 
 const formatStudentName = (studentId) => {

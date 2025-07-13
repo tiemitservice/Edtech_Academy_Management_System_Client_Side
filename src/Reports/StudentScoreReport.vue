@@ -31,7 +31,7 @@
                         <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
                     </div>
                 </div>
-                <DataTable :value="selectedReport.students" showGridlines responsiveLayout="scroll" size="small" class="text-nowrap">
+                <DataTable :value="selectedReport.students" showGridlines striped-rows responsiveLayout="scroll" size="large" class="text-nowrap">
                     <Column header="Student Name">
                         <template #body="{ data }">{{ formatStudentName(data.student) }}</template>
                     </Column>

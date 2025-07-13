@@ -158,6 +158,7 @@ const handleSubmit = async () => {
             amount: formState.amount,
             discount: formState.discount || 0,
             final_price: finalPrice.value,
+            payment_type: formState.payment_type,
             status: true
         };
 

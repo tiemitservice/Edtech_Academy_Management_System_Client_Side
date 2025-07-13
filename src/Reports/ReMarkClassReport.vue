@@ -19,7 +19,7 @@
         </div>
         <div class="flex flex-col">
             <div class="overflow-x-auto">
-                <DataTable :value="filteredClasses" showGridlines class="mt-4" v-if="filteredClasses.length > 0">
+                <DataTable :value="filteredClasses" showGridlines stripedRows class="mt-4" v-if="filteredClasses.length > 0">
                     <Column field="name" header="Class Name" />
                     <Column field="subject" header="Subject">
                         <template #body="{ data }">

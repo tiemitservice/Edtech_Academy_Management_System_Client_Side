@@ -11,6 +11,8 @@
                 <!-- Separate Apply and Clear Buttons -->
                 <Button @click="filterData" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear Filter" icon="pi pi-times" class="p-button-secondary" />
+                <!-- buttons -->
+                <!-- <Button @click="openModal" label="Add new" /> -->
             </div>
         </div>
 
@@ -44,7 +46,7 @@
 
                         <Column field="mark_as_completed" header="Status" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <Tag :severity="slotProps.data.mark_as_completed ? 'success' : 'danger'" :value="slotProps.data.mark_as_completed ? 'Completed' : 'Pending'"></Tag>
+                                <Tag :severity="slotProps.data.status === false ? 'success' : 'danger'" :value="slotProps.data.status ? 'Pending' : 'Completed'"></Tag>
                             </template>
                         </Column>
 
@@ -52,7 +54,7 @@
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button
-                                        icon="pi pi-cloud-upload
+                                        icon="pi pi-undo
 "
                                         severity="warn"
                                         rounded
@@ -112,7 +114,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Select from 'primevue/select';
 
-const collection = ref('courseinvoices');
+const collection = ref('studentinvoicegenerates');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const isOpen = ref(false);
 const datatoedit = ref(null);
@@ -202,7 +204,7 @@ const isFilterActive = computed(() => {
 const filterData = () => {
     loading.value = true;
     setTimeout(() => {
-        let filtered = rawData.value?.filter((item) => item.mark_as_completed === false) || [];
+        let filtered = rawData.value?.filter((item) => item.status === false) || [];
 
         const yearToFilter = selectedYear.value;
         const monthToFilter = selectedMonth.value;

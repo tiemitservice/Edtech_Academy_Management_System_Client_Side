@@ -31,7 +31,7 @@
                         <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
                     </div>
                 </div>
-                <DataTable :value="selectedReport.students" showGridlines responsiveLayout="scroll" size="small" class="text-nowrap">
+                <DataTable :value="selectedReport.students" showGridlines responsiveLayout="scroll" size="large" striped-rows class="text-nowrap">
                     <Column header="No." headerStyle="width: 3rem">
                         <template #body="slotProps">{{ slotProps.index + 1 }}</template>
                     </Column>

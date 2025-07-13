@@ -21,7 +21,7 @@
                 </div>
                 <!-- Data Table or Not Found Message -->
                 <div v-else class="py-2">
-                    <DataTable v-if="filteredData.length > 0" :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                    <DataTable v-if="filteredData.length > 0" :value="filteredData" striped-rows="true" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
                         <Column header="No." style="min-width: 50px">
                             <template #body="slotProps">{{ slotProps.index + 1 }}</template>
                         </Column>
@@ -66,7 +66,7 @@
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl transition-all">
-                                <div class="mt-2">
+                                <div class="">
                                     <StudentApproveForm :datatoedit="datatoedit" @close="handleClose" @toast="showToast" @save="handleSave" />
                                 </div>
                             </DialogPanel>
@@ -85,7 +85,7 @@
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
-                            <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+                            <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
                                 <div class="mt-2">
                                     <DeleteConfimation :deleteData="deleteId" :datatoedit="datatoedit" :collection="collection" @close="handleCloseDelete" @toast="showToast" />
                                 </div>
@@ -175,7 +175,7 @@ const formatStudentName = (studentId) => {
 };
 
 const getStatusSeverity = (status) => {
-    const severityMap = { accepted: 'success', rejected: 'danger', pending: 'warning' };
+    const severityMap = { accepted: 'success', rejected: 'danger', pending: 'warn' };
     return severityMap[status] || 'info';
 };
 

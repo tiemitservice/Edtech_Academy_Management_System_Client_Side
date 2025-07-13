@@ -234,7 +234,7 @@ const exportStudentListToExcel = () => {
     if (!hasStudents.value) return;
 
     const worksheetData = [
-        ['Khmer Name', 'English Name', 'Gender', 'Date of Birth', 'Phone Number', 'Attendance Score', 'Class Practice', 'Home Work', 'Assignment Score', 'Presentation', 'Work Book', 'Revision Test', 'Final Exam', 'Total Score', 'Comments'],
+        ['Khmer Name', 'English Name', 'Gender', 'Date of Birth', 'Phone Number', 'Attendance Score', 'Class Practice', 'Home Work', 'Assignment Score', 'Presentation', 'Work Book', 'Revision Test', 'Final Exam', 'Total Score'],
         ...activeStudentsInClass.value.map((s) => [
             s.student?.kh_name || '',
             s.student?.eng_name || '',
@@ -249,8 +249,8 @@ const exportStudentListToExcel = () => {
             s.work_book ?? 0,
             s.revision_test ?? 0,
             s.final_exam ?? 0,
-            s.total_score ?? 0,
-            s.comments || ''
+            s.total_score ?? 0
+            // s.comments || ''
         ])
     ];
 
