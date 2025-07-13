@@ -20,13 +20,16 @@
             <div class="overflow-x-auto">
                 <div v-if="filteredReports.length > 0" class="py-2 bg-white p-4 rounded-lg shadow-md">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold">Report Results</h3>
+                        <!-- <h3 class="text-lg font-semibold">Report Results</h3> -->
                         <div>
                             <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
                             <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
                         </div>
                     </div>
                     <DataTable :value="filteredReports" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                        <Column field="createdAt" header="Date" sortable>
+                            <template #body="{ data }">{{ data.index + 1 }}</template>
+                        </Column>
                         <Column field="createdAt" header="Date" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>

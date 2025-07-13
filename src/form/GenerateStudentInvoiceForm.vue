@@ -62,7 +62,7 @@
         <!-- Action Buttons -->
         <div class="w-full flex items-center justify-end mt-4 p-4 border-t bg-gray-50">
             <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined class="mr-2" />
-            <Button :label="loading ? 'Saving...' : 'Save & Print'" type="submit" :loading="loading" />
+            <Button :label="loading ? 'Saving...' : 'Save'" type="submit" :loading="loading" />
         </div>
     </form>
 </template>
@@ -89,7 +89,6 @@ const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: classes, fetchData: fetchClasses } = useFetch('classes');
 const { data: discounts, fetchData: fetchDiscounts } = useFetch('discounts');
 const { postData, updateData, loading } = useFetch('studentinvoicegenerates');
-const { postData: postStudentPaymentReport } = useFetch('studentpaymentreports');
 const toast = useToast();
 
 // --- Reactive Form State ---
@@ -149,38 +148,40 @@ const handleSubmit = async () => {
             ...formState,
             final_price: finalPrice.value,
             next_payment_date: nextPaymentDate.value,
-            first_payment_date: formState.first_payment_date ? moment(formState.first_payment_date).format('YYYY-MM-DD') : null
+            first_payment_date: formState.first_payment_date ? moment(formState.first_payment_date).format('YYYY-MM-DD') : null,
+            mark_as_completed: true
         };
 
-        const reportPayload = {
-            student_id: formState.student_id,
-            course_id: formState.course_id,
-            amount: formState.amount,
-            discount: formState.discount || 0,
-            final_price: finalPrice.value,
-            payment_type: formState.payment_type,
-            status: true
-        };
+        // const reportPayload = {
+        //     student_id: formState.student_id,
+        //     course_id: formState.course_id,
+        //     amount: formState.amount,
+        //     discount: formState.discount || 0,
+        //     final_price: finalPrice.value,
+        //     payment_type: formState.payment_type,
+        //     status: true
+        // };
 
         let invoiceId;
 
         if (props.datatoedit) {
-            await Promise.all([updateData(invoicePayload, props.datatoedit._id), postStudentPaymentReport(reportPayload)]);
+            await Promise.all([updateData(invoicePayload, props.datatoedit._id)]);
             emit('toast', 'update');
             invoiceId = props.datatoedit._id;
-        } else {
-            const newInvoiceResponse = await postData(invoicePayload);
-            invoiceId = newInvoiceResponse.data?._id;
-            await postStudentPaymentReport({ ...reportPayload, invoice_id: invoiceId }); // Optionally link report to invoice
-            emit('toast', 'create');
+
+            // } else {
+            //     const newInvoiceResponse = await postData(invoicePayload);
+            //     invoiceId = newInvoiceResponse.data?._id;
+            //     await postStudentPaymentReport({ ...reportPayload, invoice_id: invoiceId }); // Optionally link report to invoice
+            //     emit('toast', 'create');
         }
 
         emit('save');
         emit('close');
 
-        if (invoiceId) {
-            router.push({ name: 'invoice_invoice', params: { id: invoiceId } });
-        }
+        // if (invoiceId) {
+        //     router.push({ name: 'invoice_invoice', params: { id: invoiceId } });
+        // }
     } catch (error) {
         console.error('Error saving invoice:', error);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to save the invoice.', life: 3000 });

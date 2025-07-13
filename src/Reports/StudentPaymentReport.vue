@@ -1,6 +1,7 @@
 <template>
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
+        <!-- {{ rawReports }} -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
             <label class="text-lg font-medium text-gray-800 dark:text-white">Student Payment Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
@@ -24,7 +25,7 @@
                             <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
                         </div>
                     </div>
-                    <DataTable :value="filteredReports" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                    <DataTable :value="filteredReports" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
                         <Column field="createdAt" header="Date" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>
@@ -192,6 +193,9 @@ const exportReportToExcel = () => {
 onMounted(async () => {
     setDefaultFilters();
     await Promise.all([fetchReports(), fetchStudents(), fetchClasses()]);
+    console.log('====================================');
+    console.log('rawReports', rawReports.value.length);
+    console.log('====================================');
     applyFilters();
 });
 </script>

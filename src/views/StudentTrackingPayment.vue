@@ -20,7 +20,7 @@
         <div class="flex flex-col" v-if="!loading">
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="filteredData.length > 0">
-                    <DataTable :value="filteredData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
+                    <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
                         <Column header="No" sortable style="min-width: 80px">
                             <template #body="slotProps">
                                 <div class="p-3 rounded" :class="getHighlightClass(slotProps.data)">
@@ -81,14 +81,6 @@
                                         rounded
                                         aria-label="Reset"
                                     />
-                                    <!-- <Button
-                                        :disabled="!slotProps.data?.next_payment_date && !slotProps.data?.first_payment_date && !slotProps.data?.payment_type"
-                                        @click="handleMakeTracking(slotProps.data)"
-                                        icon="pi pi-check"
-                                        severity="danger"
-                                        rounded
-                                        aria-label="Reset"
-                                    /> -->
                                 </div>
                             </template>
                         </Column>
@@ -113,7 +105,7 @@
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl transition-all">
                                 <div class="mt-2">
-                                    <GenerateStudentInvoiceForm :datatoedit="datatoedit" @close="handleClose" @toast="showToast" @save="handleSave" />
+                                    <MakeTrackingForm :datatoedit="datatoedit" @close="handleClose" @toast="showToast" @save="handleSave" />
                                 </div>
                             </DialogPanel>
                         </TransitionChild>
@@ -140,24 +132,6 @@
                 </div>
             </Dialog>
         </TransitionRoot>
-        <TransitionRoot appear :show="isMakeTracking" as="template">
-            <Dialog as="div" @close="handleCloseTracking" class="relative z-[99]">
-                <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
-                    <div class="fixed inset-0 bg-black/25" />
-                </TransitionChild>
-                <div class="fixed inset-0 overflow-y-auto">
-                    <div class="flex min-h-full items-start justify-center p-4 text-center">
-                        <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
-                            <DialogPanel class="w-fit transform overflow-hidden text-left align-middle shadow-xl transition-all">
-                                <div class="mt-2">
-                                    <MakeTrackingForm :datatoedit="datatoedit" :collection="collection" @close="handleCloseTracking" @toast="showToast" />
-                                </div>
-                            </DialogPanel>
-                        </TransitionChild>
-                    </div>
-                </div>
-            </Dialog>
-        </TransitionRoot>
         <Toast position="top-right" />
     </section>
 </template>
@@ -166,9 +140,8 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
-import GenerateStudentInvoiceForm from '@/form/GenerateStudentInvoiceForm.vue';
-import ResetPaymentForm from '@/form/ResetPaymentForm.vue';
 import MakeTrackingForm from '@/form/MakeTrackingForm.vue';
+import ResetPaymentForm from '@/form/ResetPaymentForm.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
 import { useToast } from 'primevue/usetoast';
@@ -181,19 +154,11 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Select from 'primevue/select';
 
-const collection = ref('studentinvoicegenerates');
+const collection = ref('trackingspayments');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: classes, fetchData: fetchClasses } = useFetch('classes');
-const isMakeTracking = ref(false);
-const handleMakeTracking = (doc) => {
-    isMakeTracking.value = true;
-    datatoedit.value = doc;
-};
-const handleCloseTracking = () => {
-    isMakeTracking.value = false;
-    datatoedit.value = null;
-};
+
 const isOpen = ref(false);
 const datatoedit = ref(null);
 const isReset = ref(false);
@@ -230,7 +195,7 @@ const applyFilters = () => {
 
     // --- Default filter for status: true ---
     processed = processed.filter((item) => item.status === true);
-    // processed = processed.filter((item) => item.mark_as_completed === true);
+
     // Time-based filtering
     const now = moment();
     switch (filters.value.period) {

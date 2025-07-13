@@ -54,36 +54,22 @@
                 </div>
             </div>
 
-            <!-- Permissions Table -->
+            <!-- Permissions -->
             <div class="mt-8">
                 <h3 class="text-lg font-semibold mb-4">Permissions</h3>
-                <div class="overflow-auto rounded-lg shadow-sm border max-h-[50vh]">
-                    <table class="min-w-full table-auto text-sm text-left">
-                        <thead class="bg-gray-100 sticky top-0">
-                            <tr>
-                                <th class="border px-4 py-2">Module</th>
-                                <th class="border px-4 py-2 text-center">Create</th>
-                                <th class="border px-4 py-2 text-center">Read</th>
-                                <th class="border px-4 py-2 text-center">Update</th>
-                                <th class="border px-4 py-2 text-center">Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="module in permissionModules" :key="module.name" class="hover:bg-gray-50">
-                                <td class="border-b border-r px-4 py-2 font-medium flex items-center justify-between">
-                                    <label>{{ module.name }}</label>
-                                    <input type="checkbox" :checked="isModuleFullySelected(module)" @change="toggleModuleAll(module)" />
-                                </td>
-                                <td v-for="action in ['create', 'read', 'update', 'delete']" :key="action" class="border px-4 py-2 font-medium">
-                                    <div class="flex items-center justify-center">
-                                        <template v-if="module.actions.includes(action)">
-                                            <input type="checkbox" :value="`${module.name.toLowerCase()}:${action}`" v-model="form.permissions" />
-                                        </template>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="space-y-4">
+                    <div v-for="group in permissionGroups" :key="group.name" class="p-4 border rounded-lg">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-gray-800">{{ group.name }}</h4>
+                            <input type="checkbox" :checked="isGroupFullySelected(group)" @change="toggleGroupAll(group)" class="h-5 w-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300" />
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            <div v-for="module in group.modules" :key="module.name" class="flex items-center">
+                                <input type="checkbox" :id="`perm-${module.name}`" :checked="isModuleSelected(module)" @change="toggleModule(module)" class="h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300" />
+                                <label :for="`perm-${module.name}`" class="ml-2 text-sm text-gray-600">{{ module.name }}</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -114,6 +100,7 @@ const roles = ref([
     { name: 'Superadmin', _id: 'superadmin' }
 ]);
 
+// This detailed list is used to determine the canonical permission for each module.
 const permissionModules = ref([
     // Academic
     { name: 'Classes', actions: ['create', 'read', 'update', 'delete'] },
@@ -170,6 +157,19 @@ const permissionModules = ref([
     { name: 'School Info', actions: ['update'] }
 ]);
 
+// Group modules for the UI
+const permissionGroups = ref([
+    { name: 'Academic', modules: permissionModules.value.slice(0, 8) },
+    { name: 'Students', modules: permissionModules.value.slice(8, 15) },
+    { name: 'Teacher', modules: permissionModules.value.slice(15, 20) },
+    { name: 'Book', modules: permissionModules.value.slice(20, 22) },
+    { name: 'Finance', modules: permissionModules.value.slice(22, 27) },
+    { name: 'Student Reports', modules: permissionModules.value.slice(27, 33) },
+    { name: 'Teacher Reports', modules: permissionModules.value.slice(33, 35) },
+    { name: 'Payment Reports', modules: permissionModules.value.slice(35, 39) },
+    { name: 'Settings', modules: permissionModules.value.slice(39, 44) }
+]);
+
 const form = reactive({
     name: '',
     email: '',
@@ -184,16 +184,17 @@ const form = reactive({
 const selectedImage = ref(null);
 const previewImage = ref(null);
 
+// Gets the primary permission string for a module (e.g., 'classes:read')
+const getCanonicalPermission = (module) => {
+    const action = module.actions.includes('read') ? 'read' : module.actions[0];
+    return `${module.name.toLowerCase()}:${action}`;
+};
+
 watch(
     () => form.role,
     (newRole) => {
         if (newRole === 'superadmin') {
-            const allPermissions = [];
-            permissionModules.value.forEach((module) => {
-                module.actions.forEach((action) => {
-                    allPermissions.push(`${module.name.toLowerCase()}:${action}`);
-                });
-            });
+            const allPermissions = permissionModules.value.map((module) => getCanonicalPermission(module));
             form.permissions = [...new Set(allPermissions)];
         }
     }
@@ -207,28 +208,49 @@ const handleImageChange = (event) => {
     }
 };
 
-const isModuleFullySelected = (module) => {
-    return module.actions.every((action) => form.permissions.includes(`${module.name.toLowerCase()}:${action}`));
+const isModuleSelected = (module) => {
+    return form.permissions.includes(getCanonicalPermission(module));
 };
 
-const toggleModuleAll = (module) => {
-    const perms = module.actions.map((action) => `${module.name.toLowerCase()}:${action}`);
-    const allSelected = perms.every((p) => form.permissions.includes(p));
-
-    if (allSelected) {
-        form.permissions = form.permissions.filter((p) => !perms.includes(p));
+const toggleModule = (module) => {
+    const perm = getCanonicalPermission(module);
+    if (isModuleSelected(module)) {
+        form.permissions = form.permissions.filter((p) => p !== perm);
     } else {
-        form.permissions = [...new Set([...form.permissions, ...perms])];
+        form.permissions.push(perm);
+    }
+};
+
+const isGroupFullySelected = (group) => {
+    return group.modules.every((module) => isModuleSelected(module));
+};
+
+const toggleGroupAll = (group) => {
+    const groupIsSelected = isGroupFullySelected(group);
+    const groupPermissions = group.modules.map((module) => getCanonicalPermission(module));
+
+    if (groupIsSelected) {
+        // Deselect all in group
+        form.permissions = form.permissions.filter((p) => !groupPermissions.includes(p));
+    } else {
+        // Select all in group
+        form.permissions = [...new Set([...form.permissions, ...groupPermissions])];
     }
 };
 
 const handleSubmit = async () => {
     const payload = new FormData();
 
+    // Append all form fields to the payload
     for (const key in form) {
-        if (key === 'password' && !form[key]) continue;
+        if (key === 'password' && !form[key]) continue; // Skip empty password
+
+        // **FIX:** Append permissions correctly instead of stringifying them.
+        // This sends them as a proper array to the backend.
         if (key === 'permissions') {
-            payload.append(key, JSON.stringify(form[key]));
+            form.permissions.forEach((permission) => {
+                payload.append('permissions', permission);
+            });
         } else {
             payload.append(key, form[key]);
         }
@@ -261,6 +283,8 @@ onMounted(() => {
         form.is_reminder = props.datatoedit.is_reminder;
         form.status = props.datatoedit.status;
 
+        // **IMPORTANT:** This parsing logic is still needed to handle
+        // the old, badly formatted data that already exists in your database.
         const flattenAndParse = (arr) => {
             let result = [];
             if (!Array.isArray(arr)) return result;
@@ -270,9 +294,11 @@ onMounted(() => {
                     result.push(...flattenAndParse(item));
                 } else if (typeof item === 'string') {
                     try {
+                        // Try to parse the string as JSON first
                         const parsed = JSON.parse(item);
                         result.push(...flattenAndParse(Array.isArray(parsed) ? parsed : [parsed]));
                     } catch (e) {
+                        // If it's not JSON, it might be a simple comma-separated or single permission
                         result.push(...item.split(',').map((p) => p.trim()));
                     }
                 }

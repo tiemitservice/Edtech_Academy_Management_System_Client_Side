@@ -2,13 +2,14 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Payment Transactions</label>
-            <div class="flex items-center gap-4 flex-wrap justify-end">
-                <IconField>
-                    <InputIcon class="pi pi-search" />
-                    <InputText placeholder="Search by student name" v-model="searchQuery" class="w-full" />
-                </IconField>
-                <Select v-model="selectedPaymentType" :options="paymentTypes" option-value="value" option-label="name" show-clear placeholder="Filter by payment type" class="min-w-[180px]" />
+            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Payments Transactions</label>
+            <div class="flex items-center gap-2 flex-wrap justify-end">
+                <!-- Filters -->
+                <Select v-model="filters.period" :options="periodOptions" optionLabel="label" optionValue="value" class="min-w-[180px]" />
+                <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" placeholder="Filter by Student" showClear class="min-w-[180px]" />
+                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="Filter by Class" showClear class="min-w-[180px]" />
+
+                <!-- Action Buttons -->
                 <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
                 <!-- <Button @click="openModal" label="Add new" /> -->
@@ -19,7 +20,7 @@
         <div class="flex flex-col" v-if="!loading">
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="filteredData.length > 0">
-                    <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                    <DataTable :value="filteredData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
                         <Column header="No" sortable style="min-width: 80px">
                             <template #body="slotProps">
                                 <div class="p-3 rounded" :class="getHighlightClass(slotProps.data)">
@@ -80,6 +81,14 @@
                                         rounded
                                         aria-label="Reset"
                                     />
+                                    <Button
+                                        :disabled="!slotProps.data?.next_payment_date && !slotProps.data?.first_payment_date && !slotProps.data?.payment_type"
+                                        @click="handleMakeTracking(slotProps.data)"
+                                        icon="pi pi-check"
+                                        severity="danger"
+                                        rounded
+                                        aria-label="Reset"
+                                    />
                                 </div>
                             </template>
                         </Column>
@@ -131,6 +140,24 @@
                 </div>
             </Dialog>
         </TransitionRoot>
+        <TransitionRoot appear :show="isMakeTracking" as="template">
+            <Dialog as="div" @close="handleCloseTracking" class="relative z-[99]">
+                <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+                    <div class="fixed inset-0 bg-black/25" />
+                </TransitionChild>
+                <div class="fixed inset-0 overflow-y-auto">
+                    <div class="flex min-h-full items-start justify-center p-4 text-center">
+                        <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+                            <DialogPanel class="w-fit transform overflow-hidden text-left align-middle shadow-xl transition-all">
+                                <div class="mt-2">
+                                    <MakeTrackingForm :datatoedit="datatoedit" :collection="collection" @close="handleCloseTracking" @toast="showToast" />
+                                </div>
+                            </DialogPanel>
+                        </TransitionChild>
+                    </div>
+                </div>
+            </Dialog>
+        </TransitionRoot>
         <Toast position="top-right" />
     </section>
 </template>
@@ -141,32 +168,52 @@ import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import GenerateStudentInvoiceForm from '@/form/GenerateStudentInvoiceForm.vue';
 import ResetPaymentForm from '@/form/ResetPaymentForm.vue';
+import MakeTrackingForm from '@/form/MakeTrackingForm.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
 import { useToast } from 'primevue/usetoast';
 import moment from 'moment';
 import { formatDate2 } from '@/composible/formatDate';
 
+// PrimeVue components
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Select from 'primevue/select';
+
 const collection = ref('studentinvoicegenerates');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: classes, fetchData: fetchClasses } = useFetch('classes');
-
-const filteredData = ref([]);
-const searchQuery = ref('');
-const selectedPaymentType = ref(null);
+const isMakeTracking = ref(false);
+const handleMakeTracking = (doc) => {
+    isMakeTracking.value = true;
+    datatoedit.value = doc;
+};
+const handleCloseTracking = () => {
+    isMakeTracking.value = false;
+    datatoedit.value = null;
+};
 const isOpen = ref(false);
 const datatoedit = ref(null);
 const isReset = ref(false);
 const toast = useToast();
+const filteredData = ref([]);
 
-const paymentTypes = ref([
-    { name: 'Quarter', value: 'Quarter' },
-    { name: 'Monthly', value: 'Monthly' }
+const filters = ref({
+    period: 'current_month',
+    studentId: null,
+    classId: null
+});
+
+const periodOptions = ref([
+    { label: 'Current Month', value: 'current_month' },
+    { label: 'Last Month', value: 'last_month' },
+    { label: 'Last 3 Months', value: 'last_3_months' }
 ]);
 
 const isFilterActive = computed(() => {
-    return searchQuery.value || selectedPaymentType.value;
+    return filters.value.period !== 'current_month' || filters.value.studentId !== null || filters.value.classId !== null;
 });
 
 const applyFilters = () => {
@@ -175,30 +222,48 @@ const applyFilters = () => {
         return;
     }
 
-    let processed = rawData.value.filter((item) => item.status === true);
-
-    processed = processed.map((report) => ({
+    let processed = rawData.value.map((report) => ({
         ...report,
         student_name: students.value.find((s) => s._id === report.student_id)?.eng_name || 'Unknown',
         class_name: classes.value.find((c) => c._id === report.course_id)?.name || 'Unknown'
     }));
 
-    const q = (searchQuery.value || '').trim().toLowerCase();
-    if (q) {
-        processed = processed.filter((item) => (item.student_name || '').toLowerCase().includes(q));
+    // --- Default filter for status: true ---
+    processed = processed.filter((item) => item.status === true);
+    processed = processed.filter((item) => item.mark_as_completed === true);
+    // Time-based filtering
+    const now = moment();
+    switch (filters.value.period) {
+        case 'current_month':
+            processed = processed.filter((item) => moment(item.createdAt).isSame(now, 'month'));
+            break;
+        case 'last_month':
+            const lastMonth = now.clone().subtract(1, 'month');
+            processed = processed.filter((item) => moment(item.createdAt).isSame(lastMonth, 'month'));
+            break;
+        case 'last_3_months':
+            const threeMonthsAgo = now.clone().subtract(3, 'months');
+            processed = processed.filter((item) => moment(item.createdAt).isAfter(threeMonthsAgo));
+            break;
     }
 
-    const paymentTypeFilter = selectedPaymentType.value;
-    if (paymentTypeFilter) {
-        processed = processed.filter((item) => item.payment_type === paymentTypeFilter);
+    // Student filter
+    if (filters.value.studentId) {
+        processed = processed.filter((item) => item.student_id === filters.value.studentId);
+    }
+
+    // Class filter
+    if (filters.value.classId) {
+        processed = processed.filter((item) => item.course_id === filters.value.classId);
     }
 
     filteredData.value = processed;
 };
 
 const clearFilters = () => {
-    searchQuery.value = '';
-    selectedPaymentType.value = null;
+    filters.value.period = 'current_month';
+    filters.value.studentId = null;
+    filters.value.classId = null;
     applyFilters();
 };
 
@@ -210,11 +275,11 @@ const getHighlightClass = (data) => {
     const nextPayment = moment(data.next_payment_date, 'YYYY-MM-DD').startOf('day');
     if (!nextPayment.isValid()) return null;
     if (nextPayment.isBefore(today)) {
-        return 'text-[#DC2626]';
+        return 'text-[#DC2626]'; // Red for overdue
     }
     const daysUntilPayment = nextPayment.diff(today, 'days');
     if (daysUntilPayment >= 0 && daysUntilPayment <= 5) {
-        return 'text-[#F97316]';
+        return 'text-[#F97316]'; // Orange for upcoming
     }
     return null;
 };
@@ -238,8 +303,8 @@ const handleCloseReset = async () => {
     await fetchData();
 };
 const handleEdit = (doc) => {
-    datatoedit.value = doc;
     openModal();
+    datatoedit.value = doc;
 };
 const handleClose = () => {
     isOpen.value = false;
@@ -254,24 +319,12 @@ function closeModal() {
     datatoedit.value = null;
 }
 function openModal() {
-    datatoedit.value = null;
     isOpen.value = true;
+    datatoedit.value = null;
 }
-
-const formatStudentName = (studentId) => {
-    if (!students.value) return '...';
-    const student = students.value.find((s) => s._id === studentId);
-    return student ? student.eng_name : 'N/A';
-};
-
-const formatClassName = (classId) => {
-    if (!classes.value) return '...';
-    const course = classes.value.find((c) => c._id === classId);
-    return course ? course.name : 'N/A';
-};
 
 onMounted(async () => {
     await Promise.all([fetchData(), fetchStudents(), fetchClasses()]);
-    applyFilters(); // Apply initial filters on mount
+    applyFilters(); // Apply default filters on mount
 });
 </script>

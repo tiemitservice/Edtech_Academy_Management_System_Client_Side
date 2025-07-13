@@ -59,6 +59,7 @@ import TeacherPermissionReport from '@/Reports/TeacherPermissionReport.vue';
 import PromoteStudentReport from '@/Reports/PromoteStudentReport.vue';
 import StudentPermissionReport from '@/Reports/StudentPermissionReport.vue';
 import FeedBack from '@/views/FeedBack.vue';
+import StudentTrackingPayment from '@/views/StudentTrackingPayment.vue';
 
 import Registration from '@/Registration.vue';
 const router = createRouter({
@@ -311,6 +312,11 @@ const router = createRouter({
                     component: FeedBack,
                     path: '/feedback',
                     name: 'feedback'
+                },
+                {
+                    component: StudentTrackingPayment,
+                    path: '/student_tracking_payment',
+                    name: 'student_tracking_payment'
                 }
                 // {
                 //     path: '/student_mode',
