@@ -81,14 +81,14 @@
                                         rounded
                                         aria-label="Reset"
                                     />
-                                    <!-- <Button
+                                    <Button
                                         :disabled="!slotProps.data?.next_payment_date && !slotProps.data?.first_payment_date && !slotProps.data?.payment_type"
                                         @click="handleMakeTracking(slotProps.data)"
                                         icon="pi pi-check"
                                         severity="danger"
                                         rounded
                                         aria-label="Reset"
-                                    /> -->
+                                    />
                                 </div>
                             </template>
                         </Column>

@@ -1,7 +1,7 @@
 <template>
     <section class="px-4 mx-auto">
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Class Invoice list</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Payment Transactions</label>
             <div class="flex items-center gap-2">
                 <!-- Dropdowns for Day, Month, Year -->
                 <Select v-model="selectedDay" :options="days" placeholder="Day" showClear class="min-w-[100px]" />
@@ -74,6 +74,13 @@
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-undo" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" v-tooltip.top="'Mark as Pending'" />
+                                    <Button
+                                        icon="pi pi-print
+    "
+                                        rounded
+                                        aria-label="Edit"
+                                        @click="$router.push(`/print_invoice/${slotProps.data._id}`)"
+                                    />
                                 </div>
                             </template>
                         </Column>

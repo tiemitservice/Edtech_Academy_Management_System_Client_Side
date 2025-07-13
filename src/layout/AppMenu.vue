@@ -113,8 +113,8 @@ const model = ref(
             label: 'Finance',
             items: [
                 (userStore.isSuperadmin || userStore.hasPermission('student payments tracking:read')) && { label: 'Student Payments Tracking', icon: 'pi pi-money-bill', to: '/studentpayment' },
-                (userStore.isSuperadmin || userStore.hasPermission('course invoice:read')) && { label: 'Course Invoice', icon: 'pi pi-file', to: '/courinvoicelist' },
-                (userStore.isSuperadmin || userStore.hasPermission('course payment transactions:read')) && { label: 'Course Payment Transactions', icon: 'pi pi-minus-circle', to: '/courseinvoice_transaction' },
+                (userStore.isSuperadmin || userStore.hasPermission('course invoice:read')) && { label: 'Student Payments Transactions', icon: 'pi pi-file', to: '/courinvoicelist' },
+                // (userStore.isSuperadmin || userStore.hasPermission('course payment transactions:read')) && { label: 'Course Payment Transactions', icon: 'pi pi-minus-circle', to: '/courseinvoice_transaction' },
                 (userStore.isSuperadmin || userStore.hasPermission('book payment:read')) && { label: 'Book Payment', icon: 'pi pi-credit-card', to: '/bookpayment' },
                 (userStore.isSuperadmin || userStore.hasPermission('book payment transactions:read')) && { label: 'Book Payment Transactions', icon: 'pi pi-minus-circle', to: '/bookpayment_transaction' }
             ].filter(Boolean)
