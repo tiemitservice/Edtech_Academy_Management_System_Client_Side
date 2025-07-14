@@ -2,7 +2,7 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Attendance Reports</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Attendance Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
                 <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
@@ -85,6 +85,7 @@ const { data: classes, fetchData: fetchClasses } = useFetch('classes');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: staff, fetchData: fetchStaff } = useFetch('staffs');
 const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 
 // --- COMPONENT STATE ---
 const selectedReport = ref(null);
@@ -109,7 +110,6 @@ const applyFilters = () => {
     let dataToFilter = rawReports.value.filter((r) => r.class_id === filters.value.classId && moment(r.createdAt || r.created_at).isSame(selectedDate, 'day'));
 
     if (dataToFilter.length > 0) {
-        // Sort by date to find the most recent report for that day
         dataToFilter.sort((a, b) => moment(b.createdAt || b.created_at).diff(moment(a.createdAt || a.created_at)));
         selectedReport.value = dataToFilter[0];
     } else {
@@ -145,12 +145,18 @@ const getAttendanceBadge = (status) => {
 // --- PRINT & EXPORT ACTIONS ---
 const printReport = () => {
     if (!selectedReport.value) return;
+
     const report = selectedReport.value;
     const className = formatClassName(report.class_id);
+    const reportDate = formatDate(report.createdAt);
+    const schoolName = companies.value?.[0]?.name || 'School Management System';
+    const generatedDate = moment().format('DD-MMM-YYYY');
+
     let tableRows = report.students
         .map(
-            (s) => `
+            (s, index) => `
         <tr>
+            <td>${index + 1}</td>
             <td>${formatStudentName(s.student)}</td>
             <td>${s.attendance || 'N/A'}</td>
             <td>${formatDateTime(s.checking_at)}</td>
@@ -164,13 +170,21 @@ const printReport = () => {
     printWindow.document.write(`
         <html><head><title>Attendance Report - ${className}</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; } h1 { text-align: center; }
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .report-header { text-align: center; margin-bottom: 20px; }
+            .report-header h1 { margin: 0; font-size: 24px; }
+            .report-header p { margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
             @page { size: A4 portrait; }
         </style></head><body>
-        <h1>Attendance for ${className}</h1>
-        <table><thead><tr><th>Student Name</th><th>Status</th><th>Checked At</th><th>Note</th></tr></thead><tbody>${tableRows}</tbody></table>
+        <div class="report-header">
+            <h1>${schoolName}</h1>
+            <p><strong>Student Attendance Report</strong></p>
+            <p><strong>Class:</strong> ${className} | <strong>Date:</strong> ${reportDate}</p>
+            <p><em>Generated on: ${generatedDate}</em></p>
+        </div>
+        <table><thead><tr><th>No.</th><th>Student Name</th><th>Status</th><th>Checked At</th><th>Note</th></tr></thead><tbody>${tableRows}</tbody></table>
         </body></html>
     `);
     printWindow.document.close();
@@ -180,7 +194,8 @@ const printReport = () => {
 const exportReportToExcel = () => {
     if (!selectedReport.value) return;
     const report = selectedReport.value;
-    const dataToExport = report.students.map((s) => ({
+    const dataToExport = report.students.map((s, index) => ({
+        'No.': index + 1,
         'Student Name': formatStudentName(s.student),
         Status: s.attendance || 'N/A',
         'Checked At': formatDateTime(s.checking_at),
@@ -194,6 +209,6 @@ const exportReportToExcel = () => {
 
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
-    await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchStaff(), fetchSubjects()]);
+    await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchStaff(), fetchSubjects(), fetchCompany()]);
 });
 </script>

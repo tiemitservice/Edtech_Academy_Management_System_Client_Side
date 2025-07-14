@@ -32,18 +32,32 @@
                     </div>
                 </div>
                 <DataTable :value="selectedReport.students" showGridlines striped-rows responsiveLayout="scroll" size="large" class="text-nowrap">
-                    <Column header="Student Name">
-                        <template #body="{ data }">{{ formatStudentName(data.student) }}</template>
+                    <!-- Row Number -->
+                    <Column header="No">
+                        <template #body="slotProps">
+                            {{ slotProps.index + 1 }}
+                        </template>
                     </Column>
-                    <Column field="attendance_score" header="Attendance"></Column>
-                    <Column field="class_practice" header="Practice"></Column>
-                    <Column field="home_work" header="Homework"></Column>
-                    <Column field="assignment_score" header="Assignment"></Column>
-                    <Column field="presentation" header="Presentation"></Column>
-                    <Column field="work_book" header="Workbook"></Column>
-                    <Column field="revision_test" header="Revision"></Column>
-                    <Column field="final_exam" header="Final Exam"></Column>
-                    <Column field="total_score" header="Total" style="font-weight: bold"></Column>
+
+                    <!-- Student Name -->
+                    <Column header="Student Name">
+                        <template #body="{ data }">
+                            {{ formatStudentName(data.student) }}
+                        </template>
+                    </Column>
+
+                    <!-- Scores -->
+                    <Column field="attendance_score" header="Attendance" />
+                    <Column field="class_practice" header="Practice" />
+                    <Column field="home_work" header="Homework" />
+                    <Column field="assignment_score" header="Assignment" />
+                    <Column field="presentation" header="Presentation" />
+                    <Column field="work_book" header="Workbook" />
+                    <Column field="revision_test" header="Revision" />
+                    <Column field="final_exam" header="Final Exam" />
+                    <Column field="total_score" header="Total" style="font-weight: bold" />
+
+                    <!-- Action Buttons -->
                     <Column header="Actions" style="width: 8rem; text-align: center">
                         <template #body="{ data }">
                             <Button icon="pi pi-print" class="p-button-rounded p-button-info" @click="printStudentReport(data)" v-tooltip.top="'Print Student Report'" />
@@ -81,6 +95,7 @@ const { data: rawReports, loading, fetchData: fetchReports } = useFetch('scorere
 const { data: classes, fetchData: fetchClasses } = useFetch('classes');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 const { data: staffs, fetchData: fetchStaffs } = useFetch('staffs');
 
 // --- Component State ---

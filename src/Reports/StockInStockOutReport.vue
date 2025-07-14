@@ -5,10 +5,9 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Book Stock History Report</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
+                <Select v-model="filters.period" :options="periodOptions" optionLabel="label" optionValue="value" class="min-w-[180px]" />
+                <Select v-model="filters.categoryId" :options="bookCategories" filter optionLabel="name" optionValue="_id" placeholder="Filter by Category" showClear class="min-w-[180px]" />
                 <Select v-model="filters.bookId" :options="books" filter optionLabel="name" optionValue="_id" placeholder="Filter by Book" showClear class="min-w-[180px]" />
-                <Select v-model="filters.day" :options="days" placeholder="Day" showClear class="min-w-[100px]" />
-                <Select v-model="filters.month" :options="months" optionLabel="name" optionValue="value" placeholder="Month" showClear class="min-w-[120px]" />
-                <Select v-model="filters.year" :options="years" placeholder="Year" showClear class="min-w-[120px]" />
                 <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
             </div>
@@ -26,6 +25,7 @@
                         </div>
                     </div>
                     <DataTable :value="filteredReports" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                        <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
                         <Column field="createdAt" header="Date" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>
@@ -72,38 +72,66 @@ import Laoding from '@/views/pages/Laoding.vue';
 // --- DATA FETCHING ---
 const { data: rawReports, loading, fetchData: fetchReports } = useFetch('stockhistoryreports');
 const { data: books, fetchData: fetchBooks } = useFetch('books');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
+const { data: bookCategories, fetchData: fetchBookCategories } = useFetch('book_categories');
 
 // --- COMPONENT STATE ---
 const filteredReports = ref([]);
 
 // --- FILTERING LOGIC ---
-const filters = ref({ bookId: null, day: null, month: null, year: null });
-const years = ref(Array.from({ length: 10 }, (_, i) => moment().year() - 5 + i));
-const months = ref(moment.months().map((m, i) => ({ name: m, value: i + 1 })));
-const days = ref(Array.from({ length: 31 }, (_, i) => i + 1));
+const filters = ref({ bookId: null, period: 'current_month', categoryId: null });
+
+const periodOptions = ref([
+    { label: 'Current Month', value: 'current_month' },
+    { label: 'Last Month', value: 'last_month' },
+    { label: 'Last 3 Months', value: 'last_3_months' }
+]);
 
 const isFilterActive = computed(() => {
-    const now = moment();
-    return filters.value.bookId !== null || filters.value.day !== null || filters.value.month !== now.month() + 1 || filters.value.year !== now.year();
+    return filters.value.bookId !== null || filters.value.period !== 'current_month' || filters.value.categoryId !== null;
 });
 
 const applyFilters = () => {
     let dataToFilter = [...rawReports.value];
 
-    if (filters.value.year) dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).year() === filters.value.year);
-    if (filters.value.month) dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).month() + 1 === filters.value.month);
-    if (filters.value.day) dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).date() === filters.value.day);
-    if (filters.value.bookId) dataToFilter = dataToFilter.filter((r) => r.book_id === filters.value.bookId);
+    // Time-based filtering
+    const now = moment();
+    switch (filters.value.period) {
+        case 'current_month':
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(now, 'month'));
+            break;
+        case 'last_month':
+            const lastMonth = now.clone().subtract(1, 'month');
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(lastMonth, 'month'));
+            break;
+        case 'last_3_months':
+            const threeMonthsAgo = now.clone().subtract(3, 'months');
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isAfter(threeMonthsAgo));
+            break;
+    }
 
-    filteredReports.value = dataToFilter;
+    // Filter by category
+    if (filters.value.categoryId) {
+        const bookIdsInCategory = books.value.filter((book) => book.bookType === filters.value.categoryId).map((book) => book._id);
+
+        dataToFilter = dataToFilter.filter((report) => bookIdsInCategory.includes(report.book_id));
+    }
+
+    // Filter by specific book
+    if (filters.value.bookId) {
+        dataToFilter = dataToFilter.filter((r) => r.book_id === filters.value.bookId);
+    }
+
+    filteredReports.value = dataToFilter.map((item, index) => ({
+        ...item,
+        displayIndex: index + 1
+    }));
 };
 
 const setDefaultFilters = () => {
-    const now = moment();
-    filters.value.year = now.year();
-    filters.value.month = now.month() + 1;
-    filters.value.day = null;
+    filters.value.period = 'current_month';
     filters.value.bookId = null;
+    filters.value.categoryId = null;
 };
 
 const clearFilters = () => {
@@ -111,7 +139,7 @@ const clearFilters = () => {
     applyFilters();
 };
 
-watch(rawReports, applyFilters);
+watch(rawReports, applyFilters, { deep: true });
 
 // --- HELPER & FORMATTING FUNCTIONS ---
 const formatDate = (date) => moment(date).format('YYYY-MM-DD');
@@ -121,10 +149,15 @@ const formatBookName = (id) => books.value?.find((b) => b._id === id)?.name || '
 const printReport = () => {
     if (!filteredReports.value.length) return;
 
+    const schoolName = companies.value?.[0]?.name || 'School Management System';
+    const reportDate = moment().format('DD-MMM-YYYY');
+    let dateRangeString = filters.value.period.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+
     let tableRows = filteredReports.value
         .map(
             (r) => `
         <tr>
+            <td>${r.displayIndex}</td>
             <td>${formatDate(r.createdAt)}</td>
             <td>${formatBookName(r.book_id)}</td>
             <td>${r.stock_in || 0}</td>
@@ -136,15 +169,34 @@ const printReport = () => {
 
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
-        <html><head><title>Stock History Report</title>
+        <html><head><title>Book Stock History Report</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; } h1 { text-align: center; }
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .report-header { text-align: center; margin-bottom: 20px; }
+            .report-header h1 { margin: 0; font-size: 24px; }
+            .report-header p { margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
             @page { size: A4 portrait; }
         </style></head><body>
-        <h1>Stock History Report</h1>
-        <table><thead><tr><th>Date</th><th>Book</th><th>Stock In</th><th>Stock Out</th></tr></thead><tbody>${tableRows}</tbody></table>
+        <div class="report-header">
+            <h1>${schoolName}</h1>
+            <p><strong>Book Stock History Report</strong></p>
+            <p><strong>Period:</strong> ${dateRangeString}</p>
+            <p><em>Generated on: ${reportDate}</em></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Date</th>
+                    <th>Book</th>
+                    <th>Stock In</th>
+                    <th>Stock Out</th>
+                </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+        </table>
         </body></html>
     `);
     printWindow.document.close();
@@ -155,6 +207,7 @@ const exportReportToExcel = () => {
     if (!filteredReports.value.length) return;
 
     const dataToExport = filteredReports.value.map((r) => ({
+        'No.': r.displayIndex,
         Date: formatDate(r.createdAt),
         'Book Title': formatBookName(r.book_id),
         'Stock In': r.stock_in || 0,
@@ -163,13 +216,13 @@ const exportReportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Stock History');
-    XLSX.writeFile(workbook, `Stock_History_Report.xlsx`);
+    XLSX.writeFile(workbook, `Book_Stock_History_Report.xlsx`);
 };
 
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
     setDefaultFilters();
-    await Promise.all([fetchReports(), fetchBooks()]);
+    await Promise.all([fetchReports(), fetchBooks(), fetchCompany(), fetchBookCategories()]);
     applyFilters();
 });
 </script>

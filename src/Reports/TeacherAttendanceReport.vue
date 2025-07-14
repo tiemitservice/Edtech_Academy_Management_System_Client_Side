@@ -24,6 +24,7 @@
                         </div>
                     </div>
                     <DataTable :value="filteredReports" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                        <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
                         <Column field="checking_at" header="Date" sortable>
                             <template #body="{ data }">{{ formatDate(data.checking_at) }}</template>
                         </Column>
@@ -34,13 +35,7 @@
                         <Column field="exit_time" header="Exit Time" sortable></Column>
                         <Column field="attendance_status" header="Attendance" sortable>
                             <template #body="{ data }">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
-                                    <Tag v-if="data.attendance_status === 'present'" severity="success" value="Present"></Tag>
-                                    <Tag v-if="data.attendance_status === 'absent'" severity="danger" value="Absent"></Tag>
-                                    <Tag v-if="data.attendance_status === 'late'" severity="warn" value="Late"></Tag>
-                                    <Tag v-if="data.attendance_status === 'permission'" severity="warn" value="Permission"></Tag>
-                                    <Tag v-if="data.attendance_status === null" severity="warn" value="Un Check"></Tag>
-                                </div>
+                                <Tag :severity="getAttendanceSeverity(data.attendance_status)" :value="data.attendance_status || 'Un-check'"></Tag>
                             </template>
                         </Column>
                         <Column field="note" header="Note"></Column>
@@ -69,12 +64,14 @@ import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Calendar from 'primevue/calendar';
+import Tag from 'primevue/tag';
 import Laoding from '@/views/pages/Laoding.vue';
 import NotFound from '@/views/pages/NotFound.vue';
+
 // --- DATA FETCHING ---
 const { data: rawReports, loading, fetchData: fetchReports } = useFetch('teacherattendancereports');
-// Assuming your teachers are in the 'staffs' collection
 const { data: teachers, fetchData: fetchTeachers } = useFetch('staffs');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 
 // --- COMPONENT STATE ---
 const filteredReports = ref([]);
@@ -100,7 +97,10 @@ const applyFilters = () => {
         dataToFilter = dataToFilter.filter((r) => moment(r.checking_at).isBetween(startDate, endDate));
     }
 
-    filteredReports.value = dataToFilter;
+    filteredReports.value = dataToFilter.map((item, index) => ({
+        ...item,
+        displayIndex: index + 1
+    }));
 };
 
 const setDefaultFilters = () => {
@@ -121,21 +121,32 @@ watch(rawReports, applyFilters);
 // --- HELPER & FORMATTING FUNCTIONS ---
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : 'N/A');
 const formatTeacherName = (id) => teachers.value?.find((t) => t._id === id)?.en_name || 'N/A';
+const getAttendanceSeverity = (status) => {
+    const severityMap = { present: 'success', absent: 'danger', late: 'warning', permission: 'info' };
+    return severityMap[status] || 'secondary';
+};
 
 // --- ACTIONS ---
 const printReport = () => {
     if (!filteredReports.value.length) return;
 
+    const schoolName = companies.value?.[0]?.name || 'School Management System';
+    const reportDate = moment().format('DD-MMM-YYYY');
+    let dateRangeString = 'All Time';
+    if (filters.value.dateRange && filters.value.dateRange[0] && filters.value.dateRange[1]) {
+        dateRangeString = `${formatDate(filters.value.dateRange[0])} to ${formatDate(filters.value.dateRange[1])}`;
+    }
+
     let tableRows = filteredReports.value
         .map(
             (r) => `
         <tr>
+            <td>${r.displayIndex}</td>
             <td>${formatDate(r.checking_at)}</td>
             <td>${formatTeacherName(r.teacher_id)}</td>
             <td>${r.entry_time || 'N/A'}</td>
             <td>${r.exit_time || 'N/A'}</td>
             <td>${r.attendance_status || 'N/A'}</td>
-
             <td>${r.note || ''}</td>
         </tr>
     `
@@ -146,13 +157,34 @@ const printReport = () => {
     printWindow.document.write(`
         <html><head><title>Teacher Attendance Report</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; } h1 { text-align: center; }
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .report-header { text-align: center; margin-bottom: 20px; }
+            .report-header h1 { margin: 0; font-size: 24px; }
+            .report-header p { margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
-            @page { size: A4 portrait; }
+            @page { size: A4 landscape; }
         </style></head><body>
-        <h1>Teacher Attendance Report</h1>
-        <table><thead><tr><th>Date</th><th>Teacher</th><th>Entry Time</th><th>Exit Time</th><th>Note</th></tr></thead><tbody>${tableRows}</tbody></table>
+        <div class="report-header">
+            <h1>${schoolName}</h1>
+            <p><strong>Teacher Attendance Report</strong></p>
+            <p><strong>Date Range:</strong> ${dateRangeString}</p>
+            <p><em>Generated on: ${reportDate}</em></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Date</th>
+                    <th>Teacher</th>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
+                    <th>Status</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+        </table>
         </body></html>
     `);
     printWindow.document.close();
@@ -163,10 +195,12 @@ const exportReportToExcel = () => {
     if (!filteredReports.value.length) return;
 
     const dataToExport = filteredReports.value.map((r) => ({
+        'No.': r.displayIndex,
         Date: formatDate(r.checking_at),
         'Teacher Name': formatTeacherName(r.teacher_id),
         'Entry Time': r.entry_time || 'N/A',
         'Exit Time': r.exit_time || 'N/A',
+        'Attendance Status': r.attendance_status || 'N/A',
         Note: r.note || ''
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -178,7 +212,7 @@ const exportReportToExcel = () => {
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
     setDefaultFilters();
-    await Promise.all([fetchReports(), fetchTeachers()]);
+    await Promise.all([fetchReports(), fetchTeachers(), fetchCompany()]);
     applyFilters();
 });
 </script>

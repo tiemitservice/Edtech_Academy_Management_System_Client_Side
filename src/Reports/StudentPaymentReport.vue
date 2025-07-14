@@ -1,7 +1,6 @@
 <template>
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
-        <!-- {{ rawReports }} -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
             <label class="text-lg font-medium text-gray-800 dark:text-white">Student Payment Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
@@ -26,6 +25,7 @@
                         </div>
                     </div>
                     <DataTable :value="filteredReports" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
+                        <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
                         <Column field="createdAt" header="Date" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>
@@ -75,6 +75,7 @@ import Laoding from '@/views/pages/Laoding.vue';
 const { data: rawReports, loading, fetchData: fetchReports } = useFetch('studentpaymentreports');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: classes, fetchData: fetchClasses } = useFetch('classes');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 
 // --- COMPONENT STATE ---
 const filteredReports = ref([]);
@@ -115,7 +116,10 @@ const applyFilters = () => {
     if (filters.value.studentId) dataToFilter = dataToFilter.filter((r) => r.student_id === filters.value.studentId);
     if (filters.value.classId) dataToFilter = dataToFilter.filter((r) => r.course_id === filters.value.classId);
 
-    filteredReports.value = dataToFilter;
+    filteredReports.value = dataToFilter.map((item, index) => ({
+        ...item,
+        displayIndex: index + 1
+    }));
 };
 
 const setDefaultFilters = () => {
@@ -140,10 +144,15 @@ const formatClassName = (id) => classes.value?.find((c) => c._id === id)?.name |
 const printReport = () => {
     if (!filteredReports.value.length) return;
 
+    const schoolName = companies.value?.[0]?.name || 'School Management System';
+    const reportDate = moment().format('DD-MMM-YYYY');
+    let dateRangeString = filters.value.period.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+
     let tableRows = filteredReports.value
         .map(
             (r) => `
         <tr>
+            <td>${r.displayIndex}</td>
             <td>${formatDate(r.createdAt)}</td>
             <td>${formatStudentName(r.student_id)}</td>
             <td>${formatClassName(r.course_id)}</td>
@@ -159,13 +168,34 @@ const printReport = () => {
     printWindow.document.write(`
         <html><head><title>Student Payment Report</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; } h1 { text-align: center; }
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .report-header { text-align: center; margin-bottom: 20px; }
+            .report-header h1 { margin: 0; font-size: 24px; }
+            .report-header p { margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
-            @page { size: A4 portrait; }
+            @page { size: A4 landscape; }
         </style></head><body>
-        <h1>Student Payment Report</h1>
-        <table><thead><tr><th>Date</th><th>Student</th><th>Class</th><th>Price</th><th>Discount</th><th>Final Price</th></tr></thead><tbody>${tableRows}</tbody></table>
+        <div class="report-header">
+            <h1>${schoolName}</h1>
+            <p><strong>Student Payment Report</strong></p>
+            <p><strong>Period:</strong> ${dateRangeString}</p>
+            <p><em>Generated on: ${reportDate}</em></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Class</th>
+                    <th>Price</th>
+                    <th>Discount</th>
+                    <th>Final Price</th>
+                </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+        </table>
         </body></html>
     `);
     printWindow.document.close();
@@ -176,6 +206,7 @@ const exportReportToExcel = () => {
     if (!filteredReports.value.length) return;
 
     const dataToExport = filteredReports.value.map((r) => ({
+        'No.': r.displayIndex,
         Date: formatDate(r.createdAt),
         'Student Name': formatStudentName(r.student_id),
         'Class Name': formatClassName(r.course_id),
@@ -192,10 +223,7 @@ const exportReportToExcel = () => {
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
     setDefaultFilters();
-    await Promise.all([fetchReports(), fetchStudents(), fetchClasses()]);
-    console.log('====================================');
-    console.log('rawReports', rawReports.value.length);
-    console.log('====================================');
+    await Promise.all([fetchReports(), fetchStudents(), fetchClasses(), fetchCompany()]);
     applyFilters();
 });
 </script>

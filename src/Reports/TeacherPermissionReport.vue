@@ -24,6 +24,7 @@
                         </div>
                     </div>
                     <DataTable :value="filteredReports" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                        <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
                         <Column field="createdAt" header="Report Date" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>
@@ -70,9 +71,11 @@ import Calendar from 'primevue/calendar';
 import Tag from 'primevue/tag';
 import NotFound from '@/views/pages/NotFound.vue';
 import Laoding from '@/views/pages/Laoding.vue';
+
 // --- DATA FETCHING ---
 const { data: rawReports, loading, fetchData: fetchReports } = useFetch('teacherpermissionreports');
 const { data: teachers, fetchData: fetchTeachers } = useFetch('users');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 
 // --- COMPONENT STATE ---
 const filteredReports = ref([]);
@@ -97,7 +100,11 @@ const applyFilters = () => {
         dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(selectedDate, 'day'));
     }
 
-    filteredReports.value = dataToFilter;
+    // **MODIFIED:** Add a display index to each item for sorting
+    filteredReports.value = dataToFilter.map((item, index) => ({
+        ...item,
+        displayIndex: index + 1
+    }));
 };
 
 const setDefaultFilters = () => {
@@ -115,8 +122,11 @@ watch(rawReports, applyFilters);
 
 // --- HELPER & FORMATTING FUNCTIONS ---
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : 'N/A');
-// **FIX:** Changed to use 'en_name' to match the data structure used in the Select component.
-const formatTeacherName = (id) => teachers.value?.find((t) => t._id === id)?.name || 'N/A';
+const formatTeacherName = (id) => {
+    if (!id || !teachers.value) return 'Unknown';
+    const teacher = teachers.value.find((t) => t._id === id);
+    return teacher ? teacher.name : 'Unknown';
+};
 const getStatusSeverity = (status) => {
     const severityMap = { accepted: 'success', rejected: 'danger', pending: 'warn' };
     return severityMap[status] || 'info';
@@ -126,10 +136,15 @@ const getStatusSeverity = (status) => {
 const printReport = () => {
     if (!filteredReports.value.length) return;
 
+    const schoolName = companies.value?.[0]?.name || 'School Management System';
+    const reportDate = moment().format('DD-MMM-YYYY');
+    let dateRangeString = filters.value.date ? formatDate(filters.value.date) : 'All Time';
+
     let tableRows = filteredReports.value
         .map(
             (r) => `
         <tr>
+            <td>${r.displayIndex}</td>
             <td>${formatDate(r.createdAt)}</td>
             <td>${formatTeacherName(r.teacher_id)}</td>
             <td>${r.reason || ''}</td>
@@ -141,25 +156,28 @@ const printReport = () => {
         )
         .join('');
 
-    const printWindow = window.open('');
+    const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <html><head><title>Teacher Permission Report</title>
         <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
             .report-header { text-align: center; margin-bottom: 20px; }
-            h1 { margin: 0; }
+            .report-header h1 { margin: 0; font-size: 24px; }
+            .report-header p { margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } 
-            th { background-color: #f2f2f2; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
             @page { size: A4 landscape; }
         </style></head><body>
         <div class="report-header">
-            <h1>Teacher Permission Report</h1>
-            <p>Date: ${moment().format('YYYY-MM-DD')}</p>
+            <h1>${schoolName}</h1>
+            <p><strong>Teacher Permission Report</strong></p>
+            <p><strong>Date:</strong> ${dateRangeString}</p>
+            <p><em>Generated on: ${reportDate}</em></p>
         </div>
         <table>
             <thead>
                 <tr>
+                    <th>No.</th>
                     <th>Report Date</th>
                     <th>Teacher</th>
                     <th>Reason</th>
@@ -180,6 +198,7 @@ const exportReportToExcel = () => {
     if (!filteredReports.value.length) return;
 
     const dataToExport = filteredReports.value.map((r) => ({
+        'No.': r.displayIndex,
         'Report Date': formatDate(r.createdAt),
         'Teacher Name': formatTeacherName(r.teacher_id),
         Reason: r.reason,
@@ -196,7 +215,7 @@ const exportReportToExcel = () => {
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
     setDefaultFilters();
-    await Promise.all([fetchReports(), fetchTeachers()]);
+    await Promise.all([fetchReports(), fetchTeachers(), fetchCompany()]);
     applyFilters();
 });
 </script>

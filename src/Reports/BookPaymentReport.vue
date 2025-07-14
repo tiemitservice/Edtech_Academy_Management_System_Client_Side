@@ -5,11 +5,9 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Book Payment Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
+                <Select v-model="filters.period" :options="periodOptions" optionLabel="label" optionValue="value" class="min-w-[180px]" />
                 <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" placeholder="Filter by Student" showClear class="min-w-[180px]" />
                 <Select v-model="filters.bookId" :options="books" filter optionLabel="name" optionValue="_id" placeholder="Filter by Book" showClear class="min-w-[180px]" />
-                <Select v-model="filters.day" :options="days" placeholder="Day" showClear class="min-w-[100px]" />
-                <Select v-model="filters.month" :options="months" optionLabel="name" optionValue="value" placeholder="Month" showClear class="min-w-[120px]" />
-                <Select v-model="filters.year" :options="years" placeholder="Year" showClear class="min-w-[120px]" />
                 <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
             </div>
@@ -20,16 +18,14 @@
             <div class="overflow-x-auto">
                 <div v-if="filteredReports.length > 0" class="py-2 bg-white p-4 rounded-lg shadow-md">
                     <div class="flex justify-between items-center mb-4">
-                        <!-- <h3 class="text-lg font-semibold">Report Results</h3> -->
+                        <h3 class="text-lg font-semibold">Report Results</h3>
                         <div>
                             <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
                             <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
                         </div>
                     </div>
-                    <DataTable :value="filteredReports" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
-                        <Column field="createdAt" header="Date" sortable>
-                            <template #body="{ data }">{{ data.index + 1 }}</template>
-                        </Column>
+                    <DataTable :value="filteredReports" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
+                        <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
                         <Column field="createdAt" header="Date" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>
@@ -74,42 +70,60 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import NotFound from '@/views/pages/NotFound.vue';
 import Laoding from '@/views/pages/Laoding.vue';
+
 // --- DATA FETCHING ---
 const { data: rawReports, loading, fetchData: fetchReports } = useFetch('bookpaymentreports');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: books, fetchData: fetchBooks } = useFetch('books');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 
 // --- COMPONENT STATE ---
 const filteredReports = ref([]);
 
 // --- FILTERING LOGIC ---
-const filters = ref({ studentId: null, bookId: null, day: null, month: null, year: null });
-const years = ref(Array.from({ length: 10 }, (_, i) => moment().year() - 5 + i));
-const months = ref(moment.months().map((m, i) => ({ name: m, value: i + 1 })));
-const days = ref(Array.from({ length: 31 }, (_, i) => i + 1));
+const filters = ref({ studentId: null, bookId: null, period: 'current_month' });
+
+const periodOptions = ref([
+    { label: 'Current Month', value: 'current_month' },
+    { label: 'Last Month', value: 'last_month' },
+    { label: 'Last 3 Months', value: 'last_3_months' }
+]);
 
 const isFilterActive = computed(() => {
-    const now = moment();
-    return filters.value.studentId !== null || filters.value.bookId !== null || filters.value.day !== null || filters.value.month !== now.month() + 1 || filters.value.year !== now.year();
+    return filters.value.studentId !== null || filters.value.bookId !== null || filters.value.period !== 'current_month';
 });
 
 const applyFilters = () => {
     let dataToFilter = [...rawReports.value];
 
-    if (filters.value.year) dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).year() === filters.value.year);
-    if (filters.value.month) dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).month() + 1 === filters.value.month);
-    if (filters.value.day) dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).date() === filters.value.day);
+    // Time-based filtering
+    const now = moment();
+    switch (filters.value.period) {
+        case 'current_month':
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(now, 'month'));
+            break;
+        case 'last_month':
+            const lastMonth = now.clone().subtract(1, 'month');
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(lastMonth, 'month'));
+            break;
+        case 'last_3_months':
+            const threeMonthsAgo = now.clone().subtract(3, 'months');
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isAfter(threeMonthsAgo));
+            break;
+    }
+
+    // Additional filters
     if (filters.value.studentId) dataToFilter = dataToFilter.filter((r) => r.student_id === filters.value.studentId);
     if (filters.value.bookId) dataToFilter = dataToFilter.filter((r) => r.book_id === filters.value.bookId);
 
-    filteredReports.value = dataToFilter;
+    filteredReports.value = dataToFilter.map((item, index) => ({
+        ...item,
+        displayIndex: index + 1
+    }));
 };
 
 const setDefaultFilters = () => {
-    const now = moment();
-    filters.value.year = now.year();
-    filters.value.month = now.month() + 1;
-    filters.value.day = null;
+    filters.value.period = 'current_month';
     filters.value.studentId = null;
     filters.value.bookId = null;
 };
@@ -119,7 +133,7 @@ const clearFilters = () => {
     applyFilters();
 };
 
-watch(rawReports, applyFilters);
+watch(rawReports, applyFilters, { deep: true });
 
 // --- HELPER & FORMATTING FUNCTIONS ---
 const formatDate = (date) => moment(date).format('YYYY-MM-DD');
@@ -130,10 +144,15 @@ const formatBookName = (id) => books.value?.find((b) => b._id === id)?.name || '
 const printReport = () => {
     if (!filteredReports.value.length) return;
 
+    const schoolName = companies.value?.[0]?.name || 'School Management System';
+    const reportDate = moment().format('DD-MMM-YYYY');
+    let dateRangeString = filters.value.period.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+
     let tableRows = filteredReports.value
         .map(
             (r) => `
         <tr>
+            <td>${r.displayIndex}</td>
             <td>${formatDate(r.createdAt)}</td>
             <td>${formatStudentName(r.student_id)}</td>
             <td>${formatBookName(r.book_id)}</td>
@@ -149,13 +168,34 @@ const printReport = () => {
     printWindow.document.write(`
         <html><head><title>Book Payment Report</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; } h1 { text-align: center; }
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .report-header { text-align: center; margin-bottom: 20px; }
+            .report-header h1 { margin: 0; font-size: 24px; }
+            .report-header p { margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
-            @page { size: A4 portrait; }
+            @page { size: A4 landscape; }
         </style></head><body>
-        <h1>Book Payment Report</h1>
-        <table><thead><tr><th>Date</th><th>Student</th><th>Book</th><th>Price</th><th>Discount</th><th>Final Price</th></tr></thead><tbody>${tableRows}</tbody></table>
+        <div class="report-header">
+            <h1>${schoolName}</h1>
+            <p><strong>Book Payment Report</strong></p>
+            <p><strong>Period:</strong> ${dateRangeString}</p>
+            <p><em>Generated on: ${reportDate}</em></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Book</th>
+                    <th>Price</th>
+                    <th>Discount</th>
+                    <th>Final Price</th>
+                </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+        </table>
         </body></html>
     `);
     printWindow.document.close();
@@ -166,6 +206,7 @@ const exportReportToExcel = () => {
     if (!filteredReports.value.length) return;
 
     const dataToExport = filteredReports.value.map((r) => ({
+        'No.': r.displayIndex,
         Date: formatDate(r.createdAt),
         'Student Name': formatStudentName(r.student_id),
         'Book Title': formatBookName(r.book_id),
@@ -182,7 +223,7 @@ const exportReportToExcel = () => {
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
     setDefaultFilters();
-    await Promise.all([fetchReports(), fetchStudents(), fetchBooks()]);
+    await Promise.all([fetchReports(), fetchStudents(), fetchBooks(), fetchCompany()]);
     applyFilters();
 });
 </script>

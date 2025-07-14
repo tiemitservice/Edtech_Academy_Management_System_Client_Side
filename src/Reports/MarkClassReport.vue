@@ -31,18 +31,16 @@
                         <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
                     </div>
                 </div>
-                <DataTable :value="selectedReport.student_id" showGridlines responsiveLayout="scroll" size="large" striped-rows>
-                    <Column header="No." headerStyle="width: 3rem">
-                        <template #body="slotProps">{{ slotProps.index + 1 }}</template>
-                    </Column>
+                <DataTable :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                    <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
                     <Column header="Student Name">
-                        <template #body="{ data }">{{ formatStudentName(data) }}</template>
+                        <template #body="{ data }">{{ formatStudentName(data.studentId) }}</template>
                     </Column>
                     <Column header="Gender">
-                        <template #body="{ data }">{{ formatStudentInfo(data, 'gender') }}</template>
+                        <template #body="{ data }">{{ formatStudentInfo(data.studentId, 'gender') }}</template>
                     </Column>
                     <Column header="Phone Number">
-                        <template #body="{ data }">{{ formatStudentInfo(data, 'phoneNumber') }}</template>
+                        <template #body="{ data }">{{ formatStudentInfo(data.studentId, 'phoneNumber') }}</template>
                     </Column>
                 </DataTable>
             </div>
@@ -79,6 +77,7 @@ const { data: classes, fetchData: fetchClasses } = useFetch('classes');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 
 // --- COMPONENT STATE ---
 const selectedReport = ref(null);
@@ -109,19 +108,33 @@ const applyFilters = () => {
     }
 };
 
-const clearFilters = () => {
+const setDefaultFilters = () => {
     filters.value.classId = null;
-    filters.value.date = null;
+    filters.value.date = new Date(); // Default to today's date
+};
+
+const clearFilters = () => {
+    setDefaultFilters();
     selectedReport.value = null;
     searched.value = false;
 };
 
+const tableData = computed(() => {
+    if (!selectedReport.value || !Array.isArray(selectedReport.value.student_id)) {
+        return [];
+    }
+    return selectedReport.value.student_id.map((id, index) => ({
+        studentId: id,
+        displayIndex: index + 1
+    }));
+});
+
 // --- HELPER & FORMATTING FUNCTIONS ---
-const formatDate = (date) => moment(date).format('YYYY-MM-DD');
+const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : '');
 const formatClassName = (id) => classes.value?.find((c) => c._id === id)?.name || 'N/A';
 const formatStudentName = (id) => students.value?.find((s) => s._id === id)?.eng_name || 'N/A';
 const formatSubjectName = (id) => subjects.value?.find((s) => s._id === id)?.name || 'N/A';
-const formatDurationName = (id) => sections.value?.find((s) => s._id === id)?.duration || 'N/A';
+const formatDurationName = (id) => sections.value?.find((s) => s._id === id)?.name || 'N/A';
 const formatStudentInfo = (id, field) => students.value?.find((s) => s._id === id)?.[field] || 'N/A';
 
 // --- ACTIONS ---
@@ -129,10 +142,15 @@ const printReport = () => {
     if (!selectedReport.value) return;
     const report = selectedReport.value;
     const className = formatClassName(report.class_id);
+    const reportDate = formatDate(report.createdAt);
+    const schoolName = companies.value?.[0]?.name || 'School Management System';
+    const generatedDate = moment().format('DD-MMM-YYYY');
+
     let tableRows = report.student_id
         .map(
-            (id) => `
+            (id, index) => `
         <tr>
+            <td>${index + 1}</td>
             <td>${formatStudentName(id)}</td>
             <td>${formatStudentInfo(id, 'gender')}</td>
             <td>${formatStudentInfo(id, 'phoneNumber')}</td>
@@ -145,13 +163,22 @@ const printReport = () => {
     printWindow.document.write(`
         <html><head><title>Student List - ${className}</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; } h1 { text-align: center; }
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .report-header { text-align: center; margin-bottom: 20px; }
+            .report-header h1 { margin: 0; font-size: 24px; }
+            .report-header p { margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
             @page { size: A4 portrait; }
         </style></head><body>
-        <h1>Student List for ${className}</h1>
-        <table><thead><tr><th>Name</th><th>Gender</th><th>Phone</th></tr></thead><tbody>${tableRows}</tbody></table>
+        <div class="report-header">
+            <h1>${schoolName}</h1>
+            <p><strong>Class Completion Report</strong></p>
+            <p><strong>Class:</strong> ${className}</p>
+            <p><strong>Completion Date:</strong> ${reportDate}</p>
+            <p><em>Generated on: ${generatedDate}</em></p>
+        </div>
+        <table><thead><tr><th>No.</th><th>Name</th><th>Gender</th><th>Phone</th></tr></thead><tbody>${tableRows}</tbody></table>
         </body></html>
     `);
     printWindow.document.close();
@@ -161,7 +188,8 @@ const printReport = () => {
 const exportReportToExcel = () => {
     if (!selectedReport.value) return;
     const report = selectedReport.value;
-    const dataToExport = report.student_id.map((id) => ({
+    const dataToExport = report.student_id.map((id, index) => ({
+        'No.': index + 1,
         'Student Name': formatStudentName(id),
         Gender: formatStudentInfo(id, 'gender'),
         'Phone Number': formatStudentInfo(id, 'phoneNumber')
@@ -174,6 +202,8 @@ const exportReportToExcel = () => {
 
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
-    await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchSubjects(), fetchSections()]);
+    await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchSubjects(), fetchSections(), fetchCompany()]);
+    setDefaultFilters(); // Set default filters on mount
+    applyFilters(); // Apply default filters to show today's data initially
 });
 </script>

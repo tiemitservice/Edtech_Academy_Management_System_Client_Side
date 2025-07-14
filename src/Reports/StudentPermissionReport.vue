@@ -24,6 +24,7 @@
                         </div>
                     </div>
                     <DataTable :value="filteredReports" striped-rows="true" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
+                        <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
                         <Column field="createdAt" header="Report Date" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>
@@ -72,6 +73,7 @@ import Laoding from '@/views/pages/Laoding.vue';
 const { data: rawReports, loading, fetchData: fetchReports } = useFetch('studentpermissionreports');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: approvers, fetchData: fetchApprovers } = useFetch('staffs');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 
 // --- COMPONENT STATE ---
 const filteredReports = ref([]);
@@ -93,10 +95,13 @@ const applyFilters = () => {
     // Filter by a single day
     if (filters.value.date) {
         const selectedDate = moment(filters.value.date);
-        dataToFilter = dataToFilter.filter((r) => moment(r.created_at).isSame(selectedDate, 'day'));
+        dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(selectedDate, 'day'));
     }
 
-    filteredReports.value = dataToFilter;
+    filteredReports.value = dataToFilter.map((item, index) => ({
+        ...item,
+        displayIndex: index + 1
+    }));
 };
 
 const setDefaultFilters = () => {
@@ -125,11 +130,16 @@ const getStatusSeverity = (status) => {
 const printReport = () => {
     if (!filteredReports.value.length) return;
 
+    const schoolName = companies.value?.[0]?.name || 'School Management System';
+    const reportDate = moment().format('DD-MMM-YYYY');
+    let dateRangeString = filters.value.date ? formatDate(filters.value.date) : 'All Time';
+
     let tableRows = filteredReports.value
         .map(
             (r) => `
         <tr>
-            <td>${formatDate(r.created_at)}</td>
+            <td>${r.displayIndex}</td>
+            <td>${formatDate(r.createdAt)}</td>
             <td>${formatStudentName(r.student_id)}</td>
             <td>${r.reason || ''}</td>
             <td>${r.permission_status}</td>
@@ -143,13 +153,33 @@ const printReport = () => {
     printWindow.document.write(`
         <html><head><title>Student Permission Report</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; } h1 { text-align: center; }
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .report-header { text-align: center; margin-bottom: 20px; }
+            .report-header h1 { margin: 0; font-size: 24px; }
+            .report-header p { margin: 5px 0; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
-            @page { size: A4 portrait; }
+            @page { size: A4 landscape; }
         </style></head><body>
-        <h1>Student Permission Report</h1>
-        <table><thead><tr><th>Report Date</th><th>Student</th><th>Reason</th><th>Status</th><th>Approved By</th></tr></thead><tbody>${tableRows}</tbody></table>
+        <div class="report-header">
+            <h1>${schoolName}</h1>
+            <p><strong>Student Permission Report</strong></p>
+            <p><strong>Date:</strong> ${dateRangeString}</p>
+            <p><em>Generated on: ${reportDate}</em></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Report Date</th>
+                    <th>Student</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Approved By</th>
+                </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+        </table>
         </body></html>
     `);
     printWindow.document.close();
@@ -160,7 +190,8 @@ const exportReportToExcel = () => {
     if (!filteredReports.value.length) return;
 
     const dataToExport = filteredReports.value.map((r) => ({
-        'Report Date': formatDate(r.created_at),
+        'No.': r.displayIndex,
+        'Report Date': formatDate(r.createdAt),
         'Student Name': formatStudentName(r.student_id),
         Reason: r.reason,
         Status: r.permission_status,
@@ -175,7 +206,7 @@ const exportReportToExcel = () => {
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
     setDefaultFilters();
-    await Promise.all([fetchReports(), fetchStudents(), fetchApprovers()]);
+    await Promise.all([fetchReports(), fetchStudents(), fetchApprovers(), fetchCompany()]);
     applyFilters();
 });
 </script>
