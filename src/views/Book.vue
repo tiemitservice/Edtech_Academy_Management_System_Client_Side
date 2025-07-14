@@ -1,30 +1,25 @@
 <template>
     <section class="px-4 mx-auto">
-        <!-- <p class="mt-1 text-lg text-gray-800">Staff list</p> -->
-        <!-- <pre>
-            {{ book_categories }}
-        </pre> -->
-        <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
+        <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between flex-wrap">
             <label class="text-lg font-medium text-gray-800 dark:text-white">Book list</label>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 flex-wrap">
                 <IconField>
                     <InputIcon class="pi pi-search" />
                     <InputText placeholder="Search by name" v-model="searchQuery" class="w-full" />
                 </IconField>
                 <Select v-model="selectedBookCategory" :options="book_categories" :filter="true" option-value="_id" option-label="name" show-clear placeholder="Select a category" class="min-w-[180px]" />
                 <Button @click="filterData()" label="Apply filter" />
-
                 <Button @click="openModal" label="Add new" />
             </div>
         </div>
 
-        <div class="flex flex-col" v-if="data">
+        <div class="flex flex-col">
             <div class="overflow-x-auto">
-                <div class="py-2" v-if="!loading && data.length > 0">
-                    <DataTable v-if="data" :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
+                <div class="py-2" v-if="!loading">
+                    <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                        <Column field="displayId" header="No." sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.data._id }}</p>
+                                <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
 
@@ -60,9 +55,9 @@
                             </template>
                         </Column>
                     </DataTable>
-                </div>
-                <div v-else-if="!loading && data.length === 0 && hasFiltered">
-                    <NotFound />
+                    <div v-else-if="hasFiltered">
+                        <NotFound />
+                    </div>
                 </div>
                 <div v-else>
                     <Laoding />
@@ -114,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import BookForm from '@/form/BookForm.vue';
@@ -122,24 +117,21 @@ import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
 import { useToast } from 'primevue/usetoast';
+
 const collection = ref('books');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const { data: book_categories, fetchData: fetchBookCategories } = useFetch('book_categories');
 
 const formatBookCategory = (id) => {
     if (!id || !book_categories.value) return 'N/A';
-
     const category = book_categories.value.find((cat) => cat?._id === id);
     return category?.name || 'N/A';
 };
-// const formatSubject = (id) => {
-//     const subject = subjects.value?.find((subject) => subject._id === id);
-//     return subject ? subject.name : 'N/A';
-// };
+
 const isOpen = ref(false);
 const datatoedit = ref(null);
-
 const toast = useToast();
+
 const showToast = (action, severity) => {
     let summary;
     switch (action) {
@@ -162,7 +154,6 @@ const showToast = (action, severity) => {
             severity = 'info';
             summary = 'Action Completed';
     }
-
     toast.add({
         severity: severity,
         summary: summary,
@@ -170,43 +161,30 @@ const showToast = (action, severity) => {
     });
 };
 
-const data = ref([]);
 const searchQuery = ref('');
 const selectedBookCategory = ref(null);
 const hasFiltered = ref(false);
 
-const filterData = () => {
-    loading.value = false;
-    hasFiltered.value = false;
-    setTimeout(() => {
-        const q = (searchQuery.value || '').trim().toLowerCase();
+// This computed property will handle all filtering logic
+const filteredData = computed(() => {
+    if (!rawData.value) return [];
 
-        data.value =
-            rawData.value?.filter((item) => {
-                const matchesName = !q || item.name?.toLowerCase().includes(q);
-                const matchesBookCategory = !selectedBookCategory.value || item.bookType === selectedBookCategory.value;
-                return matchesName && matchesBookCategory;
-            }) || [];
+    const q = (searchQuery.value || '').trim().toLowerCase();
 
-        console.log('Filtered data:', data.value);
-        loading.value = false;
-        hasFiltered.value = true;
-    }, 500);
-};
-
-// Watch search query changes
-watch(searchQuery, () => {
-    console.log('Search input changed');
-    filterData();
+    return rawData.value.filter((item) => {
+        const matchesName = !q || item.name?.toLowerCase().includes(q);
+        const matchesBookCategory = !selectedBookCategory.value || item.bookType === selectedBookCategory.value;
+        return matchesName && matchesBookCategory;
+    });
 });
-watch(
-    rawData,
-    () => {
-        console.log('rawData updated:', rawData.value);
-        filterData();
-    },
-    { deep: true }
-);
+
+// This computed property adds the sortable displayId to the filtered data
+const tableData = computed(() => {
+    return filteredData.value.map((item, index) => ({
+        ...item,
+        displayId: index + 1
+    }));
+});
 
 const isDelete = ref(false);
 const deleteData = ref(null);
@@ -239,6 +217,5 @@ function openModal() {
 onMounted(async () => {
     await fetchData();
     await fetchBookCategories();
-    filterData();
 });
 </script>

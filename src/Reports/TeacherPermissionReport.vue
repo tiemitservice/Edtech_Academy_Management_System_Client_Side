@@ -118,7 +118,7 @@ const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : 'N/A');
 // **FIX:** Changed to use 'en_name' to match the data structure used in the Select component.
 const formatTeacherName = (id) => teachers.value?.find((t) => t._id === id)?.name || 'N/A';
 const getStatusSeverity = (status) => {
-    const severityMap = { accepted: 'success', rejected: 'danger', pending: 'warning' };
+    const severityMap = { accepted: 'success', rejected: 'danger', pending: 'warn' };
     return severityMap[status] || 'info';
 };
 

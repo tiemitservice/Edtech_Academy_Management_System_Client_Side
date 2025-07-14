@@ -90,7 +90,7 @@ const router = createRouter({
                 { path: '/book', name: 'book', component: Book, meta: { permission: 'book list:read' } },
                 { path: '/bookcategory', name: 'bookcategory', component: BookCategory, meta: { permission: 'book categories:read' } },
                 // Finance
-                { path: '/studentpayment', name: 'studentpayment', component: StudentTrackingPayment, meta: { permission: 'student payments tracking:read' } },
+                { path: '/studentpayment', name: 'studentpayment', component: StudentPayment, meta: { permission: 'student payments tracking:read' } },
                 { path: '/courinvoicelist', name: 'courinvoicelist', component: CourInvoiceList, meta: { permission: 'course invoice:read' } },
                 { path: '/courseinvoice_transaction', name: 'courseinvoice_transaction', component: CourseInvoceTransaction, meta: { permission: 'course payment transactions:read' } },
                 { path: '/bookpayment', name: 'bookpayment', component: BookPayment, meta: { permission: 'book payment:read' } },

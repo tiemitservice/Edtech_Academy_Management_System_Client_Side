@@ -21,9 +21,10 @@
                 </div>
                 <!-- Data Table or Not Found Message -->
                 <div v-else class="py-2">
-                    <DataTable v-if="filteredData.length > 0" :value="filteredData" striped-rows="true" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column header="No." style="min-width: 50px">
-                            <template #body="slotProps">{{ slotProps.index + 1 }}</template>
+                    <DataTable v-if="tableData.length > 0" :value="tableData" striped-rows="true" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                        <!-- UPDATED: This column now correctly sorts by the 'displayId' field -->
+                        <Column field="displayId" header="No." sortable style="min-width: 50px">
+                            <template #body="slotProps">{{ slotProps.data.displayId }}</template>
                         </Column>
                         <Column field="studentId" header="Student" sortable style="min-width: 200px">
                             <template #body="slotProps">
@@ -157,6 +158,14 @@ const filteredData = computed(() => {
     }
 
     return data;
+});
+
+// --- UPDATED: New computed property to add a sortable ID ---
+const tableData = computed(() => {
+    return filteredData.value.map((item, index) => ({
+        ...item,
+        displayId: index + 1
+    }));
 });
 
 const isFilterActive = computed(() => {

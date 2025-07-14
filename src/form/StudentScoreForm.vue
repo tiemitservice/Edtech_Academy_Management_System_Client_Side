@@ -9,9 +9,17 @@
         <div class="p-4">
             <!-- Scores Table -->
             <DataTable :value="editableStudents" striped-rows showGridlines responsiveLayout="scroll">
-                <Column class="text-nowrap w-[150px]" field="name" header="Student Name" frozen>
+                <!-- NEW: Sortable 'No.' column -->
+                <Column field="displayId" header="No." sortable frozen style="width: 5rem">
                     <template #body="{ data }">
-                        {{ formatStudentName(data.student) }}
+                        {{ data.displayId }}
+                    </template>
+                </Column>
+
+                <!-- UPDATED: Sortable 'Student Name' column -->
+                <Column class="text-nowrap w-[150px]" field="eng_name" header="Student Name" frozen sortable>
+                    <template #body="{ data }">
+                        {{ data.eng_name }}
                     </template>
                 </Column>
 
@@ -58,12 +66,11 @@ const emit = defineEmits(['close', 'toast', 'save']);
 
 // --- Data Fetching ---
 const { postData: postScoreReport } = useFetch('scorereports');
-// **MODIFIED:** Added a separate useFetch instance to update the 'classes' collection
 const { updateData: updateClassScores, loading } = useFetch('classes');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 
 // --- Component State ---
-const editableStudents = ref(JSON.parse(JSON.stringify(props.datatoedit.students || [])));
+const editableStudents = ref([]); // Start with an empty array
 
 const scoreFields = [
     { key: 'class_practice', label: 'Practice' },
@@ -76,12 +83,6 @@ const scoreFields = [
 ];
 
 // --- Helper Functions ---
-const formatStudentName = (studentData) => {
-    const studentId = typeof studentData === 'object' ? studentData?._id : studentData;
-    const student = students.value?.find((s) => s._id === studentId);
-    return student?.eng_name || 'Loading...';
-};
-
 const calculateTotalScore = (student) => {
     const total = scoreFields.reduce((sum, field) => sum + (Number(student[field.key]) || 0), 0);
     student.total_score = total + (Number(student.attendance_score) || 0);
@@ -95,40 +96,29 @@ const submitScores = async () => {
             return;
         }
 
-        const firstStudentId = editableStudents.value[0].student?._id || editableStudents.value[0].student;
-
-        // **MODIFIED:** Create two separate payloads
+        // Create a clean payload by removing the temporary fields used for display/sorting
+        const studentsPayload = editableStudents.value.map((s) => {
+            const { displayId, eng_name, ...payload } = s;
+            return payload;
+        });
 
         // 1. Payload for the historical ScoreReport
         const reportPayload = {
-            student_id: firstStudentId,
             class_id: props.datatoedit._id,
             duration: props.datatoedit.duration,
             subject: props.datatoedit.subject,
-            students: editableStudents.value.map((s) => ({
-                student: s.student._id || s.student,
-                attendance_score: s.attendance_score || 0,
-                class_practice: s.class_practice || 0,
-                home_work: s.home_work || 0,
-                assignment_score: s.assignment_score || 0,
-                presentation: s.presentation || 0,
-                work_book: s.work_book || 0,
-                revision_test: s.revision_test || 0,
-                final_exam: s.final_exam || 0,
-                total_score: s.total_score || 0
-            }))
+            students: studentsPayload
         };
 
         // 2. Payload to update the "live" Class document with the latest scores
         const classUpdatePayload = {
-            students: reportPayload.students // The structure is the same
+            students: studentsPayload // The structure is the same
         };
 
         // Execute both operations concurrently
         await Promise.all([postScoreReport(reportPayload), updateClassScores(classUpdatePayload, props.datatoedit._id)]);
 
         emit('toast', 'create', 'Scores saved and report created successfully.');
-
         emit('close');
     } catch (error) {
         console.error('Error submitting scores:', error);
@@ -139,7 +129,28 @@ const submitScores = async () => {
 
 // --- Lifecycle Hook ---
 onMounted(async () => {
+    // 1. Fetch all student master data needed for names
     await fetchStudents();
+
+    // 2. Process the student list for the data table
+    // Create a map for quick lookups
+    const studentMap = new Map((students.value || []).map((s) => [s._id, s]));
+    // Deep copy the students from the prop to avoid direct mutation
+    const classStudents = JSON.parse(JSON.stringify(props.datatoedit.students || []));
+
+    // Map over the class students to create a new array with added properties for the table
+    editableStudents.value = classStudents.map((cs, index) => {
+        const studentId = cs.student?._id || cs.student;
+        const studentInfo = studentMap.get(studentId);
+        return {
+            ...cs,
+            displayId: index + 1, // Add stable ID for sorting the "No." column
+            eng_name: studentInfo ? studentInfo.eng_name : 'Unknown', // Add name for display and sorting
+            student: studentId // Ensure student field is just the ID
+        };
+    });
+
+    // 3. Calculate initial total scores for all students
     editableStudents.value.forEach(calculateTotalScore);
 });
 </script>

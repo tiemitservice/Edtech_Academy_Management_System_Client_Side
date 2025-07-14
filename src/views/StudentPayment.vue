@@ -19,12 +19,12 @@
         <!-- Data Table -->
         <div class="flex flex-col" v-if="!loading">
             <div class="overflow-x-auto">
-                <div class="py-2" v-if="filteredData.length > 0">
-                    <DataTable :value="filteredData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <Column header="No" sortable style="min-width: 80px">
+                <div class="py-2" v-if="tableData.length > 0">
+                    <DataTable :value="tableData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
+                        <Column field="displayId" header="No" sortable style="min-width: 80px">
                             <template #body="slotProps">
                                 <div class="p-3 rounded" :class="getHighlightClass(slotProps.data)">
-                                    <p class="font-medium">{{ slotProps.index + 1 }}</p>
+                                    <p class="font-medium">{{ slotProps.data.displayId }}</p>
                                 </div>
                             </template>
                         </Column>
@@ -230,7 +230,7 @@ const applyFilters = () => {
 
     // --- Default filter for status: true ---
     processed = processed.filter((item) => item.status === true);
-    // processed = processed.filter((item) => item.mark_as_completed === true);
+
     // Time-based filtering
     const now = moment();
     switch (filters.value.period) {
@@ -268,6 +268,14 @@ const clearFilters = () => {
 };
 
 watch(rawData, applyFilters, { deep: true });
+
+// NEW: Computed property to add a sortable ID to the filtered data
+const tableData = computed(() => {
+    return filteredData.value.map((item, index) => ({
+        ...item,
+        displayId: index + 1
+    }));
+});
 
 const getHighlightClass = (data) => {
     if (!data.next_payment_date) return null;

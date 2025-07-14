@@ -1,12 +1,9 @@
 <template>
     <section class="px-4 mx-auto">
-        <!-- <pre>
-            {{ data }}
-        </pre> -->
-        <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
+        <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg flex-wrap">
             <label class="text-lg font-medium text-gray-800 dark:text-white">Teacher List</label>
 
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 flex-wrap">
                 <IconField>
                     <InputIcon class="pi pi-search" />
                     <InputText placeholder="Search by name" v-model="searchQuery" />
@@ -20,10 +17,12 @@
         <div class="flex flex-col">
             <div class="overflow-x-auto">
                 <div class="py-2">
-                    <DataTable v-if="data" :value="data" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
+                    <!-- UPDATED: Using 'tableData' which is processed for sorting -->
+                    <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
+                        <!-- UPDATED: This column now correctly sorts by the 'displayId' field -->
+                        <Column field="displayId" header="No. " sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
+                                <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
                         <Column field="profile" header="Profile" style="min-width: 150px">
@@ -72,6 +71,9 @@
                             </template>
                         </Column>
                     </DataTable>
+                    <div v-else-if="loading" class="text-center py-10">
+                        <p>Loading...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -132,7 +134,7 @@
                 </div>
             </Dialog>
         </TransitionRoot>
-        <Toast ref="toast" />
+        <Toast />
     </section>
 </template>
 
@@ -150,7 +152,8 @@ import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import StaffInformation from '@/form/StaffInformation.vue';
 import DeleteConfimation from '@/form/DeleteConfimation.vue';
-import { useToast } from 'primevue';
+import { useToast } from 'primevue/usetoast';
+
 // Modal state
 const isOpen = ref(false);
 const isStaffOpen = ref(false);
@@ -217,27 +220,35 @@ const { data: departments, loading: departmentLoading, error: departmentError, f
 const searchQuery = ref('');
 
 const formateDepartmentById = (id) => {
-    const department = departments.value.find((item) => item._id === id);
+    const department = departments.value?.find((item) => item._id === id);
     return department ? department.name : 'N/A';
 };
 
 const formatePositionById = (id) => {
-    const position = positions.value.find((item) => item._id === id);
+    const position = positions.value?.find((item) => item._id === id);
     return position ? position.name : 'N/A';
 };
 
-const data = computed(() => {
+const filteredData = computed(() => {
     const q = searchQuery.value.trim().toLowerCase();
-    return rawData.value?.filter((item) => {
-        const matchesName = !q || item.en_name?.toLowerCase().includes(q) || item.kh_name?.toLowerCase().includes(q);
-
-        const matchesPosition = !selectedPosition.value || item.position === selectedPosition.value;
-
-        const matchesDepartment = !selectedDepartment.value || item.department === selectedDepartment.value;
-
-        return matchesName && matchesPosition && matchesDepartment;
-    });
+    return (
+        rawData.value?.filter((item) => {
+            const matchesName = !q || item.en_name?.toLowerCase().includes(q) || item.kh_name?.toLowerCase().includes(q);
+            const matchesPosition = !selectedPosition.value || item.position === selectedPosition.value;
+            const matchesDepartment = !selectedDepartment.value || item.department === selectedDepartment.value;
+            return matchesName && matchesPosition && matchesDepartment;
+        }) || []
+    ); // Ensure it returns an array even if rawData is null
 });
+
+// NEW: Computed property to add a sortable ID to the filtered data
+const tableData = computed(() => {
+    return filteredData.value.map((item, index) => ({
+        ...item,
+        displayId: index + 1
+    }));
+});
+
 const selectedPosition = ref(null);
 const selectedDepartment = ref(null);
 
@@ -259,7 +270,6 @@ onMounted(async () => {
     await fetchData();
     await fetchPositions();
     await fetchDepartment();
-    console.log('positions', positions.value);
 });
 </script>
 

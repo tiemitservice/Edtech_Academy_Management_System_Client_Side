@@ -3,7 +3,7 @@
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
             <label class="text-lg font-medium text-gray-800 dark:text-white"> Book Payment Transactions</label>
-            <div class="flex items-center gap-2 flex-wrap justify-start">
+            <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
                 <Select filter v-model="filters.studentId" :options="students" optionLabel="eng_name" optionValue="_id" placeholder="Filter by Student" showClear class="min-w-[180px]" />
                 <Select v-model="filters.bookId" :options="books" optionLabel="name" optionValue="_id" placeholder="Filter by Book" showClear class="min-w-[180px]" />
@@ -12,7 +12,6 @@
                 <Select v-model="filters.year" :options="years" placeholder="Year" showClear class="min-w-[120px]" />
 
                 <!-- Action Buttons -->
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
                 <!-- <Button @click="openModal" label="Add new" /> -->
             </div>
@@ -21,29 +20,29 @@
         <!-- Data Table -->
         <div class="flex flex-col" v-if="!loading">
             <div class="overflow-x-auto">
-                <div v-if="filteredData.length > 0" class="py-2">
-                    <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
+                <div v-if="tableData.length > 0" class="py-2">
+                    <DataTable :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                        <Column field="displayId" header="No." sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
+                                <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
 
-                        <Column header="Date" sortable style="min-width: 150px">
+                        <Column field="createdAt" header="Date" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ formatDate(slotProps.data.createdAt) }}</p>
                             </template>
                         </Column>
 
-                        <Column field="student_id" header="Student" sortable style="min-width: 200px">
+                        <Column field="student_name" header="Student" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg rounded-full">{{ formatStudentName(slotProps.data.student_id) }}</div>
+                                <div class="inline px-3 py-1 text-lg rounded-full">{{ slotProps.data.student_name }}</div>
                             </template>
                         </Column>
 
-                        <Column field="book_id" header="Books" sortable style="min-width: 250px">
+                        <Column field="book_names" header="Books" sortable style="min-width: 250px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg rounded-full">{{ formatBookNames(slotProps.data.book_id) }}</div>
+                                <div class="inline px-3 py-1 text-lg rounded-full">{{ slotProps.data.book_names }}</div>
                             </template>
                         </Column>
 
@@ -59,7 +58,7 @@
                             </template>
                         </Column>
 
-                        <Column header="Status" sortable style="min-width: 150px">
+                        <Column field="mark_as_completed" header="Status" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <Tag :severity="slotProps.data.mark_as_completed ? 'success' : 'danger'" :value="slotProps.data.mark_as_completed ? 'Completed' : 'Pending'"></Tag>
                             </template>
@@ -68,21 +67,8 @@
                         <Column header="Actions" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
-                                    <Button
-                                        icon="pi pi-undo
-"
-                                        severity="warn"
-                                        rounded
-                                        aria-label="Edit"
-                                        @click="handleEdit(slotProps.data)"
-                                    />
-                                    <Button
-                                        icon="pi pi-print
-"
-                                        rounded
-                                        aria-label="Edit"
-                                        @click="$router.push(`/book-invoice/${slotProps.data._id}`)"
-                                    />
+                                    <Button icon="pi pi-undo" severity="warn" rounded aria-label="Undo" @click="handleEdit(slotProps.data)" />
+                                    <Button icon="pi pi-print" rounded aria-label="Print" @click="$router.push(`/book-invoice/${slotProps.data._id}`)" />
                                 </div>
                             </template>
                         </Column>
@@ -116,19 +102,17 @@
                 </div>
             </Dialog>
         </TransitionRoot>
-
         <Toast position="top-right" />
     </section>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import moment from 'moment';
 
 // Import all components used in the template
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
-import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import RemarkBookInvoice from '@/form/RemarkBookInvoice.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
@@ -138,6 +122,7 @@ import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Toast from 'primevue/toast';
+import Tag from 'primevue/tag';
 
 // === DATA FETCHING ===
 const collection = ref('bookpayments');
@@ -146,11 +131,8 @@ const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: books, fetchData: fetchBooks } = useFetch('books');
 
 // === COMPONENT STATE ===
-const filteredData = ref([]);
 const isOpen = ref(false);
-const isDelete = ref(false);
 const datatoedit = ref(null);
-const deleteId = ref(null);
 
 // === FILTERING LOGIC ===
 const filters = ref({
@@ -166,23 +148,28 @@ const months = ref(moment.months().map((m, i) => ({ name: m, value: i + 1 })));
 const currentYear = moment().year();
 const years = ref(Array.from({ length: 10 }, (_, i) => currentYear - 5 + i));
 
+const setDefaultFilters = () => {
+    const now = moment();
+    filters.value.year = now.year();
+    filters.value.month = now.month() + 1;
+    filters.value.day = null;
+    filters.value.studentId = null;
+    filters.value.bookId = null;
+};
+
 const isFilterActive = computed(() => {
     const now = moment();
-    const defaultFilters = {
-        studentId: null,
-        bookId: null,
-        day: null,
-        month: now.month() + 1,
-        year: now.year()
-    };
-    // A filter is active if any filter value is different from the default state
-    return (
-        filters.value.studentId !== defaultFilters.studentId || filters.value.bookId !== defaultFilters.bookId || filters.value.day !== defaultFilters.day || filters.value.month !== defaultFilters.month || filters.value.year !== defaultFilters.year
-    );
+    return filters.value.studentId !== null || filters.value.bookId !== null || filters.value.day !== null || filters.value.month !== now.month() + 1 || filters.value.year !== now.year();
 });
 
-const applyFilters = () => {
-    // Start by filtering for items where mark_as_completed is false
+const clearFilters = () => {
+    setDefaultFilters();
+};
+
+// === DATA PROCESSING & COMPUTED PROPS ===
+const tableData = computed(() => {
+    if (!rawData.value || !students.value || !books.value) return [];
+
     let dataToFilter = rawData.value.filter((item) => item.mark_as_completed === true);
 
     // Filter by date
@@ -206,30 +193,15 @@ const applyFilters = () => {
         dataToFilter = dataToFilter.filter((item) => item.book_id?.includes(filters.value.bookId));
     }
 
-    filteredData.value = dataToFilter;
-};
+    // Add display-friendly and sortable fields
+    return dataToFilter.map((item, index) => ({
+        ...item,
+        displayId: index + 1,
+        student_name: formatStudentName(item.student_id),
+        book_names: formatBookNames(item.book_id)
+    }));
+});
 
-const setDefaultFilters = () => {
-    const now = moment();
-    filters.value.year = now.year();
-    filters.value.month = now.month() + 1;
-    filters.value.day = null;
-    filters.value.studentId = null;
-    filters.value.bookId = null;
-};
-
-const clearFilters = () => {
-    setDefaultFilters();
-    applyFilters();
-};
-
-watch(
-    rawData,
-    () => {
-        applyFilters(); // Re-apply filters whenever real-time data changes
-    },
-    { deep: true }
-);
 // === HELPER FUNCTIONS ===
 const toast = useToast();
 
@@ -240,9 +212,9 @@ const showToast = (action, severity) => {
 };
 
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : 'N/A');
-const formatStudentName = (studentId) => students.value.find((s) => s._id === studentId)?.eng_name || 'Unknown';
+const formatStudentName = (studentId) => students.value?.find((s) => s._id === studentId)?.eng_name || 'Unknown';
 const formatBookNames = (bookIds) => {
-    if (!bookIds?.length) return 'No books';
+    if (!bookIds?.length || !books.value) return 'No books';
     return bookIds.map((id) => books.value.find((b) => b._id === id)?.name || 'Unknown').join(', ');
 };
 
@@ -266,32 +238,12 @@ const handleClose = async (shouldRefetch) => {
     closeModal();
     if (shouldRefetch) {
         await fetchData();
-        applyFilters();
     }
-};
-
-const handleDeleteConfirm = (id, item) => {
-    deleteId.value = id;
-    datatoedit.value = item; // for context in the confirmation dialog
-    isDelete.value = true;
-};
-
-const handleCloseDelete = async (wasDeleted) => {
-    isDelete.value = false;
-    if (wasDeleted) {
-        await fetchData();
-        applyFilters();
-    }
-    deleteId.value = null;
-    datatoedit.value = null;
 };
 
 // === LIFECYCLE HOOK ===
 onMounted(async () => {
-    loading.value = true;
     setDefaultFilters();
     await Promise.all([fetchStudents(), fetchBooks(), fetchData()]);
-    applyFilters();
-    loading.value = false;
 });
 </script>

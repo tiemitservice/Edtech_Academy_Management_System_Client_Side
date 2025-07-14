@@ -19,17 +19,19 @@
         <div class="flex flex-col">
             <div class="overflow-x-auto">
                 <div v-if="!loading" class="py-2">
-                    <DataTable v-if="filteredData.length > 0" :value="filteredData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
+                    <!-- UPDATED: Using 'tableData' which is processed for sorting -->
+                    <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
+                        <!-- UPDATED: This column now correctly sorts by the 'displayId' field -->
+                        <Column field="displayId" header="No." sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
+                                <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
                         <Column field="profile" header="Profile" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex items-center space-x-3">
-                                    <div class="flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                                        <img :src="slotProps.data?.image" :alt="slotProps.data.en_name" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/40x40/EFEFEF/A9A9A9?text=?'" />
+                                    <div class="flex items-center justify-center w-16 h-16 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                                        <img :src="slotProps.data?.image" :alt="slotProps.data.en_name" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/60x60/EFEFEF/A9A9A9?text=?'" />
                                     </div>
                                 </div>
                             </template>
@@ -169,6 +171,14 @@ const clearFilters = () => {
 // Watch for changes to automatically re-apply filters
 watch(rawData, applyFilters, { deep: true });
 
+// NEW: Computed property to add a sortable ID to the filtered data
+const tableData = computed(() => {
+    return filteredData.value.map((item, index) => ({
+        ...item,
+        displayId: index + 1
+    }));
+});
+
 // --- Helper Functions ---
 const formatDepartmentById = (id) => departments.value?.find((item) => item._id === id)?.name || 'N/A';
 const formatPositionById = (id) => positions.value?.find((item) => item._id === id)?.name || 'N/A';
@@ -214,8 +224,4 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
-.dropdown {
-    width: 200px;
-}
-</style>
+<style scoped></style>

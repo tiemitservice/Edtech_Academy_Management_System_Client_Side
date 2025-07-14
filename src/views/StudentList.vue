@@ -25,10 +25,10 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="!studentLoading && data.length > 0">
                     <DataTable :value="data" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <Column field="id" header="ID" sortable style="min-width: 150px">
+                        <!-- UPDATED: This column is now sortable by the 'displayId' field -->
+                        <Column field="displayId" header="No." sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
-                                <!-- <p class="font-medium">{{ slotProps.data._id }}</p> -->
+                                <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
                         <Column field="image" header="Profile" style="min-width: 150px">
@@ -247,13 +247,13 @@ watch(
 );
 
 const filterData = () => {
-    studentLoading.value = false;
+    studentLoading.value = true; // Set loading to true at the start
     hasFiltered.value = false;
 
     setTimeout(() => {
         const q = searchQuery.value.trim().toLowerCase();
 
-        data.value =
+        const filtered =
             rawData.value?.filter((item) => {
                 const matchesName = !q || item.eng_name?.toLowerCase().includes(q) || item.kh_name?.toLowerCase().includes(q);
 
@@ -262,14 +262,14 @@ const filterData = () => {
                 const matchesCategory = !selectCategory.value || item.student_type === selectCategory.value;
 
                 let matchesDOB = true;
-                if (selectDOB.value?.length === 2) {
+                if (selectDOB.value?.length === 2 && selectDOB.value[0] && selectDOB.value[1]) {
                     const dob = new Date(item.date_of_birth);
                     const [start, end] = selectDOB.value;
                     matchesDOB = dob >= new Date(start) && dob <= new Date(end);
                 }
 
                 let matchesEntered = true;
-                if (selectEntered.value?.length === 2) {
+                if (selectEntered.value?.length === 2 && selectEntered.value[0] && selectEntered.value[1]) {
                     const entered = new Date(item.date_intered);
                     const [start, end] = selectEntered.value;
                     matchesEntered = entered >= new Date(start) && entered <= new Date(end);
@@ -277,6 +277,12 @@ const filterData = () => {
 
                 return matchesName && matchesGender && matchesDOB && matchesEntered && matchesCategory;
             }) || [];
+
+        // UPDATED: Map over the filtered results to add a sortable 'displayId'
+        data.value = filtered.map((item, index) => ({
+            ...item,
+            displayId: index + 1
+        }));
 
         studentLoading.value = false;
         hasFiltered.value = true;
@@ -300,8 +306,8 @@ const handleCloseDelete = async () => {
 
 // Fetch data on mount
 onMounted(async () => {
-    filterData();
-    await fetchData();
+    // UPDATED: Fetch data first, then the watcher will trigger the initial filter
     await fetchCategory();
+    await fetchData();
 });
 </script>

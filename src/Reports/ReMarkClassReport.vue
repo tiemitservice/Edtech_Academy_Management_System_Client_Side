@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-4 main-content">
         <div class="py-2 flex flex-col md:flex-row justify-between items-center mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Class History</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Class History Report</label>
 
             <!-- Filters and search -->
             <div class="flex flex-wrap gap-4 items-end">
@@ -231,13 +231,12 @@ const applyFilter = () => {
     loading.value = true;
     setTimeout(() => {
         const result =
-            classes.value?.filter(
-                (cls) =>
-                    cls.mark_as_completed === false &&
-                    cls.students?.some((s) => {
-                        const studentId = typeof s.student === 'object' ? s.student._id : s.student;
-                        return studentId === selectedStudent.value;
-                    })
+            classes.value?.filter((cls) =>
+                // cls.mark_as_completed === false &&
+                cls.students?.some((s) => {
+                    const studentId = typeof s.student === 'object' ? s.student._id : s.student;
+                    return studentId === selectedStudent.value;
+                })
             ) || [];
         filteredClasses.value = result;
         loading.value = false;

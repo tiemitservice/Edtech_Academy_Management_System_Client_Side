@@ -131,7 +131,7 @@ const model = ref(
             items: [
                 (userStore.isSuperadmin || userStore.hasPermission('student score report:read')) && { label: 'Student Score Report', icon: 'pi pi-chart-line', to: '/score_report' },
                 (userStore.isSuperadmin || userStore.hasPermission('mark class report:read')) && { label: 'Mark Class Report', icon: 'pi pi-chart-line', to: '/mark_class_report' },
-                (userStore.isSuperadmin || userStore.hasPermission('re-mark class report:read')) && { label: 'Student Class History Report', icon: 'pi pi-chart-line', to: '/re_mark_report' },
+                // (userStore.isSuperadmin || userStore.hasPermission('re-mark class report:read')) && { label: 'Student Class History Report', icon: 'pi pi-chart-line', to: '/re_mark_report' },
                 (userStore.isSuperadmin || userStore.hasPermission('student attendance report:read')) && { label: 'Student Attendance Report', icon: 'pi pi-calendar-check', to: '/attendance_report' },
                 (userStore.isSuperadmin || userStore.hasPermission('promote student report:read')) && { label: ' Promote Student Report', icon: 'pi pi-envelope-open', to: '/promote_student_report' },
                 (userStore.isSuperadmin || userStore.hasPermission('student permission report:read')) && { label: 'Student Permission Report', icon: 'pi pi-envelope-open', to: '/student_permission_report' }

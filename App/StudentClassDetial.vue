@@ -6,103 +6,111 @@
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
-        <div class="p-4" v-if="hasStudents">
-            <!-- Action Buttons -->
-            <div class="flex items-center justify-between py-3">
-                <div>
-                    <label class="text-lg font-semibold text-primary">Student List</label>
-                </div>
-                <div v-if="hasStudents">
-                    <Button @click="printStudentList" icon="pi pi-print" class="mr-2" aria-label="Print" />
-                    <Button @click="exportStudentListToExcel" icon="pi pi-file-excel" aria-label="Export to Excel" />
-                </div>
-            </div>
-
-            <!-- Data Table -->
-            <div>
-                <DataTable :value="activeStudentsInClass" showGridlines stripedRows tableStyle="min-width: 50rem" class="text-nowrap">
-                    <Column header="No" style="width: 3rem">
-                        <template #body="slotProps">
-                            {{ slotProps.index + 1 }}
-                        </template>
-                    </Column>
-                    <Column header="Khmer Name">
-                        <template #body="slotProps">
-                            {{ slotProps.data.student?.kh_name || 'N/A' }}
-                        </template>
-                    </Column>
-                    <Column header="English Name">
-                        <template #body="slotProps">
-                            {{ slotProps.data.student?.eng_name || 'N/A' }}
-                        </template>
-                    </Column>
-                    <Column header="Gender">
-                        <template #body="slotProps">
-                            {{ slotProps.data.student?.gender || 'N/A' }}
-                        </template>
-                    </Column>
-                    <Column header="Date of Birth">
-                        <template #body="slotProps">
-                            {{ formatDate2(slotProps.data.student?.date_of_birth) }}
-                        </template>
-                    </Column>
-                    <Column header="Phone Number">
-                        <template #body="slotProps">
-                            {{ slotProps.data.student?.phoneNumber || 'N/A' }}
-                        </template>
-                    </Column>
-                    <Column header="Attendance Score">
-                        <template #body="slotProps">
-                            {{ slotProps.data.attendance_score }}
-                        </template>
-                    </Column>
-                    <Column header="Assignment Score">
-                        <template #body="slotProps">
-                            {{ slotProps.data.assignment_score }}
-                        </template>
-                    </Column>
-                    <Column header="Home Work">
-                        <template #body="slotProps">
-                            {{ slotProps.data.home_work }}
-                        </template>
-                    </Column>
-                    <Column header="Presentation">
-                        <template #body="slotProps">
-                            {{ slotProps.data.presentation }}
-                        </template>
-                    </Column>
-                    <Column header="Work Book">
-                        <template #body="slotProps">
-                            {{ slotProps.data.work_book }}
-                        </template>
-                    </Column>
-                    <Column header="Practice">
-                        <template #body="slotProps">
-                            {{ slotProps.data.class_practice }}
-                        </template>
-                    </Column>
-                    <Column header="Revision">
-                        <template #body="slotProps">
-                            {{ slotProps.data.revision_test }}
-                        </template>
-                    </Column>
-                    <Column header="Final Exam">
-                        <template #body="slotProps">
-                            {{ slotProps.data.final_exam }}
-                        </template>
-                    </Column>
-                    <Column header="Total Score">
-                        <template #body="slotProps">
-                            {{ slotProps.data.total_score }}
-                        </template>
-                    </Column>
-                </DataTable>
-            </div>
+        <!-- Loading Spinner -->
+        <div v-if="loading" class="h-[70vh] flex items-center justify-center">
+            <ProgressSpinner strokeWidth="4" />
         </div>
-        <div v-else class="h-[70vh] flex items-center justify-center">
-            <div class="text-center text-gray-500">
-                <i class="pi pi-users text-4xl mb-2"></i>
-                <p>No active students found in this class.</p>
+
+        <!-- Content Area (shown after loading) -->
+        <div v-else>
+            <div class="p-4" v-if="hasStudents">
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-between py-3">
+                    <div>
+                        <label class="text-lg font-semibold text-primary">Student List</label>
+                    </div>
+                    <div v-if="hasStudents">
+                        <Button @click="printStudentList" icon="pi pi-print" class="mr-2" aria-label="Print" />
+                        <Button @click="exportStudentListToExcel" icon="pi pi-file-excel" aria-label="Export to Excel" />
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div>
+                    <DataTable :value="activeStudentsInClass" showGridlines stripedRows tableStyle="min-width: 50rem" class="text-nowrap">
+                        <Column header="No" style="width: 3rem">
+                            <template #body="slotProps">
+                                {{ slotProps.index + 1 }}
+                            </template>
+                        </Column>
+                        <Column header="Khmer Name">
+                            <template #body="slotProps">
+                                {{ slotProps.data.student?.kh_name || 'N/A' }}
+                            </template>
+                        </Column>
+                        <Column header="English Name">
+                            <template #body="slotProps">
+                                {{ slotProps.data.student?.eng_name || 'N/A' }}
+                            </template>
+                        </Column>
+                        <Column header="Gender">
+                            <template #body="slotProps">
+                                {{ slotProps.data.student?.gender || 'N/A' }}
+                            </template>
+                        </Column>
+                        <Column header="Date of Birth">
+                            <template #body="slotProps">
+                                {{ formatDate2(slotProps.data.student?.date_of_birth) }}
+                            </template>
+                        </Column>
+                        <Column header="Phone Number">
+                            <template #body="slotProps">
+                                {{ slotProps.data.student?.phoneNumber || 'N/A' }}
+                            </template>
+                        </Column>
+                        <Column header="Attendance Score">
+                            <template #body="slotProps">
+                                {{ slotProps.data.attendance_score }}
+                            </template>
+                        </Column>
+                        <Column header="Assignment Score">
+                            <template #body="slotProps">
+                                {{ slotProps.data.assignment_score }}
+                            </template>
+                        </Column>
+                        <Column header="Home Work">
+                            <template #body="slotProps">
+                                {{ slotProps.data.home_work }}
+                            </template>
+                        </Column>
+                        <Column header="Presentation">
+                            <template #body="slotProps">
+                                {{ slotProps.data.presentation }}
+                            </template>
+                        </Column>
+                        <Column header="Work Book">
+                            <template #body="slotProps">
+                                {{ slotProps.data.work_book }}
+                            </template>
+                        </Column>
+                        <Column header="Practice">
+                            <template #body="slotProps">
+                                {{ slotProps.data.class_practice }}
+                            </template>
+                        </Column>
+                        <Column header="Revision">
+                            <template #body="slotProps">
+                                {{ slotProps.data.revision_test }}
+                            </template>
+                        </Column>
+                        <Column header="Final Exam">
+                            <template #body="slotProps">
+                                {{ slotProps.data.final_exam }}
+                            </template>
+                        </Column>
+                        <Column header="Total Score">
+                            <template #body="slotProps">
+                                {{ slotProps.data.total_score }}
+                            </template>
+                        </Column>
+                    </DataTable>
+                </div>
+            </div>
+            <div v-else class="h-[70vh] flex items-center justify-center">
+                <div class="text-center text-gray-500">
+                    <i class="pi pi-users text-4xl mb-2"></i>
+                    <p>No active students found in this class.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -116,7 +124,9 @@ import NotFound from '@/views/pages/NotFound.vue';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import ProgressSpinner from 'primevue/progressspinner'; // 1. Import the spinner
 import { useFetch } from '@/composible/useFetch';
+
 // Define props passed from the parent component
 const props = defineProps({
     datatoedit: {
@@ -125,8 +135,8 @@ const props = defineProps({
     }
 });
 
-// Fetch all students with status: true to optimize the initial load
-const { data: allActiveStudents, fetchData: fetchStudents } = useFetch('students');
+// 2. Destructure the 'loading' state from the useFetch composable
+const { data: allActiveStudents, loading, fetchData: fetchStudents } = useFetch('students');
 
 // This computed property will now hold only the active students who are in the current class
 const activeStudentsInClass = computed(() => {

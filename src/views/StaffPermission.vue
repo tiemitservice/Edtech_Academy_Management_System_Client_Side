@@ -151,7 +151,7 @@ const getStatusSeverity = (status) => {
         case 'rejected':
             return 'danger';
         case 'pending':
-            return 'warning';
+            return 'warn';
         default:
             return 'info';
     }

@@ -12,7 +12,6 @@
                 <Select v-model="filters.year" :options="years" placeholder="Year" showClear class="min-w-[120px]" />
 
                 <!-- Action Buttons -->
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
                 <Button @click="openModal" label="Add new" />
             </div>
@@ -21,11 +20,11 @@
         <!-- Data Table -->
         <div class="flex flex-col" v-if="!loading">
             <div class="overflow-x-auto">
-                <div v-if="filteredData.length > 0" class="py-2">
-                    <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
+                <div v-if="tableData.length > 0" class="py-2">
+                    <DataTable :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                        <Column field="displayId" header="ID" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
+                                <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
 
@@ -135,7 +134,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import moment from 'moment';
 
@@ -151,6 +150,7 @@ import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Toast from 'primevue/toast';
+import Tag from 'primevue/tag';
 
 // === DATA FETCHING ===
 const collection = ref('bookpayments');
@@ -159,7 +159,6 @@ const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: books, fetchData: fetchBooks } = useFetch('books');
 
 // === COMPONENT STATE ===
-const filteredData = ref([]);
 const isOpen = ref(false);
 const isDelete = ref(false);
 const datatoedit = ref(null);
@@ -179,23 +178,23 @@ const months = ref(moment.months().map((m, i) => ({ name: m, value: i + 1 })));
 const currentYear = moment().year();
 const years = ref(Array.from({ length: 10 }, (_, i) => currentYear - 5 + i));
 
+const setDefaultFilters = () => {
+    const now = moment();
+    filters.value.year = now.year();
+    filters.value.month = now.month() + 1;
+    filters.value.day = null;
+    filters.value.studentId = null;
+    filters.value.bookId = null;
+};
+
 const isFilterActive = computed(() => {
     const now = moment();
-    const defaultFilters = {
-        studentId: null,
-        bookId: null,
-        day: null,
-        month: now.month() + 1,
-        year: now.year()
-    };
-    // A filter is active if any filter value is different from the default state
-    return (
-        filters.value.studentId !== defaultFilters.studentId || filters.value.bookId !== defaultFilters.bookId || filters.value.day !== defaultFilters.day || filters.value.month !== defaultFilters.month || filters.value.year !== defaultFilters.year
-    );
+    return filters.value.studentId !== null || filters.value.bookId !== null || filters.value.day !== null || filters.value.month !== now.month() + 1 || filters.value.year !== now.year();
 });
 
-const applyFilters = () => {
-    // Start by filtering for items where mark_as_completed is false
+const filteredData = computed(() => {
+    if (!rawData.value) return [];
+
     let dataToFilter = rawData.value.filter((item) => item.mark_as_completed === false);
 
     // Filter by date
@@ -219,29 +218,20 @@ const applyFilters = () => {
         dataToFilter = dataToFilter.filter((item) => item.book_id?.includes(filters.value.bookId));
     }
 
-    filteredData.value = dataToFilter;
-};
+    return dataToFilter;
+});
 
-const setDefaultFilters = () => {
-    const now = moment();
-    filters.value.year = now.year();
-    filters.value.month = now.month() + 1;
-    filters.value.day = null;
-    filters.value.studentId = null;
-    filters.value.bookId = null;
-};
+const tableData = computed(() => {
+    return filteredData.value.map((item, index) => ({
+        ...item,
+        displayId: index + 1
+    }));
+});
 
 const clearFilters = () => {
     setDefaultFilters();
-    applyFilters();
 };
-watch(
-    rawData,
-    () => {
-        applyFilters(); // Re-apply filters whenever real-time data changes
-    },
-    { deep: true }
-);
+
 // === HELPER FUNCTIONS ===
 const toast = useToast();
 
@@ -252,9 +242,9 @@ const showToast = (action, severity) => {
 };
 
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : 'N/A');
-const formatStudentName = (studentId) => students.value.find((s) => s._id === studentId)?.eng_name || 'Unknown';
+const formatStudentName = (studentId) => students.value?.find((s) => s._id === studentId)?.eng_name || 'Unknown';
 const formatBookNames = (bookIds) => {
-    if (!bookIds?.length) return 'No books';
+    if (!bookIds?.length || !books.value) return 'No books';
     return bookIds.map((id) => books.value.find((b) => b._id === id)?.name || 'Unknown').join(', ');
 };
 
@@ -278,13 +268,12 @@ const handleClose = async (shouldRefetch) => {
     closeModal();
     if (shouldRefetch) {
         await fetchData();
-        applyFilters();
     }
 };
 
 const handleDeleteConfirm = (id, item) => {
     deleteId.value = id;
-    datatoedit.value = item; // for context in the confirmation dialog
+    datatoedit.value = item;
     isDelete.value = true;
 };
 
@@ -292,7 +281,6 @@ const handleCloseDelete = async (wasDeleted) => {
     isDelete.value = false;
     if (wasDeleted) {
         await fetchData();
-        applyFilters();
     }
     deleteId.value = null;
     datatoedit.value = null;
@@ -300,10 +288,7 @@ const handleCloseDelete = async (wasDeleted) => {
 
 // === LIFECYCLE HOOK ===
 onMounted(async () => {
-    loading.value = true;
     setDefaultFilters();
     await Promise.all([fetchStudents(), fetchBooks(), fetchData()]);
-    applyFilters();
-    loading.value = false;
 });
 </script>

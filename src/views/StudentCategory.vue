@@ -9,10 +9,12 @@
         <div class="flex flex-col">
             <div class="overflow-x-auto">
                 <div class="py-2">
-                    <DataTable v-if="data" :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
+                    <!-- UPDATED: Using 'tableData' which is processed for sorting -->
+                    <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                        <!-- UPDATED: This column now correctly sorts by the 'displayId' field -->
+                        <Column field="displayId" header="No." sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
+                                <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
 
@@ -32,6 +34,10 @@
                             </template>
                         </Column>
                     </DataTable>
+                    <!-- Added a loading state for better UX -->
+                    <div v-else-if="loading" class="text-center py-10">
+                        <p>Loading...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue'; // Added watch
 import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import DeleteConfimation from '@/form/DeleteConfimation.vue';
@@ -148,7 +154,27 @@ function closeModal() {
 function openModal() {
     isOpen.value = true;
 }
+
+// data is the raw data from the server
 const { data, loading, error, fetchData } = useFetch(collection.value);
+
+// tableData is the processed data for the DataTable
+const tableData = ref([]);
+
+// Watch for changes in the raw data and process it for the table
+watch(
+    data,
+    (newData) => {
+        if (Array.isArray(newData)) {
+            // Map over the new data to add a stable 'displayId' for sorting
+            tableData.value = newData.map((item, index) => ({
+                ...item,
+                displayId: index + 1
+            }));
+        }
+    },
+    { immediate: true, deep: true }
+);
 
 onMounted(async () => {
     await fetchData();

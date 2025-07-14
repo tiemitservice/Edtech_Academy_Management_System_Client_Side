@@ -1,7 +1,5 @@
 <template>
     <section class="px-4 mx-auto">
-        <!-- <p class="mt-1 text-lg text-gray-800">Staff list</p> -->
-
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
             <label class="text-lg font-medium text-gray-800 dark:text-white">Book categories</label>
             <div class="flex items-center gap-4">
@@ -13,13 +11,13 @@
             </div>
         </div>
 
-        <div class="flex flex-col" v-if="data">
+        <div class="flex flex-col">
             <div class="overflow-x-auto">
-                <div class="py-2" v-if="!loading && data.length > 0">
-                    <DataTable v-if="data" :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
+                <div class="py-2" v-if="!loading">
+                    <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                        <Column field="displayId" header="No." sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
+                                <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
 
@@ -39,9 +37,9 @@
                             </template>
                         </Column>
                     </DataTable>
-                </div>
-                <div v-else-if="!loading && data.length === 0">
-                    <NotFound />
+                    <div v-else>
+                        <NotFound />
+                    </div>
                 </div>
                 <div v-else>
                     <Laoding />
@@ -93,7 +91,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import { useToast } from 'primevue/usetoast';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
@@ -108,16 +106,13 @@ const isOpen = ref(false);
 const isDelete = ref(false);
 const datatoedit = ref(null);
 const deleteData = ref(null);
-
 const searchQuery = ref('');
-const data = ref([]);
 const collection = ref('book_categories');
 
 // === Toast ===
 const toast = useToast();
 const showToast = (action, severity) => {
     let summary;
-
     switch (action) {
         case 'create':
             severity = 'success';
@@ -139,33 +134,32 @@ const showToast = (action, severity) => {
             severity = 'info';
             summary = 'Action Completed';
     }
-
     toast.add({ severity, summary, life: 3000 });
 };
 
 // === Fetch Hook ===
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 
-// === Filtering Logic ===
-const filterData = () => {
-    loading.value = true;
+// === Filtering and Data Processing Logic ===
+const filteredData = computed(() => {
+    if (!rawData.value) return [];
+    const q = (searchQuery.value || '').trim().toLowerCase();
+    if (!q) {
+        return rawData.value;
+    }
+    return rawData.value.filter((item) => item.name?.toLowerCase().includes(q));
+});
 
-    setTimeout(() => {
-        const q = (searchQuery.value || '').trim().toLowerCase();
-        data.value = rawData.value?.filter((item) => !q || item.name?.toLowerCase().includes(q)) || [];
-
-        console.log('Filtered data:', data.value);
-        loading.value = false;
-    }, 500);
-};
-
-watch(searchQuery, () => {
-    console.log('Search input changed');
-    filterData();
+const tableData = computed(() => {
+    return filteredData.value.map((item, index) => ({
+        ...item,
+        displayId: index + 1
+    }));
 });
 
 // === Modal Logic ===
 const openModal = () => {
+    datatoedit.value = null;
     isOpen.value = true;
 };
 
@@ -174,10 +168,10 @@ const closeModal = () => {
     datatoedit.value = null;
 };
 
-const handleClose = () => {
+const handleClose = async () => {
     isOpen.value = false;
     datatoedit.value = null;
-    filterData();
+    await fetchData();
 };
 
 const handleEdit = (item) => {
@@ -192,15 +186,14 @@ const handleDeleteConfirm = (id, item) => {
     isDelete.value = true;
 };
 
-const handleCloseDelete = () => {
+const handleCloseDelete = async () => {
     deleteData.value = null;
     isDelete.value = false;
-    filterData();
+    await fetchData();
 };
 
 // === Lifecycle ===
 onMounted(async () => {
     await fetchData();
-    filterData();
 });
 </script>

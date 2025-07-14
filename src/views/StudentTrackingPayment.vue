@@ -21,7 +21,7 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="filteredData.length > 0">
                     <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column header="No" sortable style="min-width: 80px">
+                        <Column header="No. " sortable style="min-width: 80px">
                             <template #body="slotProps">
                                 <div class="p-3 rounded" :class="getHighlightClass(slotProps.data)">
                                     <p class="font-medium">{{ slotProps.index + 1 }}</p>
@@ -268,7 +268,8 @@ const handleCloseReset = async () => {
     await fetchData();
 };
 const handleEdit = (doc) => {
-    openModal();
+    isOpen.value = true;
+
     datatoedit.value = doc;
 };
 const handleClose = () => {
