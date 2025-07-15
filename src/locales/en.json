@@ -10,7 +10,9 @@
             "totalSubjects": "Total Subjects",
             "totalBooks": "Total Books",
             "soldBooks": "Books Sold",
-            "courseInvoices": "Course Invoices"
+            "courseInvoices": "Course Invoices",
+            "staffPermissions": "Staff Permissions",
+            "studentPermissions": "Student Permissions"
         },
         "chart": {
             "title": "Number of Students per Class"

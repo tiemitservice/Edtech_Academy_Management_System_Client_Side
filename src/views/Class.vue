@@ -1,9 +1,5 @@
 <template>
     <section class="px-4 mx-auto">
-        <!-- <p class="mt-1 text-lg text-gray-800">Staff list</p> -->
-        <!-- <pre>
-            {{ data[0] }}
-        </pre> -->
         <div class="py-2 flex flex-col md:flex-row mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg justify-between items-center">
             <label class="text-lg font-medium text-gray-800 dark:text-white">Classes</label>
             <div class="flex items-center gap-4">
@@ -12,8 +8,6 @@
                     <InputText placeholder="Search by name" v-model="searchQuery" class="w-full" />
                 </IconField>
                 <div class="flex items-center gap-4">
-                    <!-- <DatePicker v-model="createdAt_select" selectionMode="range" show-icon show-button-bar placeholder="Filter by created at" /> -->
-                    <!-- <Button @click="filterData" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700" />  -->
                     <Button @click="openModal" label="Add new" />
                 </div>
             </div>
@@ -23,17 +17,13 @@
             <div class="overflow-x-auto">
                 <div v-if="!loadingClass && data.length" class="py-2">
                     <DataTable :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="No" sortable style="min-width: 150px">
+                        <!-- MODIFIED: This column now sorts by a real 'originalIndex' field -->
+                        <Column field="originalIndex" header="No" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
+                                <p class="font-medium">{{ slotProps.data.originalIndex }}</p>
                             </template>
                         </Column>
-                        <!-- created at -->
-                        <!-- <Column field="createdAt" header="Created at" style="min-width: 150px">
-                            <template #body="slotProps">
-                                <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
-                            </template>
-                        </Column> -->
+
                         <Column field="name" header="Name" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
@@ -48,7 +38,6 @@
                                 </div>
                             </template>
                         </Column>
-                        <!-- start data -->
                         <Column field="start_time" header="Duration" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
@@ -70,7 +59,8 @@
                         </Column>
                     </DataTable>
                 </div>
-                <div v-else-if="!loadingClass && data.length === 0 && hasFiltered" class="w-full flex justify-center items-center bg-white p-4 rounded-lg">
+                <!-- MODIFIED: Simplified the condition for showing the not found message -->
+                <div v-else-if="!loadingClass && data.length === 0" class="w-full flex justify-center items-center bg-white p-4 rounded-lg">
                     <NotFound />
                 </div>
                 <div v-else>
@@ -79,12 +69,12 @@
             </div>
         </div>
 
+        <!-- All TransitionRoot modals remain the same -->
         <TransitionRoot appear :show="isOpen" as="template">
             <Dialog as="div" @close="closeModal" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
@@ -103,7 +93,6 @@
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
@@ -117,13 +106,11 @@
                 </div>
             </Dialog>
         </TransitionRoot>
-
         <TransitionRoot appear :show="isDelete" as="template">
             <Dialog as="div" @close="handleCloseDelete" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
@@ -142,7 +129,6 @@
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
@@ -161,7 +147,6 @@
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
@@ -180,19 +165,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue'; // Import 'computed'
 import { useFetch } from '../composible/useFetch';
 import ClassDetails from '@/form/ClassDetails.vue';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import Classform from '@/form/Classform.vue';
 import { useToast } from 'primevue/usetoast';
 import DeleteConfimation from '@/form/DeleteConfimation.vue';
-import { formatDate2 } from '@/composible/formatDate';
-import moment from 'moment';
 import NotFound from './pages/NotFound.vue';
 import MarkClassForm from '@/form/MarkClassForm.vue';
 import StudentClassDetial from '../../App/StudentClassDetial.vue';
 import Laoding from './pages/Laoding.vue';
+
 const collection = ref('classes');
 const { data: rawData, loading: loadingClass, error, fetchData } = useFetch(collection.value);
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
@@ -205,10 +189,32 @@ const isDelete = ref(false);
 const deleteData = ref(null);
 const isStudentClassDetail = ref(false);
 const searchQuery = ref('');
-const createdAt_select = ref([moment().startOf('year').startOf('day').toDate(), moment().endOf('year').endOf('day').toDate()]);
-const apply_loading = ref(false);
-
 const isMarkClass = ref(false);
+
+// --- NEW: Reactive computed properties for cleaner data handling ---
+
+// 1. Adds a stable 'originalIndex' to each item from the raw data.
+const indexedRawData = computed(() => {
+    return rawData.value?.map((item, index) => ({ ...item, originalIndex: index + 1 })) || [];
+});
+
+// 2. Filters the indexed data based on the search query and other criteria.
+// This 'data' is now reactive and will automatically update when the search query changes.
+const data = computed(() => {
+    let filteredItems = indexedRawData.value;
+
+    // Apply search query
+    const q = searchQuery.value.trim().toLowerCase();
+    if (q) {
+        filteredItems = filteredItems.filter((item) => item.name?.toLowerCase().includes(q));
+    }
+
+    // Apply 'mark_as_completed' filter
+    filteredItems = filteredItems.filter((item) => item.mark_as_completed === true);
+
+    return filteredItems;
+});
+
 const handleMarkClass = (doc) => {
     isMarkClass.value = true;
     datatoedit.value = doc;
@@ -226,45 +232,6 @@ const formatSubject = (id) => {
     const subject = subjects.value?.find((subject) => subject._id === id);
     return subject ? subject.name : 'N/A';
 };
-const data = ref([]);
-const hasFiltered = ref(false);
-const filterData = () => {
-    loadingClass.value = false;
-    hasFiltered.value = false;
-
-    setTimeout(() => {
-        const q = searchQuery.value.trim().toLowerCase();
-        // const start = Array.isArray(createdAt_select.value) ? createdAt_select.value[0] : createdAt_select.value?.start;
-        // const end = Array.isArray(createdAt_select.value) ? createdAt_select.value[1] : createdAt_select.value?.end;
-
-        data.value =
-            rawData.value?.filter((item) => {
-                const matchesName = !q || item.name?.toLowerCase().includes(q);
-                // const matchesCreatedAt = !start || !end ? true : moment(item.createdAt).isBetween(moment(start).startOf('day'), moment(end).endOf('day'), undefined, '[]');
-                const isCompleted = item.mark_as_completed === true;
-                return matchesName && isCompleted;
-            }) || [];
-
-        console.log('Filtered data:', data.value);
-
-        loadingClass.value = false;
-        hasFiltered.value = true;
-    }, 500);
-};
-
-watch(
-    rawData,
-    () => {
-        console.log('rawData updated:', rawData.value);
-        filterData();
-    },
-    { deep: true }
-);
-
-watch([searchQuery, createdAt_select], () => {
-    console.log('Search or date filter changed');
-    filterData();
-});
 
 const showToast = (action, severity) => {
     const summary =
@@ -332,7 +299,6 @@ onMounted(async () => {
     await fetchData();
     await fetchSections();
     await fetchSubjects();
-    filterData();
 });
 </script>
 

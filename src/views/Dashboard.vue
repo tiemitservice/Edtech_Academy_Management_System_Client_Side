@@ -84,6 +84,28 @@
                     <i class="pi pi-file text-2xl"></i>
                 </div>
             </div>
+
+            <!-- NEW: Staff Permissions Card -->
+            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">{{ $t('dashboard.stats.staffPermissions') }}</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ staffPermissionCount }}</p>
+                </div>
+                <div class="bg-red-100 text-red-600 p-3 rounded-full">
+                    <i class="pi pi-shield text-2xl"></i>
+                </div>
+            </div>
+
+            <!-- NEW: Student Permissions Card -->
+            <div class="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">{{ $t('dashboard.stats.studentPermissions') }}</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ studentPermissionCount }}</p>
+                </div>
+                <div class="bg-yellow-100 text-yellow-600 p-3 rounded-full">
+                    <i class="pi pi-id-card text-2xl"></i>
+                </div>
+            </div>
         </div>
 
         <!-- Chart and Quick Actions -->
@@ -137,6 +159,9 @@ const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
 const { data: books, fetchData: fetchBooks } = useFetch('books');
 const { data: bookPaymentReports, fetchData: fetchBookPaymentReports } = useFetch('bookpaymentreports');
 const { data: courseInvoices, fetchData: fetchCourseInvoices } = useFetch('studentpaymentreports');
+// --- NEW: Fetch permissions data ---
+const { data: staffPermissions, fetchData: fetchStaffPermissions } = useFetch('staffpermissions');
+const { data: studentPermissions, fetchData: fetchStudentPermissions } = useFetch('student_permissions');
 
 // --- Computed Properties for Stats ---
 const studentCount = computed(() => students.value?.length || 0);
@@ -146,6 +171,9 @@ const subjectCount = computed(() => subjects.value?.length || 0);
 const bookCount = computed(() => books.value?.length || 0);
 const soldBookCount = computed(() => bookPaymentReports.value?.length || 0);
 const courseInvoiceCount = computed(() => courseInvoices.value?.length || 0);
+// --- NEW: Computed properties for permission counts ---
+const staffPermissionCount = computed(() => staffPermissions.value?.length || 0);
+const studentPermissionCount = computed(() => studentPermissions.value?.length || 0);
 
 // --- Chart Data and Options ---
 const chartData = computed(() => {
@@ -190,7 +218,18 @@ const chartOptions = ref({
 // --- Lifecycle Hook ---
 onMounted(async () => {
     // Fetch all necessary data when the component mounts
-    await Promise.all([fetchStudents(), fetchStaffs(), fetchClasses(), fetchSubjects(), fetchBooks(), fetchBookPaymentReports(), fetchCourseInvoices()]);
+    await Promise.all([
+        fetchStudents(),
+        fetchStaffs(),
+        fetchClasses(),
+        fetchSubjects(),
+        fetchBooks(),
+        fetchBookPaymentReports(),
+        fetchCourseInvoices(),
+        // --- NEW: Fetch permissions ---
+        fetchStaffPermissions(),
+        fetchStudentPermissions()
+    ]);
 });
 </script>
 
