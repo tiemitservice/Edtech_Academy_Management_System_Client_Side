@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full mx-auto">
+    <div class="w-full mx-auto flex items-center justify-center">
         <div class="flex items-center gap-3">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 space-y-4 text-center">
                 <!-- Image Preview & Change -->

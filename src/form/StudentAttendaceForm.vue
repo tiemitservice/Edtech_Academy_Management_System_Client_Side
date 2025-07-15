@@ -29,6 +29,7 @@
 
                 <Column header="Checked At">
                     <template #body="{ data }">
+                        <!-- Use a standard input for the datetime string -->
                         <InputText v-model="data.checking_at" class="w-[180px]" placeholder="YYYY-MM-DD HH:mm" />
                     </template>
                 </Column>
@@ -42,7 +43,7 @@
             <!-- Action Buttons -->
             <div class="py-4 flex items-center justify-end gap-4">
                 <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
-                <Button :label="loading ? 'Submitting...' : 'Submit Attendance'" :disabled="loading" :loading="loading" @click="submitAttendance" />
+                <Button :label="isSubmitting ? 'Submitting...' : 'Submit Attendance'" :disabled="isSubmitting" :loading="isSubmitting" @click="submitAttendance" />
             </div>
         </div>
     </form>
@@ -51,6 +52,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import moment from 'moment';
+// We will use the generic useFetch composable
 import { useFetch } from '@/composible/useFetch';
 
 // --- Props and Emits ---
@@ -63,12 +65,13 @@ const props = defineProps({
 const emit = defineEmits(['close', 'toast', 'save']);
 
 // --- Data Fetching ---
-// This composable will be used to POST to the 'attendancereports' collection
-const { postData: postAttendanceReport, loading } = useFetch('attendancereports');
-// This is needed to format the student names in the table
+// Use two separate instances of useFetch for clarity
+const { updateData } = useFetch('classes');
+const { postData: postAttendanceReport } = useFetch('attendancereports');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 
 // --- Component State ---
+const isSubmitting = ref(false); // Local loading state for both API calls
 const attendanceOptions = [
     { label: 'Present', value: 'present' },
     { label: 'Absent', value: 'absent' },
@@ -76,14 +79,17 @@ const attendanceOptions = [
     { label: 'Permission', value: 'permission' }
 ];
 
-// Create a deep, editable copy of the students from the prop, initializing attendance fields
+// Create a deep, editable copy of the students from the prop
 const editableStudents = ref(
-    props.datatoedit.students.map((s) => ({
-        ...s,
-        attendance: s.attendance || 'present', // Default to 'present'
-        checking_at: moment().format('YYYY-MM-DD HH:mm'),
-        note: s.note || ''
-    }))
+    props.datatoedit.students.map((s) => {
+        const plainStudent = JSON.parse(JSON.stringify(s));
+        return {
+            ...plainStudent,
+            attendance: plainStudent.attendance || 'present',
+            checking_at: plainStudent.checking_at || moment().format('YYYY-MM-DD HH:mm'),
+            note: plainStudent.note || ''
+        };
+    })
 );
 
 // --- Helper Functions ---
@@ -94,10 +100,31 @@ const formatStudentName = (studentData) => {
 };
 
 // --- Form Submission ---
+// This function now handles both updating the class and posting a new attendance report
 const submitAttendance = async () => {
+    isSubmitting.value = true;
     try {
-        // Prepare the payload according to the AttendanceReportSchema
-        const payload = {
+        // --- Payload 1: For updating the 'classes' document ---
+        const updatePayload = {
+            students: editableStudents.value.map((s) => ({
+                student: s.student._id || s.student,
+                attendance: s.attendance,
+                checking_at: s.checking_at,
+                note: s.note,
+                // Pass existing scores to prevent them from being wiped out
+                attendance_score: s.attendance_score,
+                class_practice: s.class_practice,
+                home_work: s.home_work,
+                assignment_score: s.assignment_score,
+                presentation: s.presentation,
+                revision_test: s.revision_test,
+                final_exam: s.final_exam,
+                work_book: s.work_book
+            }))
+        };
+
+        // --- Payload 2: For creating a new 'attendancereports' document ---
+        const reportPayload = {
             class_id: props.datatoedit._id,
             subject_id: props.datatoedit.subject,
             duration: props.datatoedit.duration,
@@ -110,16 +137,19 @@ const submitAttendance = async () => {
             }))
         };
 
-        // Post the new attendance report to the database
-        await postAttendanceReport(payload);
+        // --- Execute both API calls ---
+        // We can run them in parallel for better performance
+        await Promise.all([updateData(updatePayload, props.datatoedit._id), postAttendanceReport(reportPayload)]);
 
-        emit('toast', 'create', 'Attendance submitted successfully.');
-        emit('save'); // Notify the parent component that data has changed
+        emit('toast', 'update', 'Attendance submitted successfully.');
+        emit('save'); // Notify parent to refresh data
         emit('close');
     } catch (error) {
         console.error('Error submitting attendance:', error);
         const message = error.response?.data?.message || 'Failed to submit attendance.';
         emit('toast', 'error', message);
+    } finally {
+        isSubmitting.value = false; // Ensure loading state is turned off
     }
 };
 
