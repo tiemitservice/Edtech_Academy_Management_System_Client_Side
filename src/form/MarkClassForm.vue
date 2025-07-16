@@ -2,20 +2,20 @@
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Update Class Status</label>
+            <label class="text-base font-semibold text-gray-800">{{ $t('class.mark_class') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <div class="px-4 py-5 space-y-5">
             <div>
-                <label for="date" class="block text-sm font-medium text-gray-700">Set the completion status for this class.</label>
+                <label for="date" class="block text-sm font-medium text-gray-700"> {{ $t('class.update_class_status') }}</label>
             </div>
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-2 p-4 border-t bg-gray-50">
-            <Button label="Cancel" @click="$emit('close')" severity="secondary" outlined />
-            <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+        <div class="flex justify-end gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>

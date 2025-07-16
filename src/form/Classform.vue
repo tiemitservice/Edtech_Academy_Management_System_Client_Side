@@ -2,7 +2,7 @@
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Add New</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
@@ -10,41 +10,41 @@
         <div class="px-4 py-5 space-y-5">
             <!-- Class Name -->
             <div class="space-y-1 text-start">
-                <label for="eng_name" class="block text-sm font-medium text-gray-700"> Class Name <span class="text-red-500">*</span> </label>
-                <InputText id="eng_name" v-model="name" type="text" placeholder="Enter class name" class="w-full" />
+                <label for="eng_name" class="block text-sm font-medium text-gray-700">{{ $t('class.namePlaceholder') }} <span class="text-red-500">*</span> </label>
+                <InputText id="eng_name" v-model="name" type="text" :placeholder="$t('element.name_placeholder')" :required="true" class="w-full" />
             </div>
             <Message severity="error" variant="simple" v-if="isValidateName"> Class name is required. </Message>
 
             <!-- Status Toggle -->
 
             <div class="space-y-1 text-start">
-                <label for="section" class="block text-sm font-medium text-gray-700"> Select Days </label>
+                <label for="section" class="block text-sm font-medium text-gray-700"> {{ $t('class.select_day') }} </label>
                 <MultiSelect id="day_class" v-model="dayclass" :options="workDay" optionLabel="name" optionValue="name" filter show-clear placeholder="Select days of week" class="w-full" />
             </div>
             <!-- Holiday -->
             <div class="space-y-1 text-start">
-                <label for="holiday" class="block text-sm font-medium text-gray-700"> Holiday Schedule </label>
+                <label for="holiday" class="block text-sm font-medium text-gray-700"> {{ $t('class.holiday_schedule') }} </label>
                 <Select id="holiday" :options="holidays" option-label="year" option-value="_id" v-model="selectHoliday" filter show-clear placeholder="Select a Holiday Year" class="w-full" />
             </div>
 
             <div class="space-y-1 text-start">
-                <label for="section" class="block text-sm font-medium text-gray-700"> Section </label>
-                <Select id="section" :options="section" option-label="duration" option-value="_id" v-model="duration" filter show-clear placeholder="Select a Section" class="w-full" />
+                <label for="section" class="block text-sm font-medium text-gray-700"> {{ $t('class.session') }} </label>
+                <Select id="section" :options="section" option-label="duration" option-value="_id" v-model="duration" filter show-clear :placeholder="$t('class.select_session')" class="w-full" />
             </div>
             <div class="space-y-1 text-start">
-                <label for="section" class="block text-sm font-medium text-gray-700"> Subject </label>
-                <Select id="section" :options="subjects" option-label="name" option-value="_id" v-model="subject" filter show-clear placeholder="Select a Subject" class="w-full" />
+                <label for="section" class="block text-sm font-medium text-gray-700"> {{ $t('class.subject') }} </label>
+                <Select id="section" :options="subjects" option-label="name" option-value="_id" v-model="subject" filter show-clear :placeholder="$t('class.select_subject')" class="w-full" />
             </div>
             <div class="space-y-1 text-start">
-                <label for="Status" class="block text-sm font-medium text-gray-700"> Status </label>
+                <label for="Status" class="block text-sm font-medium text-gray-700"> {{ $t('element.status') }} </label>
                 <ToggleSwitch aria-labelledby="switch2" v-model="status" />
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="flex justify-end gap-2 p-4">
-            <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
-            <Button label="Cancel" @click="$emit('close')" severity="danger" />
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -52,10 +52,13 @@
 <script>
 import { ref, onMounted, watch } from 'vue';
 import { useFetch } from '@/composible/useFetch';
+import { useI18n } from 'vue-i18n';
 
+// Initialize i18n
 export default {
     props: ['datatoedit'],
     setup(props, { emit }) {
+        const { t } = useI18n();
         const { data: staffs, fetchData: fetchStaff } = useFetch('staffs');
         const { data: students, fetchData: fetchStudents } = useFetch('students');
         const { data: section, fetchData: fetchSection } = useFetch('sections');
@@ -183,7 +186,8 @@ export default {
             subjects,
             subject,
             holidays,
-            selectHoliday
+            selectHoliday,
+            t
         };
     }
 };

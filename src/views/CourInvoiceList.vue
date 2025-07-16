@@ -225,8 +225,7 @@ const isFilterActive = computed(() => {
 const filterData = () => {
     loading.value = true;
     setTimeout(() => {
-        let filtered = rawData.value?.filter((item) => item.status === false) || [];
-
+        let filtered = rawData.value?.filter((item) => item.status === false && item.mark_as_completed === true) || [];
         const yearToFilter = selectedYear.value;
         const monthToFilter = selectedMonth.value;
         const dayToFilter = selectedDay.value;

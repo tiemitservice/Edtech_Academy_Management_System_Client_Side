@@ -7,12 +7,12 @@
                 <div class="flex items-end gap-4 flex-wrap">
                     <!-- Filters -->
                     <div class="flex flex-col">
-                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a year <span class="text-red-500">*</span> </label>
-                        <DatePicker v-model="selectYear" view="year" dateFormat="yy" show-button-bar placeholder="Select a year" />
-                    </div>
-                    <div class="flex flex-col">
                         <label class="text-lg font-medium text-gray-700 mb-1"> Select a class <span class="text-red-500">*</span> </label>
                         <Select v-model="classSelected" :options="classes" option-value="_id" option-label="name" show-clear placeholder="Select a class" class="min-w-[180px]" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-lg font-medium text-gray-700 mb-1"> Date Range </label>
+                        <DatePicker v-model="dateRange" selectionMode="range" dateFormat="yy-mm-dd" show-button-bar placeholder="Select a date range" />
                     </div>
                     <div class="flex flex-col">
                         <label class="invisible mb-1 select-none">&nbsp;</label>
@@ -25,26 +25,29 @@
         <div class="flex flex-col">
             <div class="overflow-x-auto">
                 <div v-if="!loading">
-                    <div v-if="filteredData.length > 0" class="py-2">
+                    <div v-if="filteredData.length > 0" class="py-2 bg-white p-4 rounded-lg shadow-md">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Filtered Class</h3>
+                            <div>
+                                <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
+                                <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
+                            </div>
+                        </div>
                         <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                            <Column field="_id" header="No." style="min-width: 150px">
-                                <template #body="slotProps">
-                                    <p class="font-medium">{{ slotProps.index + 1 }}</p>
-                                </template>
-                            </Column>
+                            <Column field="displayIndex" header="No." sortable style="min-width: 150px"></Column>
                             <Column field="createdAt" sortable header="Created at" style="min-width: 150px">
                                 <template #body="slotProps">
                                     <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
                                 </template>
                             </Column>
-                            <Column field="en_name" header="Name" sortable style="min-width: 200px">
+                            <Column field="name" header="Name" sortable style="min-width: 200px">
                                 <template #body="slotProps">
                                     <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                         {{ slotProps.data.name }}
                                     </div>
                                 </template>
                             </Column>
-                            <Column field="start_time" header="Duration" sortable style="min-width: 200px">
+                            <Column field="duration" header="Duration" sortable style="min-width: 200px">
                                 <template #body="slotProps">
                                     <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                         {{ formatDuration(slotProps.data?.duration) || 'N/A' }}
@@ -99,11 +102,19 @@ import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessu
 import { useToast } from 'primevue/usetoast';
 import { formatDate2 } from '@/composible/formatDate';
 import moment from 'moment';
+import * as XLSX from 'xlsx';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
 import StudentScoreForm from '@/form/StudentScoreForm.vue';
+import Select from 'primevue/select';
+import DatePicker from 'primevue/datepicker';
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Toast from 'primevue/toast';
 
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
+const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 const toast = useToast();
 const isOpen = ref(false);
 const datatoedit = ref(null);
@@ -119,33 +130,42 @@ const collection = ref('classes');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const { data: classes, fetchData: fetchClass } = useFetch('classes');
 const classSelected = ref(null);
-const selectYear = ref(null);
+// **MODIFIED:** Renamed for clarity
+const dateRange = ref(null);
+
+// **NEW:** Function to set the default date range to the current year
+const setDefaultDateRange = () => {
+    const startOfYear = moment().startOf('year').toDate();
+    const endOfYear = moment().endOf('year').toDate();
+    dateRange.value = [startOfYear, endOfYear];
+};
 
 const filterData = (showNotification = false) => {
     apply_loading.value = true;
-    const year = selectYear.value;
     const classId = classSelected.value;
+    const current_date_range = dateRange.value;
 
-    if (!classId || !year) {
+    if (!classId) {
         filteredData.value = [];
         if (showNotification) {
-            showToast({ action: 'check_fields', message: 'You need to select both Class and Year to filter' });
+            showToast({ action: 'check_fields', message: 'Please select a Class to filter' });
         }
         apply_loading.value = false;
         return;
     }
 
-    const selectedYear = moment(year).year();
+    const start = current_date_range && current_date_range[0] ? moment(current_date_range[0]).startOf('day') : null;
+    const end = current_date_range && current_date_range[1] ? moment(current_date_range[1]).endOf('day') : null;
 
     const result =
         rawData.value?.filter((item) => {
             const matchesClass = item._id === classId;
-            const createdAtYear = moment(item.createdAt).year();
-            const matchesYear = createdAtYear === selectedYear;
-            return matchesClass && matchesYear;
+            // **MODIFIED:** Check if the class's createdAt date falls within the selected range
+            const matchesDate = !start || !end ? true : moment(item.createdAt).isBetween(start, end);
+            return matchesClass && matchesDate;
         }) || [];
 
-    filteredData.value = result;
+    filteredData.value = result.map((item, index) => ({ ...item, displayIndex: index + 1 }));
 
     if (showNotification) {
         if (result.length === 0) {
@@ -158,7 +178,6 @@ const filterData = (showNotification = false) => {
     apply_loading.value = false;
 };
 
-// Watch rawData to silently update the view when data changes from the server
 watch(rawData, () => filterData(false), { deep: true });
 
 const showToast = (payload) => {
@@ -210,11 +229,96 @@ const handleClose = () => {
 };
 
 const handleSave = () => {
-    fetchData(); // Refetch data which will trigger the watcher to update the list
+    fetchData();
     closeModal();
 };
 
+const printReport = () => {
+    if (!filteredData.value.length) return;
+
+    const classToPrint = filteredData.value[0];
+    const schoolName = companies.value?.[0]?.name || 'School Management System';
+    const reportDate = moment().format('DD-MMM-YYYY');
+
+    let tableRows = classToPrint.students
+        .map(
+            (s, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${s.student?.eng_name || 'N/A'}</td>
+            <td>${s.attendance_score ?? 0}</td>
+            <td>${s.class_practice ?? 0}</td>
+            <td>${s.home_work ?? 0}</td>
+            <td>${s.assignment_score ?? 0}</td>
+            <td>${s.presentation ?? 0}</td>
+            <td>${s.work_book ?? 0}</td>
+            <td>${s.revision_test ?? 0}</td>
+            <td>${s.final_exam ?? 0}</td>
+            <td><strong>${s.total_score ?? 0}</strong></td>
+        </tr>
+    `
+        )
+        .join('');
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html><head><title>Student Score Report</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .report-header { text-align: center; margin-bottom: 20px; }
+            .report-header h1 { margin: 0; font-size: 24px; }
+            .report-header p { margin: 5px 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
+            @page { size: A4 landscape; }
+        </style></head><body>
+        <div class="report-header">
+            <h1>${schoolName}</h1>
+            <p><strong>Student Score Report for ${classToPrint.name}</strong></p>
+            <p><em>Generated on: ${reportDate}</em></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th><th>Student</th><th>Attendance</th><th>Practice</th><th>Homework</th><th>Assignment</th>
+                    <th>Presentation</th><th>Workbook</th><th>Revision</th><th>Final Exam</th><th>Total</th>
+                </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+        </table>
+        </body></html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+};
+
+const exportReportToExcel = () => {
+    if (!filteredData.value.length) return;
+
+    const classToExport = filteredData.value[0];
+    const dataToExport = classToExport.students.map((s, index) => ({
+        'No.': index + 1,
+        'Student Name': s.student?.eng_name || 'N/A',
+        Attendance: s.attendance_score ?? 0,
+        Practice: s.class_practice ?? 0,
+        Homework: s.home_work ?? 0,
+        Assignment: s.assignment_score ?? 0,
+        Presentation: s.presentation ?? 0,
+        Workbook: s.work_book ?? 0,
+        Revision: s.revision_test ?? 0,
+        'Final Exam': s.final_exam ?? 0,
+        'Total Score': s.total_score ?? 0
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Scores');
+    XLSX.writeFile(workbook, `ScoreReport_${classToExport.name}.xlsx`);
+};
+
 onMounted(async () => {
-    await Promise.all([fetchData(), fetchSections(), fetchClass()]);
+    await Promise.all([fetchData(), fetchSections(), fetchClass(), fetchCompany()]);
+    // **NEW:** Set the default date range on component load
+    setDefaultDateRange();
 });
 </script>

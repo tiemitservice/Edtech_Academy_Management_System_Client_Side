@@ -54,7 +54,6 @@ import { useFetch } from '@/composible/useFetch';
 // --- Props and Emits ---
 const props = defineProps({
     datatoedit: {
-        // This is the "From Class" object
         type: Object,
         required: true
     }
@@ -68,19 +67,14 @@ const { postData: postPromoteReport } = useFetch('promotestudentreports');
 
 // --- Component State ---
 const toClassId = ref(null);
-const selectedStudentIds = ref([]); // <-- NEW: Stores the IDs of students to be promoted
+const selectedStudentIds = ref([]);
 const error = ref('');
 
 // --- Computed Properties ---
-
-// Returns a list of students who are currently in the "from" class.
 const studentsInFromClass = computed(() => {
-    // Ensure students array exists and each student object is valid
     return (props.datatoedit?.students || []).filter((s) => s.student && s.student._id && s.student.eng_name);
 });
 
-// Filters the list of all classes to find suitable destination classes.
-// A class is available if it's not the original class and it is currently empty.
 const availableClasses = computed(() => {
     if (!Array.isArray(allclasses.value)) {
         return [];
@@ -96,7 +90,6 @@ const availableClasses = computed(() => {
 const handleSubmit = async () => {
     error.value = '';
 
-    // 1. Validation
     if (!selectedStudentIds.value || selectedStudentIds.value.length === 0) {
         error.value = 'Please select at least one student to promote.';
         return;
@@ -115,37 +108,34 @@ const handleSubmit = async () => {
             return;
         }
 
-        // 2. Prepare Payloads
+        const studentIdsToPromote = new Set(selectedStudentIds.value);
 
-        // Create a new list for the "from" class that EXCLUDES the students being promoted.
-        const remainingStudentsInFromClass = fromClass.students.filter((s) => !selectedStudentIds.value.includes(s.student?._id));
+        // **CORRECTED LOGIC:**
+        // 1. Create the list of students who will REMAIN in the original class.
+        // It's crucial to "un-populate" the student field to send only the ID back to the server.
+        const remainingStudentsPayload = fromClass.students
+            .filter((s) => !studentIdsToPromote.has(s.student?._id))
+            .map((s) => ({
+                ...s, // Copy all score fields
+                student: s.student?._id // Ensure the student field is just the ID
+            }));
 
-        // Create a list of students to add to the "to" class.
-        // This resets their scores and other class-specific data.
-        const studentsToAddToToClass = selectedStudentIds.value.map((id) => ({ student: id }));
+        // 2. Create the list of students to be ADDED to the new class.
+        const promotedStudentsPayload = selectedStudentIds.value.map((id) => ({ student: id }));
 
-        // Final student list for the destination class
-        const finalStudentsInToClass = [...(toClass.students || []), ...studentsToAddToToClass];
-
-        // Payloads for the API calls
-        const fromClassPayload = { students: remainingStudentsInFromClass };
-        const toClassPayload = { students: finalStudentsInToClass };
+        // 3. Prepare final payloads for the API calls.
+        const fromClassPayload = { students: remainingStudentsPayload };
+        const toClassPayload = { students: promotedStudentsPayload };
         const reportPayload = {
             from_class_id: fromClass._id,
             class_id: toClassId.value,
             students: selectedStudentIds.value.map((id) => ({ student: id }))
         };
 
-        // 3. Execute all database operations concurrently for efficiency
-        await Promise.all([
-            updateData(toClassPayload, fromClass._id), // Update the original class
-            updateData(toClassPayload, toClassId.value), // Update the destination class
-            postPromoteReport(reportPayload) // Create the promotion report
-        ]);
+        // 4. Execute all database operations.
+        await Promise.all([updateData(fromClassPayload, fromClass._id), updateData(toClassPayload, toClassId.value), postPromoteReport(reportPayload)]);
 
-        // 4. Emit events on success
-        emit('toast', 'update', 'Students promoted successfully!');
-        emit('save'); // To trigger any parent component refresh logic
+        emit('toast', 'update');
         emit('close');
     } catch (e) {
         console.error('Error promoting students:', e);
@@ -155,8 +145,7 @@ const handleSubmit = async () => {
 };
 
 // --- Lifecycle Hook ---
-onMounted(() => {
-    // Fetch all classes when the component is mounted
-    fetchData();
+onMounted(async () => {
+    await fetchData();
 });
 </script>

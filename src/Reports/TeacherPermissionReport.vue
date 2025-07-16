@@ -37,7 +37,7 @@
                                 <p v-if="Array.isArray(data.hold_date)">{{ data.hold_date.join(' to ') }}</p>
                             </template>
                         </Column>
-                        <Column field="permission_status" header="Status" sortable>
+                        <Column field="permission_status" class="capitalize" header="Status" sortable>
                             <template #body="{ data }">
                                 <Tag :severity="getStatusSeverity(data.permission_status)" :value="data.permission_status"></Tag>
                             </template>

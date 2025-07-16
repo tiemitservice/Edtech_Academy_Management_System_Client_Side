@@ -134,7 +134,7 @@ const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : '');
 const formatClassName = (id) => classes.value?.find((c) => c._id === id)?.name || 'N/A';
 const formatStudentName = (id) => students.value?.find((s) => s._id === id)?.eng_name || 'N/A';
 const formatSubjectName = (id) => subjects.value?.find((s) => s._id === id)?.name || 'N/A';
-const formatDurationName = (id) => sections.value?.find((s) => s._id === id)?.name || 'N/A';
+const formatDurationName = (id) => sections.value?.find((s) => s._id === id)?.duration || 'N/A';
 const formatStudentInfo = (id, field) => students.value?.find((s) => s._id === id)?.[field] || 'N/A';
 
 // --- ACTIONS ---

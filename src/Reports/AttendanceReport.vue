@@ -41,7 +41,7 @@
                     </Column>
                     <Column header="Status">
                         <template #body="{ data }">
-                            <span :class="getAttendanceBadge(data.attendance)">
+                            <span class="capitalize" :class="getAttendanceBadge(data.attendance)">
                                 {{ data.attendance || 'N/A' }}
                             </span>
                         </template>

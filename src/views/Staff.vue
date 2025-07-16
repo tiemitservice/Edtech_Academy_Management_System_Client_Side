@@ -34,6 +34,15 @@
                                 </div>
                             </template>
                         </Column>
+                        <Column field="createdAt" header="Created At" sortable style="min-width: 200px">
+                            <template #body="slotProps">
+                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
+                                    <p>
+                                        {{ formatDate2(slotProps.data.createdAt) }}
+                                    </p>
+                                </div>
+                            </template>
+                        </Column>
                         <Column field="en_name" header="Name" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
@@ -153,6 +162,7 @@ import InputText from 'primevue/inputtext';
 import StaffInformation from '@/form/StaffInformation.vue';
 import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import { useToast } from 'primevue/usetoast';
+import { formatDate2 } from '@/composible/formatDate';
 
 // Modal state
 const isOpen = ref(false);

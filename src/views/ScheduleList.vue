@@ -130,7 +130,7 @@ const formatSubjectName = (subjectId) => {
 const printSchedule = () => {
     let tableHTML = `<table class="schedule-table"><thead><tr>`;
     daysOfWeek.value.forEach((day) => {
-        tableHTML += `<th>${t(`day_of_week.${day.name.toLowerCase()}`)}<br><small>${day.date}</small></th>`;
+        tableHTML += `<th>${t(`day_of_week.${day.name.toLowerCase()}`)}<br></th>`;
     });
     tableHTML += `</tr></thead><tbody>`;
 

@@ -1,14 +1,14 @@
 <template>
     <section class="px-4 mx-auto">
         <div class="py-2 flex flex-col md:flex-row mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg justify-between items-center">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Classes</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('class.title') }}</label>
             <div class="flex items-center gap-4">
                 <IconField>
                     <InputIcon class="pi pi-search" />
-                    <InputText placeholder="Search by name" v-model="searchQuery" class="w-full" />
+                    <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" class="w-full" />
                 </IconField>
                 <div class="flex items-center gap-4">
-                    <Button @click="openModal" label="Add new" />
+                    <Button @click="openModal" :label="$t('element.addnew')" />
                 </div>
             </div>
         </div>
@@ -24,21 +24,21 @@
                             </template>
                         </Column>
 
-                        <Column field="name" header="Name" sortable style="min-width: 200px">
+                        <Column field="name" :header="$t('class.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
                                     {{ slotProps.data.name }}
                                 </div>
                             </template>
                         </Column>
-                        <Column field="subject" header="Subject" sortable style="min-width: 200px">
+                        <Column field="subject" :header="$t('class.subject')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
                                     {{ formatSubject(slotProps.data.subject) }}
                                 </div>
                             </template>
                         </Column>
-                        <Column field="start_time" header="Duration" sortable style="min-width: 200px">
+                        <Column field="start_time" :header="$t('class.duration')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
                                     {{ formatDuration(slotProps.data?.duration) || 'N/A' }}
@@ -46,7 +46,7 @@
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button @click="handleClassDetails(slotProps.data)" icon="pi pi-user" severity="success" rounded aria-label="Info" />
@@ -132,7 +132,7 @@
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
-                            <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
+                            <DialogPanel class="w-full max-w-[1440px] transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
                                 <div class="mt-2">
                                     <StudentClassDetial :datatoedit="datatoedit" @close="handleCloseStudentClassDetail" />
                                 </div>
@@ -150,7 +150,7 @@
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
-                            <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
+                            <DialogPanel class="w-full transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
                                 <div class="mt-2">
                                     <MarkClassForm :datatoedit="datatoedit" @close="handleCloseMarkClass" @toast="showToast" />
                                 </div>
@@ -176,7 +176,10 @@ import NotFound from './pages/NotFound.vue';
 import MarkClassForm from '@/form/MarkClassForm.vue';
 import StudentClassDetial from '../../App/StudentClassDetial.vue';
 import Laoding from './pages/Laoding.vue';
+import { useI18n } from 'vue-i18n';
 
+// Initialize i18n
+const { t } = useI18n();
 const collection = ref('classes');
 const { data: rawData, loading: loadingClass, error, fetchData } = useFetch(collection.value);
 const { data: sections, fetchData: fetchSections } = useFetch('sections');

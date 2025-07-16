@@ -31,12 +31,17 @@
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ formatStudentName(slotProps.data.studentId) }}</div>
                             </template>
                         </Column>
+                        <Column field="created_at" header="Created At" sortable style="min-width: 200px">
+                            <template #body="slotProps">
+                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ formatDate2(slotProps.data.created_at) }}</div>
+                            </template>
+                        </Column>
                         <Column field="reason" header="Reason" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.reason }}</div>
                             </template>
                         </Column>
-                        <Column field="permissent_status" header="Status" sortable style="min-width: 150px">
+                        <Column field="permissent_status" class="capitalize" header="Status" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <Tag :severity="getStatusSeverity(slotProps.data.permissent_status)" :value="slotProps.data.permissent_status"></Tag>
                             </template>
@@ -110,6 +115,7 @@ import StudentApproveForm from '@/form/StudentApproveForm.vue';
 import Laoding from './pages/Laoding.vue';
 import NotFound from './pages/NotFound.vue';
 import moment from 'moment';
+import { formatDate2 } from '@/composible/formatDate';
 
 // --- Component State ---
 const isOpen = ref(false);
@@ -152,9 +158,10 @@ const filteredData = computed(() => {
     }
 
     // Filter by date
+    // ALTERNATIVE (filter only if date selected)
     if (filters.value.date) {
         const selectedDate = moment(filters.value.date);
-        data = data.filter((item) => moment(item.createdAt).isSame(selectedDate, 'day'));
+        data = data.filter((item) => moment(item.created_at).isSame(selectedDate, 'day'));
     }
 
     return data;

@@ -32,7 +32,7 @@
                             <template #body="{ data }">{{ formatStudentName(data.student_id) }}</template>
                         </Column>
                         <Column field="reason" header="Reason" sortable></Column>
-                        <Column field="permission_status" header="Status" sortable>
+                        <Column field="permission_status" header="Status" class="capitalize" sortable>
                             <template #body="{ data }">
                                 <Tag :severity="getStatusSeverity(data.permission_status)" :value="data.permission_status"></Tag>
                             </template>

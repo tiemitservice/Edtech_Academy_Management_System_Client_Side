@@ -23,8 +23,8 @@
                         <Column field="createdAt" header="Date" sortable>
                             <template #body="slotProps">{{ formatDate(slotProps.data.createdAt) }}</template>
                         </Column>
-                        <Column field="from" header="From" sortable>
-                            <template #body="slotProps">{{ formatStaffName(slotProps.data.from) || 'N/A' }}</template>
+                        <Column field="from" header="From">
+                            <template #body="slotProps">Anonymous</template>
                         </Column>
 
                         <Column field="feedback" header="Message" style="min-width: 300px"></Column>

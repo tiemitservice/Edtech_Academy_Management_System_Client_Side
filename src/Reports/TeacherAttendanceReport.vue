@@ -33,7 +33,7 @@
                         </Column>
                         <Column field="entry_time" header="Entry Time" sortable></Column>
                         <Column field="exit_time" header="Exit Time" sortable></Column>
-                        <Column field="attendance_status" header="Attendance" sortable>
+                        <Column field="attendance_status" class="capitalize" header="Attendance" sortable>
                             <template #body="{ data }">
                                 <Tag :severity="getAttendanceSeverity(data.attendance_status)" :value="data.attendance_status || 'Un-check'"></Tag>
                             </template>

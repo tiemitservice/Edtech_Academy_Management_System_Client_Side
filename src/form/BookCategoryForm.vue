@@ -59,6 +59,8 @@ export default {
         };
 
         onMounted(async () => {
+            console.log(props.datatoedit);
+
             if (props.datatoedit) {
                 name.value = props.datatoedit.name;
                 status.value = props.datatoedit.status;

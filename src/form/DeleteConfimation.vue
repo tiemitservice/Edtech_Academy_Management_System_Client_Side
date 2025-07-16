@@ -1,17 +1,19 @@
 <template>
     <div class="w-[420px]">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800"> Are you sure you want to delete this item? </label>
+            <label class="text-base font-semibold text-gray-800"> {{ $t('element.delete_item') }} </label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
         <div class="p-4 text-start space-y-4">
             <p class="text-gray-700">
-                This data can not be restored <span class="font-semibold text-primary"> [ {{ displayName }} ] </span>
+                {{ $t('element.can_be_restore') }} <span class="font-semibold text-primary"> [ {{ displayName }} ] </span>
             </p>
         </div>
         <div class="w-full justify-end flex space-x-2 p-4">
-            <Button @click="$emit('close')" label="Cancel" severity="danger" aria-label="Close">No</Button>
-            <Button @click="handleDelete">Yes</Button>
+            <Button @click="$emit('close')" label="Cancel" severity="danger" aria-label="Close">
+                {{ $t('element.cancel') }}
+            </Button>
+            <Button @click="handleDelete">{{ $t('element.yes') }}</Button>
         </div>
     </div>
 </template>
@@ -20,10 +22,12 @@
 import { useFetch } from '@/composible/useFetch';
 import { onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 export default {
     props: ['deleteData', 'collection', 'datatoedit'],
     setup(props, { emit }) {
         const route = useRoute();
+        const { t } = useI18n();
         const { deleteData } = useFetch(props.collection);
         const { data: staffs, fetchData: fetchStaff } = useFetch('users');
 
@@ -54,6 +58,7 @@ export default {
             if (route.path === '/staff') return props.datatoedit?.en_name;
             if (route.path === '/book') return props.datatoedit?.name;
             if (route.path === '/bookcategory') return props.datatoedit?.name;
+            if (route.path === '/bookpayment') return props.datatoedit?.displayId;
             // feedbark route
             if (route.path === '/feedback') return props.datatoedit?.feedback;
             return '';
@@ -78,7 +83,7 @@ export default {
             await fetchStaff();
         });
 
-        return { handleDelete, route, displayName };
+        return { handleDelete, route, displayName, t };
     }
 };
 </script>

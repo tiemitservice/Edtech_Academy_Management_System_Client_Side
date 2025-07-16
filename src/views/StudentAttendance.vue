@@ -1,19 +1,23 @@
 <template>
     <section class="px-4 mx-auto">
+        <!-- Header and Filter Controls -->
         <div class="flex flex-col md:flex-row mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg justify-between items-center">
             <label class="text-lg font-medium text-gray-800 dark:text-white">Student Attendance</label>
             <div class="flex items-center gap-4">
                 <div class="flex items-end gap-4 flex-wrap">
                     <!-- Class Select -->
                     <div class="flex flex-col">
-                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a year <span class="text-red-500">*</span> </label>
-                        <DatePicker v-model="selectYear" view="year" dateFormat="yy" show-button-bar placeholder="Select a year" />
-                    </div>
-                    <div class="flex flex-col">
                         <label class="text-lg font-medium text-gray-700 mb-1"> Select a class <span class="text-red-500">*</span> </label>
                         <Select v-model="classSelected" :options="classes" option-value="_id" option-label="name" show-clear placeholder="Select a class" class="min-w-[180px]" />
                     </div>
 
+                    <!-- Date Range Filter -->
+                    <div class="flex flex-col">
+                        <label class="text-lg font-medium text-gray-700 mb-1"> Filter by Date Range </label>
+                        <DatePicker v-model="createdAt_select" selectionMode="range" show-button-bar placeholder="Select date range" class="min-w-[220px]" />
+                    </div>
+
+                    <!-- Apply Filter Button -->
                     <div class="flex flex-col">
                         <label class="invisible mb-1 select-none">&nbsp;</label>
                         <Button @click="filterData" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 bg-blue-600" />
@@ -31,7 +35,6 @@
                                 <p class="font-medium">{{ slotProps.index + 1 }}</p>
                             </template>
                         </Column>
-                        <!-- created at -->
                         <Column field="createdAt" sortable header="Created at" style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
@@ -44,7 +47,6 @@
                                 </div>
                             </template>
                         </Column>
-                        <!-- start data -->
                         <Column field="start_time" header="Duration" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
@@ -52,7 +54,6 @@
                                 </div>
                             </template>
                         </Column>
-
                         <Column header="Actions" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
@@ -63,7 +64,7 @@
                         </Column>
                     </DataTable>
                 </div>
-                <div v-if="!filteredData || filteredData.length === 0" class="w-full flex justify-center items-center bg-white p-4 rounded-lg">
+                <div v-if="!loading && (!filteredData || filteredData.length === 0)" class="w-full flex justify-center items-center bg-white p-4 rounded-lg">
                     <NotFound :loading="loading" :error="error" />
                 </div>
             </div>
@@ -74,7 +75,6 @@
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
@@ -93,11 +93,10 @@
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
-                            <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
+                            <DialogPanel class="w-full transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
                                 <div class="mt-2">
                                     <ClassDetails :datatoedit="datatoedit" @close="handleCloseDetails" />
                                 </div>
@@ -107,17 +106,15 @@
                 </div>
             </Dialog>
         </TransitionRoot>
-
         <TransitionRoot appear :show="isStudentClassDetail" as="template">
             <Dialog as="div" @close="handleCloseStudentClassDetail" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
-
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
-                            <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
+                            <DialogPanel class="w-full transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
                                 <div class="mt-2">
                                     <StudentClassDetial :datatoedit="datatoedit" @close="handleCloseStudentClassDetail" />
                                 </div>
@@ -162,33 +159,38 @@ const collection = ref('classes');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const { data: classes, fetchData: fetchClass } = useFetch('classes');
 const classSelected = ref(null);
-const selectYear = ref(null);
+const createdAt_select = ref(null);
+
+// **NEW:** Function to set the default date range
+const setDefaultDateRange = () => {
+    const startOfYear = moment().startOf('year').toDate();
+    const endOfYear = moment().endOf('year').toDate();
+    createdAt_select.value = [startOfYear, endOfYear];
+};
 
 const filterData = () => {
     apply_loading.value = true;
 
-    const year = selectYear.value;
     const classId = classSelected.value;
+    const dateRange = createdAt_select.value;
 
-    // ✅ Show toast if either class or year is missing
-    if (!classId || !year) {
+    if (!classId) {
         filteredData.value = [];
-        showToast({ action: 'check_fields', message: 'You need to select both Class and Year to filter' });
+        showToast({ action: 'check_fields', message: 'You need to select a Class to filter' });
         apply_loading.value = false;
         return;
     }
 
     const q = searchQuery.value.trim().toLowerCase();
-    const selectedYear = moment(year).year();
+    const start = dateRange && dateRange[0] ? moment(dateRange[0]).startOf('day') : null;
+    const end = dateRange && dateRange[1] ? moment(dateRange[1]).endOf('day') : null;
 
     filteredData.value =
         rawData.value?.filter((item) => {
             const matchesName = !q || item.name?.toLowerCase().includes(q);
             const matchesClass = item._id === classId;
-            const createdAtYear = moment(item.createdAt).year();
-            const matchesYear = createdAtYear === selectedYear;
-
-            return matchesName && matchesClass && matchesYear;
+            const matchesDate = !start || !end ? true : moment(item.createdAt).isBetween(start, end);
+            return matchesName && matchesClass && matchesDate;
         }) || [];
 
     if (filteredData.value.length === 0) {
@@ -203,7 +205,6 @@ const filterData = () => {
 const showToast = (payload) => {
     let action = typeof payload === 'string' ? payload : payload.action;
     let customMessage = typeof payload === 'object' ? payload.message : null;
-
     let severity;
     let summary;
 
@@ -284,8 +285,9 @@ const handleCloseStudentClassDetail = () => {
 onMounted(async () => {
     await fetchData();
     await fetchSections();
-    await fetchClass({ mark_as_completed: true });
-    // filterData();
+    await fetchClass({ mark_as_completed: false });
+    // **NEW:** Set the default date range when the component loads
+    setDefaultDateRange();
 });
 </script>
 

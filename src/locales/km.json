@@ -10,8 +10,8 @@
             "totalBooks": "សៀវភៅសរុប",
             "soldBooks": "សៀវភៅបានលក់",
             "courseInvoices": "វិក្កយបត្រវគ្គសិក្សា",
-            "staffPermissions": "សិទ្ធិបុគ្គលិក",
-            "studentPermissions": "សិទ្ធិសិស្ស"
+            "staffPermissions": "សំណើរច្បាប់បុគ្គលិក",
+            "studentPermissions": "សំណើរច្បាប់សិស្ស"
         },
         "chart": {
             "title": "ចំនួនសិស្សក្នុងមួយថ្នាក់"
@@ -54,5 +54,55 @@
         "passwordPlaceholder": "ពាក្យសម្ងាត់",
         "signInButton": "ចូល",
         "signInButtonLoading": "កំពុងដំណើរការ..."
+    },
+    "class": {
+        "title": "បញ្ជីថ្នាក់",
+        "name": "ឈ្មោះ",
+        "namePlaceholder": "ឈ្មោះថ្នាក់",
+        "class_details": "ព័ត៌មានលម្អិតអំពីថ្នាក់",
+        "teacher": "គ្រូបង្រៀន",
+        "student_list": "បញ្ចីសិស្ស",
+        "studentPlaceholder": "សិស្ស",
+        "subject": "មុខវិជ្ជា",
+        "select_subject": "ជ្រើសរើសមុខវិជ្ជា",
+        "noData": "មិនមានទិន្នន័យថ្នាក់ទេ។",
+        "duration": "រយៈពេល",
+        "select_day": "ជ្រើសរើសថ្ងៃ",
+        "holiday_schedule": "កាលវិភាគថ្ងៃឈប់សម្រាក",
+        "select_holiday": "ជ្រើសរើសថ្ងៃឈប់សម្រាក",
+        "session": "វេន",
+        "select_session": "ជ្រើសរើសវេន",
+        "classes_transaction": "ប្រតិបត្តិការថ្នាក់",
+        "filter_by_created_at": "ត្រងតាមកាលបរិច្ឆេទបង្កើត",
+        "update_class_status": "ធ្វើបច្ចុប្បន្នភាពស្ថានភាពថ្នាក់",
+        "mark_class": "បញ្ចប់ថ្នាក់",
+        "set_remark_class": "កំណត់ស្ថានភាពប្រឡងឡើងវិញសម្រាប់ថ្នាក់នេះ។",
+        "promote_student": "តំឡើងសិស្សទៅថ្នាក់ថ្មី",
+        "from_class": "ពីថ្នាក់",
+        "to_class": "ទៅថ្នាក់",
+        "student_to_promote": "សិស្សត្រូវតំឡើង",
+        "promote_selected_student": "តំឡើងសិស្សដែលបានជ្រើសរើស"
+    },
+    "element": {
+        "noData": "មិនមានទិន្នន័យទេ។",
+        "Searchbyname": "ស្វែងរកតាមឈ្មោះ",
+        "name_placeholder": "បញ្ចូលឈ្មោះ",
+        "edit": "កែប្រែ",
+        "addnew": "បង្កើតថ្មី",
+        "adding": "កំពុងដំណើរការ...",
+        "update": "កែប្រែ",
+        "updating": "កំពុងកែប្រែ...",
+        "delete": "លុប",
+        "deleting": "កំពុងលុប...",
+        "cancel": "បោះបង់",
+        "save": "រក្សារទុក",
+        "areYouSure": "តើអ្នកប្រាកដទេ?",
+        "yes": "បាទ/ចាស",
+        "no": "ទេ",
+        "can_be_restore": "ទិន្នន័យនេះមិនអាចយកមកវិញបានទេ។",
+        "delete_item": "តើអ្នកប្រាកដទេថាចង់លុប?",
+        "status": "ស្ថានភាព",
+        "action": "សកម្មភាព",
+        "filter": "ច្រោះ"
     }
 }

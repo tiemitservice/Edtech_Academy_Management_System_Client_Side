@@ -77,14 +77,14 @@
                                         :disabled="!slotProps.data?.next_payment_date && !slotProps.data?.first_payment_date && !slotProps.data?.payment_type"
                                         @click="handleReset(slotProps.data)"
                                         icon="pi pi-file-export"
-                                        severity="danger"
+                                        severity="success"
                                         rounded
                                         aria-label="Reset"
                                     />
                                     <Button
                                         :disabled="!slotProps.data?.next_payment_date && !slotProps.data?.first_payment_date && !slotProps.data?.payment_type"
                                         @click="handleMakeTracking(slotProps.data)"
-                                        icon="pi pi-check"
+                                        icon="pi pi-info"
                                         severity="danger"
                                         rounded
                                         aria-label="Reset"
@@ -229,7 +229,7 @@ const applyFilters = () => {
     }));
 
     // --- Default filter for status: true ---
-    processed = processed.filter((item) => item.status === true);
+    processed = processed.filter((item) => item.status === true && item.mark_as_completed === true);
 
     // Time-based filtering
     const now = moment();

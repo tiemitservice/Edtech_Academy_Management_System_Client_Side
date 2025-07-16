@@ -98,7 +98,7 @@
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
-                            <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
+                            <DialogPanel class="w-full max-w-[1440px] transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
                                 <div class="mt-2">
                                     <StudentClassDetial :datatoedit="datatoedit" @close="handleCloseStudentClassDetail" />
                                 </div>
@@ -261,14 +261,14 @@ const handleCloseStudentClassDetail = () => {
 
 // --- General Functions ---
 
-const showToast = (action, severity, detail) => {
+const showToast = (action, severity) => {
     const summary =
         {
             create: 'Created Success',
             update: 'Updated Success',
             delete: 'Deleted Success'
         }[action] || action;
-    toast.add({ severity: severity || 'info', summary, detail, life: 3000 });
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
 
 const handleSave = () => {
