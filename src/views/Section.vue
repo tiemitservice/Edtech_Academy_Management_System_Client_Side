@@ -101,32 +101,39 @@ const isOpen = ref(false);
 const datatoedit = ref(null);
 
 const toast = useToast();
-const showToast = (action, severity) => {
-    let summary;
+const showToast = (payload) => {
+    const action = typeof payload === 'string' ? payload : payload.action;
+    const customMessage = typeof payload === 'object' ? payload.message : null;
+
+    let severity = 'info';
+    let summary = 'Action Completed';
+
     switch (action) {
         case 'create':
             severity = 'success';
-            summary = ' Created Success';
+            summary = 'Created Success';
             break;
         case 'update':
             severity = 'info';
-            summary = ' Updated Success';
+            summary = 'Updated Success';
             break;
         case 'delete':
-            summary = ' Deleted Success';
+            severity = 'error';
+            summary = 'Deleted Success';
             break;
-        case 'asociate':
+        case 'associate':
             severity = 'warn';
-            summary = ' Please delete the associated data first';
+            summary = 'Please delete the associated data first';
             break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
+        case 'error':
+            severity = 'error';
+            summary = 'An error occurred';
+            break;
     }
 
     toast.add({
         severity: severity,
-        summary: summary,
+        summary: customMessage || summary, // Use custom message if provided, otherwise default
         life: 3000
     });
 };

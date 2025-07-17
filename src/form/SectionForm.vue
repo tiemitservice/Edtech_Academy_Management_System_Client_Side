@@ -60,6 +60,7 @@ export default {
                 }
             } catch (error) {
                 console.error('Submission error:', error);
+                emit('toast', 'error', error.message);
             } finally {
                 loading.value = false;
             }

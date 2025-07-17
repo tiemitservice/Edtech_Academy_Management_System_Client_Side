@@ -5,9 +5,10 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Class Completion Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
-                <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" placeholder="* Select a Date" class="min-w-[200px]" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId || !filters.date" />
+                <Select v-model="filters.year" :options="academicYears" placeholder="* Select a Year" class="min-w-[200px]" />
+                <Select v-model="filters.durationId" :options="sections" optionLabel="duration" optionValue="_id" placeholder="* Select a Duration" class="min-w-[200px]" />
+                <Select v-model="filters.classId" :options="filteredClasses" :disabled="!filters.durationId" optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
+                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
@@ -16,10 +17,10 @@
         <div v-if="!loading">
             <!-- Initial Prompt -->
             <div v-if="!selectedReport && !searched" class="text-center p-8 bg-white rounded-lg shadow-md">
-                <p class="text-gray-500">Please select a class and a date to view its completion report.</p>
+                <p class="text-gray-500">Please select a year, duration, and class to view its completion report.</p>
             </div>
 
-            <!-- Report Details and Table (v-else-if) -->
+            <!-- Report Details and Table -->
             <div v-else-if="selectedReport" class="py-2 bg-white p-4 rounded-lg shadow-md">
                 <div class="flex justify-between items-center mb-4 border-b pb-4">
                     <div>
@@ -31,7 +32,7 @@
                         <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
                     </div>
                 </div>
-                <DataTable :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                <DataTable :value="tableData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
                     <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
                     <Column header="Student Name">
                         <template #body="{ data }">{{ formatStudentName(data.studentId) }}</template>
@@ -45,9 +46,9 @@
                 </DataTable>
             </div>
 
-            <!-- No reports found message (v-else) -->
-            <div v-else>
-                <NotFound :message="`No completion reports found for '${formatClassName(filters.classId)}' on the selected date.`" />
+            <!-- No reports found message -->
+            <div v-else-if="searched">
+                <NotFound :message="`No completion reports found for the selected criteria.`" />
             </div>
         </div>
         <div v-else>
@@ -57,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
@@ -82,42 +83,38 @@ const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 // --- COMPONENT STATE ---
 const selectedReport = ref(null);
 const searched = ref(false);
+const filters = ref({ year: null, durationId: null, classId: null });
+const academicYears = ref([]);
 
-// --- FILTERING LOGIC ---
-const filters = ref({ classId: null, date: null });
+// --- WATCHERS ---
+watch(
+    () => filters.value.year,
+    () => {
+        selectedReport.value = null;
+        searched.value = false;
+    }
+);
 
+watch(
+    () => filters.value.durationId,
+    () => {
+        filters.value.classId = null;
+        selectedReport.value = null;
+        searched.value = false;
+    }
+);
+
+// --- COMPUTED PROPERTIES ---
 const isFilterActive = computed(() => {
-    return filters.value.classId !== null || filters.value.date !== null;
+    return filters.value.year !== null || filters.value.durationId !== null || filters.value.classId !== null;
 });
 
-const applyFilters = () => {
-    searched.value = true;
-    if (!filters.value.classId || !filters.value.date) {
-        selectedReport.value = null;
-        return;
+const filteredClasses = computed(() => {
+    if (!filters.value.durationId || !classes.value) {
+        return [];
     }
-    const selectedDate = moment(filters.value.date);
-
-    const dataToFilter = rawReports.value.filter((r) => r.class_id === filters.value.classId && moment(r.createdAt).isSame(selectedDate, 'day'));
-
-    if (dataToFilter.length > 0) {
-        dataToFilter.sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)));
-        selectedReport.value = dataToFilter[0];
-    } else {
-        selectedReport.value = null;
-    }
-};
-
-const setDefaultFilters = () => {
-    filters.value.classId = null;
-    filters.value.date = new Date(); // Default to today's date
-};
-
-const clearFilters = () => {
-    setDefaultFilters();
-    selectedReport.value = null;
-    searched.value = false;
-};
+    return classes.value.filter((c) => c.duration === filters.value.durationId);
+});
 
 const tableData = computed(() => {
     if (!selectedReport.value || !Array.isArray(selectedReport.value.student_id)) {
@@ -128,6 +125,33 @@ const tableData = computed(() => {
         displayIndex: index + 1
     }));
 });
+
+// --- FILTERING LOGIC ---
+const applyFilters = () => {
+    searched.value = true;
+    if (!filters.value.year || !filters.value.durationId || !filters.value.classId) {
+        selectedReport.value = null;
+        return;
+    }
+    const startYear = parseInt(filters.value.year.split('-')[0]);
+
+    const dataToFilter = rawReports.value.filter((r) => r.class_id === filters.value.classId && moment(r.createdAt).year() === startYear && r.duration === filters.value.durationId);
+
+    if (dataToFilter.length > 0) {
+        dataToFilter.sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)));
+        selectedReport.value = dataToFilter[0];
+    } else {
+        selectedReport.value = null;
+    }
+};
+
+const clearFilters = () => {
+    filters.value.year = null;
+    filters.value.durationId = null;
+    filters.value.classId = null;
+    selectedReport.value = null;
+    searched.value = false;
+};
 
 // --- HELPER & FORMATTING FUNCTIONS ---
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : '');
@@ -202,8 +226,14 @@ const exportReportToExcel = () => {
 
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
+    // Generate academic year ranges
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = 2020; year <= currentYear + 5; year++) {
+        years.push(`${year}-${year + 1}`);
+    }
+    academicYears.value = years;
+
     await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchSubjects(), fetchSections(), fetchCompany()]);
-    setDefaultFilters(); // Set default filters on mount
-    applyFilters(); // Apply default filters to show today's data initially
 });
 </script>

@@ -153,6 +153,7 @@ export default {
                 duration.value = props.datatoedit?.duration;
                 mark_as_complete.value = props.datatoedit.mark_as_complete;
                 selectHoliday.value = props.datatoedit.holiday;
+                status.value = props.datatoedit.status;
                 console.log('prop.datatoedit', props.datatoedit);
             }
             await fetchStaff(filtersStaffs.value);

@@ -11,7 +11,7 @@
                 </IconField>
                 <Dropdown v-model="selectedPosition" filter show-clear :options="positions" option-value="_id" option-label="name" placeholder="Select a position" />
                 <Dropdown v-model="selectedDepartment" filter show-clear :options="departments" option-value="_id" option-label="name" placeholder="Select a department" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
+                <Button @click="applySelectFilters" label="Apply Filter" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
@@ -19,9 +19,9 @@
         <div class="flex flex-col">
             <div class="overflow-x-auto">
                 <div v-if="!loading" class="py-2">
-                    <!-- UPDATED: Using 'tableData' which is processed for sorting -->
+                    <!-- Using 'tableData' which is processed for sorting -->
                     <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <!-- UPDATED: This column now correctly sorts by the 'displayId' field -->
+                        <!-- This column now correctly sorts by the 'displayId' field -->
                         <Column field="displayId" header="No." sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.displayId }}</p>
@@ -139,41 +139,48 @@ const { data: departments, fetchData: fetchDepartment } = useFetch('departments'
 const searchQuery = ref('');
 const selectedPosition = ref(null);
 const selectedDepartment = ref(null);
-const filteredData = ref([]);
+// This holds the filters that are actively applied by the button
+const activeSelectFilters = ref({ position: null, department: null });
 
 const isFilterActive = computed(() => {
-    return searchQuery.value || selectedPosition.value || selectedDepartment.value;
+    return searchQuery.value || activeSelectFilters.value.position || activeSelectFilters.value.department;
 });
 
-const applyFilters = () => {
-    let dataToFilter = [...rawData.value];
-    const q = searchQuery.value.trim().toLowerCase();
-
-    if (q) {
-        dataToFilter = dataToFilter.filter((item) => item.en_name?.toLowerCase().includes(q) || item.kh_name?.toLowerCase().includes(q));
-    }
-    if (selectedPosition.value) {
-        dataToFilter = dataToFilter.filter((item) => item.position === selectedPosition.value);
-    }
-    if (selectedDepartment.value) {
-        dataToFilter = dataToFilter.filter((item) => item.department === selectedDepartment.value);
-    }
-    filteredData.value = dataToFilter;
+// This function is triggered by the "Apply Filter" button
+const applySelectFilters = () => {
+    activeSelectFilters.value.position = selectedPosition.value;
+    activeSelectFilters.value.department = selectedDepartment.value;
 };
 
 const clearFilters = () => {
     searchQuery.value = '';
     selectedPosition.value = null;
     selectedDepartment.value = null;
-    applyFilters();
+    // Also clear the active filters
+    activeSelectFilters.value.position = null;
+    activeSelectFilters.value.department = null;
 };
 
-// Watch for changes to automatically re-apply filters
-watch(rawData, applyFilters, { deep: true });
-
-// NEW: Computed property to add a sortable ID to the filtered data
+// The main computed property for the table, which reacts to instant search and applied select filters
 const tableData = computed(() => {
-    return filteredData.value.map((item, index) => ({
+    let dataToFilter = [...rawData.value];
+
+    // Instant search by name
+    const q = searchQuery.value.trim().toLowerCase();
+    if (q) {
+        dataToFilter = dataToFilter.filter((item) => item.en_name?.toLowerCase().includes(q) || item.kh_name?.toLowerCase().includes(q));
+    }
+
+    // Filters applied by button
+    if (activeSelectFilters.value.position) {
+        dataToFilter = dataToFilter.filter((item) => item.position === activeSelectFilters.value.position);
+    }
+    if (activeSelectFilters.value.department) {
+        dataToFilter = dataToFilter.filter((item) => item.department === activeSelectFilters.value.department);
+    }
+
+    // Add a display ID for the table view
+    return dataToFilter.map((item, index) => ({
         ...item,
         displayId: index + 1
     }));
@@ -220,7 +227,6 @@ function openModal() {
 // --- Lifecycle Hook ---
 onMounted(async () => {
     await Promise.all([fetchData(), fetchPositions(), fetchDepartment()]);
-    applyFilters(); // Apply initial (empty) filters
 });
 </script>
 

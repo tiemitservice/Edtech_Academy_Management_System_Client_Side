@@ -18,6 +18,10 @@
                             <label for="email" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
                             <InputText id="email" type="email" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="email" />
 
+                            <!-- **NEW:** Phone Number Field -->
+                            <label for="phoneNumber" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Phone Number</label>
+                            <InputText id="phoneNumber" type="text" placeholder="Phone Number" class="w-full md:w-[30rem] mb-8" v-model="phoneNumber" />
+
                             <label for="password" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
                             <Password v-model="password" id="password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
 
@@ -25,7 +29,7 @@
 
                             <div class="text-center mt-4">
                                 <span class="text-muted-color">Already have an account? </span>
-                                <router-link to="/login" class="font-medium text-primary-500 hover:underline">Sign In</router-link>
+                                <router-link to="/auth/login" class="font-medium text-primary-500 hover:underline">Sign In</router-link>
                             </div>
                         </div>
                     </div>
@@ -37,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import url from '@/composible/api';
 import { useRouter } from 'vue-router';
@@ -49,6 +53,7 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import Toast from 'primevue/toast';
+import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 
 // --- Composables ---
 const router = useRouter();
@@ -59,18 +64,80 @@ const { data: companyData, fetchData: fetchCompanyData } = useFetch('companies')
 const name = ref('');
 const email = ref('');
 const password = ref('');
+const phoneNumber = ref(''); // **NEW**
 const loading = ref(false);
 
 // --- Default Permissions and Modules for Superadmin ---
-const defaultPermissions = ref([
-    '"classes:create","classes:read","classes:update","classes:delete","class transaction:read","sessions:create","sessions:read","sessions:update","sessions:delete","subjects:create","subjects:read","subjects:update","subjects:delete","class schedule:read","assign teacher to class:update","assign student to class:update","feedback:create","feedback:read","feedback:update","feedback:delete","student list:create","student list:read","student list:update","student list:delete","student category:create","student category:read","student category:update","student category:delete","student attendance:create","student attendance:read","student attendance:update","student attendance:delete","student scores:create","student scores:read","student scores:update","student scores:delete","student permission:create","student permission:read","student permission:update","student permission:delete","student class info:read","student class history:read","teachers:create","teachers:read","teachers:update","teachers:delete","teacher attendance:create","teacher attendance:read","teacher attendance:update","teacher attendance:delete","teacher permission:create","teacher permission:read","teacher permission:update","teacher permission:delete","departments:create","departments:read","departments:update","departments:delete","positions:create","positions:read","positions:update","positions:delete","book list:create","book list:read","book list:update","book list:delete","book categories:create","book categories:read","book categories:update","book categories:delete","student payments tracking:read","course invoice:read","course payment transactions:read","book payment:read","book payment transactions:read","student score report:read","mark class report:read","re-mark class report:read","student attendance report:read","promote student report:read","student permission report:read","teacher attendance report:read","teacher permission report:read","student payment report:read","student complete payment report:read","book payment report:read","book stock history:read","discount:create","discount:read","discount:update","discount:delete","user management:create","user management:read","user management:update","user management:delete","reset password:update","school holidays:create","school holidays:read","school holidays:update","school holidays:delete","school info:update" '
+const permissionModules = ref([
+    // Academic
+    { name: 'Classes', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Class Transaction', actions: ['read'] },
+    { name: 'Sessions', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Subjects', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Class Schedule', actions: ['read'] },
+    { name: 'Assign Teacher to Class', actions: ['update'] },
+    { name: 'Assign Student to Class', actions: ['update'] },
+    { name: 'Feedback', actions: ['create', 'read', 'update', 'delete'] },
+    // Students
+    { name: 'Student List', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Category', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Attendance', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Scores', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Permission', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Student Class Info', actions: ['read'] },
+    { name: 'Student Class History', actions: ['read'] },
+    // Teacher
+    { name: 'Teachers', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Teacher Attendance', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Teacher Permission', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Departments', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Positions', actions: ['create', 'read', 'update', 'delete'] },
+    // Book
+    { name: 'Book List', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Book Categories', actions: ['create', 'read', 'update', 'delete'] },
+    // Finance
+    { name: 'Student Payments Tracking', actions: ['read'] },
+    { name: 'Course Invoice', actions: ['read'] },
+    { name: 'Course Payment Transactions', actions: ['read'] },
+    { name: 'Book Payment', actions: ['read'] },
+    { name: 'Book Payment Transactions', actions: ['read'] },
+    // Student Reports
+    { name: 'Student Score Report', actions: ['read'] },
+    { name: 'Mark Class Report', actions: ['read'] },
+    { name: 'Re-Mark Class Report', actions: ['read'] },
+    { name: 'Student Attendance Report', actions: ['read'] },
+    { name: 'Promote Student Report', actions: ['read'] },
+    { name: 'Student Permission Report', actions: ['read'] },
+    // Teacher Reports
+    { name: 'Teacher Attendance Report', actions: ['read'] },
+    { name: 'Teacher Permission Report', actions: ['read'] },
+    // Payment Reports
+    { name: 'Student Payment Report', actions: ['read'] },
+    { name: 'Student Complete Payment Report', actions: ['read'] },
+    { name: 'Book Payment Report', actions: ['read'] },
+    { name: 'Book Stock History', actions: ['read'] },
+    // Settings
+    { name: 'Discount', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'User Management', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'Reset Password', actions: ['update'] },
+    { name: 'School Holidays', actions: ['create', 'read', 'update', 'delete'] },
+    { name: 'School Info', actions: ['update'] }
 ]);
 
-const defaultModules = ref(['Dashboard', 'Classes', 'Students', 'Teachers', 'Library', 'Finance', 'Reports', 'Settings']);
+const defaultPermissions = computed(() => {
+    const allPermissions = [];
+    permissionModules.value.forEach((module) => {
+        module.actions.forEach((action) => {
+            allPermissions.push(`${module.name.toLowerCase()}:${action}`);
+        });
+    });
+    return allPermissions;
+});
 
 // --- Event Handlers ---
 const handleRegister = async () => {
-    if (!name.value || !email.value || !password.value) {
+    // **MODIFIED:** Added validation for phone number
+    if (!name.value || !email.value || !password.value || !phoneNumber.value) {
         toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Please fill in all fields.', life: 3000 });
         return;
     }
@@ -81,18 +148,17 @@ const handleRegister = async () => {
             name: name.value,
             email: email.value,
             password: password.value,
-            role: 'superadmin', // Default role as requested
-            permissions: defaultPermissions.value, // Add default permissions
-            modules: defaultModules.value // Add default modules
+            phoneNumber: phoneNumber.value, // **NEW**
+            role: 'superadmin',
+            permissions: defaultPermissions.value
         });
 
         toast.add({ severity: 'success', summary: 'Registration Successful', detail: 'Your account has been created. Please log in.', life: 3000 });
 
-        // Redirect to the login page after successful registration
         router.push({ name: 'login' });
     } catch (error) {
         console.error(error);
-        const errorMessage = error.response?.data?.message || 'An error occurred during registration.';
+        const errorMessage = error.response?.data?.error || 'An error occurred during registration.';
         toast.add({ severity: 'error', summary: 'Registration Failed', detail: errorMessage, life: 3000 });
     } finally {
         loading.value = false;

@@ -41,6 +41,7 @@
                                 </div>
                             </template>
                         </Column>
+
                         <Column field="duration" header="Duration" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
@@ -80,7 +81,7 @@
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
-                                <div class="mt-2">
+                                <div>
                                     <ClassDetails :datatoedit="datatoedit" @close="handleCloseDetails" />
                                 </div>
                             </DialogPanel>
@@ -99,7 +100,7 @@
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-full max-w-[1440px] transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
-                                <div class="mt-2">
+                                <div>
                                     <StudentClassDetial :datatoedit="datatoedit" @close="handleCloseStudentClassDetail" />
                                 </div>
                             </DialogPanel>
@@ -118,7 +119,7 @@
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
-                                <div class="mt-2">
+                                <div>
                                     <RemarkClassForm :datatoedit="datatoedit" @close="handleCloseMarkClass" @save="handleSave" @toast="showToast" />
                                 </div>
                             </DialogPanel>
@@ -137,7 +138,7 @@
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
-                                <div class="mt-2">
+                                <div>
                                     <PromoteStudentForm :datatoedit="datatoedit" @close="handleClosePromote" @save="handleSave" @toast="showToast" />
                                 </div>
                             </DialogPanel>
@@ -276,7 +277,7 @@ const handleSave = () => {
 };
 
 onMounted(async () => {
-    await fetchData();
+    await fetchData({ status: true });
     await fetchSections();
     await fetchSubjects();
 });

@@ -46,6 +46,13 @@
                             </template>
                         </Column>
 
+                        <Column field="status" :header="$t('element.status')" sortable style="min-width: 200px">
+                            <template #body="slotProps">
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
+                                    <Tag :severity="slotProps.data.status ? 'success' : 'danger'" :value="slotProps.data.status ? 'Active' : 'Inactive'"></Tag>
+                                </div>
+                            </template>
+                        </Column>
                         <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">

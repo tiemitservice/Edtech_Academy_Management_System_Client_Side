@@ -5,14 +5,13 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Staff Permissions List</label>
 
             <div class="flex items-center gap-4 flex-wrap">
-                <!-- Filter by Staff -->
-                <div class="flex items-center gap-2">
-                    <!-- <label for="staff_filter" class="text-sm font-medium">Staff:</label> -->
-                    <Select v-model="filterStaffId" :options="staffs" filter optionLabel="name" optionValue="_id" placeholder="All Staff" showClear inputId="staff_filter" class="min-w-[180px]" />
-                </div>
+                <!-- Filter by Staff Name -->
+                <IconField>
+                    <InputIcon class="pi pi-search" />
+                    <InputText placeholder="Search by staff name" v-model="searchQuery" class="min-w-[180px]" />
+                </IconField>
                 <!-- Filter by a single day -->
                 <div class="flex items-center gap-2">
-                    <!-- <label for="date_filter" class="text-sm font-medium">Date:</label> -->
                     <Calendar v-model="filterDate" dateFormat="yy-mm-dd" showIcon inputId="date_filter" />
                 </div>
                 <!-- Apply Filter Button -->
@@ -121,6 +120,9 @@ import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessu
 import { useToast } from 'primevue/usetoast';
 import Calendar from 'primevue/calendar';
 import Select from 'primevue/select';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
 import StaffAproveForm from '@/form/StaffAproveForm.vue';
 import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import NotFound from './pages/NotFound.vue';
@@ -134,7 +136,7 @@ const { data: staffs, fetchData: fetchStaff } = useFetch('users');
 
 // Refs for filters
 const filterDate = ref(new Date());
-const filterStaffId = ref(null);
+const searchQuery = ref('');
 
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const filteredData = ref([]);
@@ -217,16 +219,17 @@ const applyFilters = () => {
         dataToFilter = dataToFilter.filter((item) => moment(item.created_at).isSame(selectedDate, 'day'));
     }
 
-    // Filter by staff
-    if (filterStaffId.value) {
-        dataToFilter = dataToFilter.filter((item) => item.staff === filterStaffId.value);
+    // Filter by staff name
+    if (searchQuery.value) {
+        const q = searchQuery.value.toLowerCase();
+        dataToFilter = dataToFilter.filter((item) => formatStaffName(item.staff).toLowerCase().includes(q));
     }
 
     filteredData.value = dataToFilter;
 };
 
-// Watch for changes on the raw data to re-apply filters automatically
-watch(rawData, () => {
+// Watch for changes on the raw data and search query to re-apply filters automatically
+watch([rawData, searchQuery, filterDate], () => {
     applyFilters();
 });
 

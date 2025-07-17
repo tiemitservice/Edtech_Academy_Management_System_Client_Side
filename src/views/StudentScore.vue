@@ -7,16 +7,20 @@
                 <div class="flex items-end gap-4 flex-wrap">
                     <!-- Filters -->
                     <div class="flex flex-col">
-                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a class <span class="text-red-500">*</span> </label>
-                        <Select v-model="classSelected" :options="classes" option-value="_id" option-label="name" show-clear placeholder="Select a class" class="min-w-[180px]" />
+                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a Duration <span class="text-red-500">*</span> </label>
+                        <Select v-model="selectedDuration" :options="sections" option-value="_id" option-label="duration" show-clear placeholder="Select a duration" class="min-w-[180px]" />
                     </div>
                     <div class="flex flex-col">
-                        <label class="text-lg font-medium text-gray-700 mb-1"> Date Range </label>
-                        <DatePicker v-model="dateRange" selectionMode="range" dateFormat="yy-mm-dd" show-button-bar placeholder="Select a date range" />
+                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a class <span class="text-red-500">*</span> </label>
+                        <Select v-model="classSelected" :options="filteredClassesByDuration" option-value="_id" option-label="name" show-clear placeholder="Select a class" class="min-w-[180px]" :disabled="!selectedDuration" />
                     </div>
                     <div class="flex flex-col">
                         <label class="invisible mb-1 select-none">&nbsp;</label>
                         <Button @click="() => filterData(true)" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 bg-blue-600" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="invisible mb-1 select-none">&nbsp;</label>
+                        <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" outlined />
                     </div>
                 </div>
             </div>
@@ -96,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import { useToast } from 'primevue/usetoast';
@@ -120,49 +124,47 @@ const isOpen = ref(false);
 const datatoedit = ref(null);
 const apply_loading = ref(false);
 const filteredData = ref([]);
+const selectedDuration = ref(null);
+
+const collection = ref('classes');
+const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
+const classSelected = ref(null);
+
+const isFilterActive = computed(() => {
+    return classSelected.value || selectedDuration.value;
+});
+
+const filteredClassesByDuration = computed(() => {
+    if (!selectedDuration.value || !rawData.value) return [];
+    return rawData.value.filter((cls) => cls.duration === selectedDuration.value);
+});
+
+watch(selectedDuration, () => {
+    classSelected.value = null; // Reset class selection when duration changes
+});
 
 const formatDuration = (id) => {
     const section = sections.value?.find((section) => section._id === id);
     return section ? section.duration : 'N/A';
 };
 
-const collection = ref('classes');
-const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
-const { data: classes, fetchData: fetchClass } = useFetch('classes');
-const classSelected = ref(null);
-// **MODIFIED:** Renamed for clarity
-const dateRange = ref(null);
-
-// **NEW:** Function to set the default date range to the current year
-const setDefaultDateRange = () => {
-    const startOfYear = moment().startOf('year').toDate();
-    const endOfYear = moment().endOf('year').toDate();
-    dateRange.value = [startOfYear, endOfYear];
-};
-
 const filterData = (showNotification = false) => {
     apply_loading.value = true;
     const classId = classSelected.value;
-    const current_date_range = dateRange.value;
+    const durationId = selectedDuration.value;
 
-    if (!classId) {
+    if (!classId || !durationId) {
         filteredData.value = [];
         if (showNotification) {
-            showToast({ action: 'check_fields', message: 'Please select a Class to filter' });
+            showToast({ action: 'check_fields', message: 'You need to select both Duration and Class to filter' });
         }
         apply_loading.value = false;
         return;
     }
 
-    const start = current_date_range && current_date_range[0] ? moment(current_date_range[0]).startOf('day') : null;
-    const end = current_date_range && current_date_range[1] ? moment(current_date_range[1]).endOf('day') : null;
-
     const result =
         rawData.value?.filter((item) => {
-            const matchesClass = item._id === classId;
-            // **MODIFIED:** Check if the class's createdAt date falls within the selected range
-            const matchesDate = !start || !end ? true : moment(item.createdAt).isBetween(start, end);
-            return matchesClass && matchesDate;
+            return item._id === classId && item.duration === durationId;
         }) || [];
 
     filteredData.value = result.map((item, index) => ({ ...item, displayIndex: index + 1 }));
@@ -176,6 +178,12 @@ const filterData = (showNotification = false) => {
     }
 
     apply_loading.value = false;
+};
+
+const clearFilters = () => {
+    classSelected.value = null;
+    selectedDuration.value = null;
+    filteredData.value = [];
 };
 
 watch(rawData, () => filterData(false), { deep: true });
@@ -317,8 +325,6 @@ const exportReportToExcel = () => {
 };
 
 onMounted(async () => {
-    await Promise.all([fetchData(), fetchSections(), fetchClass(), fetchCompany()]);
-    // **NEW:** Set the default date range on component load
-    setDefaultDateRange();
+    await Promise.all([fetchData(), fetchSections(), fetchCompany()]);
 });
 </script>

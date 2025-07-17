@@ -5,22 +5,23 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Student Attendance</label>
             <div class="flex items-center gap-4">
                 <div class="flex items-end gap-4 flex-wrap">
-                    <!-- Class Select -->
+                    <!-- **MODIFIED:** Duration Filter -->
+                    <div class="flex flex-col">
+                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a Duration <span class="text-red-500">*</span> </label>
+                        <Select v-model="selectedDuration" :options="sections" option-value="_id" option-label="duration" show-clear placeholder="Select a duration" class="min-w-[180px]" />
+                    </div>
+                    <!-- Class Select (now filtered by duration) -->
                     <div class="flex flex-col">
                         <label class="text-lg font-medium text-gray-700 mb-1"> Select a class <span class="text-red-500">*</span> </label>
-                        <Select v-model="classSelected" :options="classes" option-value="_id" option-label="name" show-clear placeholder="Select a class" class="min-w-[180px]" />
+                        <Select v-model="classSelected" :options="filteredClassesByDuration" option-value="_id" option-label="name" show-clear placeholder="Select a class" class="min-w-[180px]" :disabled="!selectedDuration" />
                     </div>
-
-                    <!-- Date Range Filter -->
-                    <div class="flex flex-col">
-                        <label class="text-lg font-medium text-gray-700 mb-1"> Filter by Date Range </label>
-                        <DatePicker v-model="createdAt_select" selectionMode="range" show-button-bar placeholder="Select date range" class="min-w-[220px]" />
-                    </div>
-
-                    <!-- Apply Filter Button -->
                     <div class="flex flex-col">
                         <label class="invisible mb-1 select-none">&nbsp;</label>
-                        <Button @click="filterData" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 bg-blue-600" />
+                        <Button @click="() => filterData(true)" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 bg-blue-600" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="invisible mb-1 select-none">&nbsp;</label>
+                        <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" outlined />
                     </div>
                 </div>
             </div>
@@ -28,50 +29,55 @@
 
         <div class="flex flex-col">
             <div class="overflow-x-auto">
-                <div v-if="filteredData.length > 0" class="py-2">
-                    <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="No." style="min-width: 150px">
-                            <template #body="slotProps">
-                                <p class="font-medium">{{ slotProps.index + 1 }}</p>
-                            </template>
-                        </Column>
-                        <Column field="createdAt" sortable header="Created at" style="min-width: 150px">
-                            <template #body="slotProps">
-                                <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
-                            </template>
-                        </Column>
-                        <Column field="en_name" header="Name" sortable style="min-width: 200px">
-                            <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
-                                    {{ slotProps.data.name }}
-                                </div>
-                            </template>
-                        </Column>
-                        <Column field="start_time" header="Duration" sortable style="min-width: 200px">
-                            <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
-                                    {{ formatDuration(slotProps.data?.duration) || 'N/A' }}
-                                </div>
-                            </template>
-                        </Column>
-                        <Column header="Actions" style="min-width: 150px">
-                            <template #body="slotProps">
-                                <div class="flex space-x-2">
-                                    <Button @click="handleStudentClassDetail(slotProps.data)" icon="pi pi-users" rounded aria-label="Info" />
-                                    <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                </div>
-                            </template>
-                        </Column>
-                    </DataTable>
+                <div v-if="!loading">
+                    <div v-if="filteredData.length > 0" class="py-2">
+                        <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
+                            <Column field="_id" header="No." style="min-width: 150px">
+                                <template #body="slotProps">
+                                    <p class="font-medium">{{ slotProps.index + 1 }}</p>
+                                </template>
+                            </Column>
+                            <Column field="createdAt" sortable header="Created at" style="min-width: 150px">
+                                <template #body="slotProps">
+                                    <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
+                                </template>
+                            </Column>
+                            <Column field="name" header="Name" sortable style="min-width: 200px">
+                                <template #body="slotProps">
+                                    <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
+                                        {{ slotProps.data.name }}
+                                    </div>
+                                </template>
+                            </Column>
+                            <Column field="duration" header="Duration" sortable style="min-width: 200px">
+                                <template #body="slotProps">
+                                    <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
+                                        {{ formatDuration(slotProps.data?.duration) || 'N/A' }}
+                                    </div>
+                                </template>
+                            </Column>
+                            <Column header="Actions" style="min-width: 150px">
+                                <template #body="slotProps">
+                                    <div class="flex space-x-2">
+                                        <Button @click="handleStudentClassDetail(slotProps.data)" icon="pi pi-users" rounded aria-label="Info" />
+                                        <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
+                                    </div>
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </div>
+                    <div v-else class="w-full flex justify-center items-center bg-white p-4 rounded-lg">
+                        <NotFound message="No data found for the selected criteria." />
+                    </div>
                 </div>
-                <div v-if="!loading && (!filteredData || filteredData.length === 0)" class="w-full flex justify-center items-center bg-white p-4 rounded-lg">
-                    <NotFound :loading="loading" :error="error" />
+                <div v-else>
+                    <Laoding />
                 </div>
             </div>
         </div>
 
         <TransitionRoot appear :show="isOpen" as="template">
-            <Dialog as="div" @close="closeModal" class="relative z-[99]">
+            <Dialog as="div" @close="handleClose" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
@@ -129,78 +135,95 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import ClassDetails from '@/form/ClassDetails.vue';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
-
 import { useToast } from 'primevue/usetoast';
 import { formatDate2 } from '@/composible/formatDate';
 import moment from 'moment';
 import NotFound from './pages/NotFound.vue';
+import Laoding from './pages/Laoding.vue';
 import StudentClassDetial from '../../App/StudentClassDetial.vue';
 import StudentAttendaceForm from '@/form/StudentAttendaceForm.vue';
+import Select from 'primevue/select';
+import DatePicker from 'primevue/datepicker';
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Toast from 'primevue/toast';
+
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
 const toast = useToast();
 const isOpen = ref(false);
 const datatoedit = ref(null);
 const isClassDetails = ref(false);
-
 const isStudentClassDetail = ref(false);
-const searchQuery = ref('');
 const apply_loading = ref(false);
 const filteredData = ref([]);
+const selectedDuration = ref(null);
+
+const collection = ref('classes');
+const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
+const classSelected = ref(null);
+
+const isFilterActive = computed(() => {
+    return classSelected.value || selectedDuration.value;
+});
+
+const filteredClassesByDuration = computed(() => {
+    if (!selectedDuration.value || !rawData.value) return [];
+    return rawData.value.filter((cls) => cls.duration === selectedDuration.value);
+});
+
+watch(selectedDuration, () => {
+    classSelected.value = null; // Reset class selection when duration changes
+});
 
 const formatDuration = (id) => {
     const section = sections.value?.find((section) => section._id === id);
     return section ? section.duration : 'N/A';
 };
-const collection = ref('classes');
-const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
-const { data: classes, fetchData: fetchClass } = useFetch('classes');
-const classSelected = ref(null);
-const createdAt_select = ref(null);
 
-// **NEW:** Function to set the default date range
-const setDefaultDateRange = () => {
-    const startOfYear = moment().startOf('year').toDate();
-    const endOfYear = moment().endOf('year').toDate();
-    createdAt_select.value = [startOfYear, endOfYear];
-};
-
-const filterData = () => {
+const filterData = (showNotification = false) => {
     apply_loading.value = true;
-
     const classId = classSelected.value;
-    const dateRange = createdAt_select.value;
+    const durationId = selectedDuration.value;
 
-    if (!classId) {
+    if (!classId || !durationId) {
         filteredData.value = [];
-        showToast({ action: 'check_fields', message: 'You need to select a Class to filter' });
+        if (showNotification) {
+            showToast({ action: 'check_fields', message: 'You need to select both Duration and Class to filter' });
+        }
         apply_loading.value = false;
         return;
     }
 
-    const q = searchQuery.value.trim().toLowerCase();
-    const start = dateRange && dateRange[0] ? moment(dateRange[0]).startOf('day') : null;
-    const end = dateRange && dateRange[1] ? moment(dateRange[1]).endOf('day') : null;
-
-    filteredData.value =
+    const result =
         rawData.value?.filter((item) => {
-            const matchesName = !q || item.name?.toLowerCase().includes(q);
-            const matchesClass = item._id === classId;
-            const matchesDate = !start || !end ? true : moment(item.createdAt).isBetween(start, end);
-            return matchesName && matchesClass && matchesDate;
+            return item._id === classId && item.duration === durationId;
         }) || [];
 
-    if (filteredData.value.length === 0) {
-        showToast({ action: 'not_found', message: 'No data matched your filter' });
-    } else {
-        showToast({ action: 'found', message: `Found ${filteredData.value.length} result(s)` });
+    filteredData.value = result.map((item, index) => ({ ...item, displayIndex: index + 1 }));
+
+    if (showNotification) {
+        if (result.length === 0) {
+            showToast({ action: 'not_found', message: 'No data matched your filter' });
+        } else {
+            showToast({ action: 'found', message: `Found ${result.length} result(s)` });
+        }
     }
 
     apply_loading.value = false;
 };
+
+const clearFilters = () => {
+    classSelected.value = null;
+    selectedDuration.value = null;
+    filteredData.value = [];
+};
+
+watch(rawData, () => filterData(false), { deep: true });
 
 const showToast = (payload) => {
     let action = typeof payload === 'string' ? payload : payload.action;
@@ -217,21 +240,9 @@ const showToast = (payload) => {
             severity = 'info';
             summary = 'Updated Successfully';
             break;
-        case 'delete':
-            severity = 'error';
-            summary = 'Deleted Successfully';
-            break;
         case 'check_fields':
             severity = 'warn';
             summary = customMessage || 'Please fill all the required fields';
-            break;
-        case 'server_error':
-            severity = 'error';
-            summary = customMessage || 'Server error occurred';
-            break;
-        case 'asociate':
-            severity = 'warn';
-            summary = 'Please delete the associated data first';
             break;
         case 'not_found':
             severity = 'warn';
@@ -239,22 +250,17 @@ const showToast = (payload) => {
             break;
         case 'found':
             severity = 'info';
-            summary = customMessage || 'Data found successfully';
+            summary = 'Data found successfully';
             break;
         default:
             severity = 'info';
             summary = 'Action Completed';
     }
-
     toast.add({ severity, summary, life: 3000 });
 };
+
 const openModal = () => {
     isOpen.value = true;
-};
-
-const closeModal = () => {
-    isOpen.value = false;
-    datatoedit.value = null;
 };
 
 const handleEdit = (data) => {
@@ -265,6 +271,11 @@ const handleEdit = (data) => {
 const handleClose = () => {
     isOpen.value = false;
     datatoedit.value = null;
+};
+
+const handleSave = () => {
+    fetchData();
+    closeModal();
 };
 
 const handleCloseDetails = () => {
@@ -285,9 +296,6 @@ const handleCloseStudentClassDetail = () => {
 onMounted(async () => {
     await fetchData();
     await fetchSections();
-    await fetchClass({ mark_as_completed: false });
-    // **NEW:** Set the default date range when the component loads
-    setDefaultDateRange();
 });
 </script>
 

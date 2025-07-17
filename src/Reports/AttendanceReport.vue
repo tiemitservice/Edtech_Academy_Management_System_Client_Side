@@ -5,9 +5,12 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Student Attendance Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
+                <Select v-model="filters.year" :options="academicYears" placeholder="* Select a Year" class="min-w-[200px]" />
+                <Select v-model="filters.durationId" :options="sections" optionLabel="duration" optionValue="_id" placeholder="* Select a Duration" class="min-w-[200px]" />
+                <Select v-model="filters.classId" :options="filteredClasses" :disabled="!filters.durationId" optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
+                <Calendar v-model="filters.month" view="month" dateFormat="mm/yy" placeholder="* Select a Month" class="min-w-[200px]" />
                 <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" placeholder="* Select a Date" class="min-w-[200px]" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId || !filters.date" />
+                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId || (!filters.month && !filters.date)" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
@@ -15,16 +18,20 @@
         <!-- Report Display Area -->
         <div v-if="!loading">
             <!-- Initial Prompt -->
-            <div v-if="!selectedReport && !searched" class="text-center p-8 bg-white rounded-lg shadow-md">
-                <p class="text-gray-500">Please select a class and a date to view the attendance report.</p>
+            <div v-if="filteredReports.length === 0 && !searched" class="text-center p-8 bg-white rounded-lg shadow-md">
+                <p class="text-gray-500">Please select filters to view the attendance report.</p>
             </div>
 
             <!-- Report Details and Table -->
-            <div v-else-if="selectedReport" class="bg-white p-4 rounded-lg shadow-md">
+            <div v-else-if="filteredReports.length > 0" class="bg-white p-4 rounded-lg shadow-md">
                 <div class="flex justify-between items-center mb-4">
                     <div>
-                        <h3 class="text-xl font-bold text-primary">{{ formatClassName(selectedReport.class_id) }}</h3>
-                        <p class="text-sm text-gray-600">Subject: {{ formatSubjectName(selectedReport.subject_id) }} | Teacher: {{ formatStaffName(selectedReport.staff_id) }}</p>
+                        <h3 class="text-xl font-bold text-primary">{{ formatClassName(filters.classId) }}</h3>
+                        <p class="text-sm text-gray-600">
+                            <span v-if="filters.date">Date: {{ formatDate(filters.date) }}</span>
+                            <span v-else>Month: {{ moment(filters.month).format('MMMM, YYYY') }}</span>
+                            | Teacher: {{ formatStaffName(filteredReports[0].staff_id) }}
+                        </p>
                     </div>
                     <div>
                         <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
@@ -32,12 +39,13 @@
                     </div>
                 </div>
 
-                <DataTable :value="selectedReport.students" showGridlines striped-rows="true" responsiveLayout="scroll" size="large">
-                    <Column header="No." headerStyle="width: 3rem">
-                        <template #body="slotProps">{{ slotProps.index + 1 }}</template>
-                    </Column>
+                <DataTable :value="attendanceTableData" showGridlines striped-rows="true" responsiveLayout="scroll" size="large">
+                    <Column header="No." headerStyle="width: 3rem" field="displayIndex"></Column>
                     <Column header="Student Name">
                         <template #body="{ data }">{{ formatStudentName(data.student) }}</template>
+                    </Column>
+                    <Column header="Date" sortable>
+                        <template #body="{ data }">{{ formatDate(data.reportDate) }}</template>
                     </Column>
                     <Column header="Status">
                         <template #body="{ data }">
@@ -54,8 +62,8 @@
             </div>
 
             <!-- No reports found message -->
-            <div v-else>
-                <NotFound :message="`No attendance reports found for '${formatClassName(filters.classId)}' on the selected date.`" />
+            <div v-else-if="searched">
+                <NotFound :message="`No attendance reports found for '${formatClassName(filters.classId)}' for the selected period.`" />
             </div>
         </div>
         <div v-else>
@@ -85,42 +93,121 @@ const { data: classes, fetchData: fetchClasses } = useFetch('classes');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: staff, fetchData: fetchStaff } = useFetch('staffs');
 const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
+const { data: sections, fetchData: fetchSections } = useFetch('sections');
 const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 
 // --- COMPONENT STATE ---
-const selectedReport = ref(null);
+const filteredReports = ref([]);
 const searched = ref(false);
+const filters = ref({ year: null, durationId: null, classId: null, month: null, date: null });
+const academicYears = ref([]);
 
-// --- FILTERING LOGIC ---
-const filters = ref({ classId: null, date: null });
+// --- WATCHERS ---
+watch(
+    () => filters.value.year,
+    () => {
+        filters.value.durationId = null;
+        filters.value.classId = null;
+        filters.value.month = null;
+        filters.value.date = null;
+        filteredReports.value = [];
+        searched.value = false;
+    }
+);
 
+watch(
+    () => filters.value.durationId,
+    () => {
+        filters.value.classId = null;
+        filters.value.month = null;
+        filters.value.date = null;
+        filteredReports.value = [];
+        searched.value = false;
+    }
+);
+
+watch(
+    () => filters.value.month,
+    (newMonth) => {
+        if (newMonth) {
+            filters.value.date = null; // Clear date if month is selected
+        }
+    }
+);
+
+watch(
+    () => filters.value.date,
+    (newDate) => {
+        if (newDate) {
+            filters.value.month = null; // Clear month if date is selected
+        }
+    }
+);
+
+// --- COMPUTED PROPERTIES ---
 const isFilterActive = computed(() => {
-    return filters.value.classId !== null || filters.value.date !== null;
+    return filters.value.year !== null || filters.value.durationId !== null || filters.value.classId !== null || filters.value.month !== null || filters.value.date !== null;
 });
 
+const filteredClasses = computed(() => {
+    if (!filters.value.durationId || !classes.value) {
+        return [];
+    }
+    return classes.value.filter((c) => c.duration === filters.value.durationId);
+});
+
+const attendanceTableData = computed(() => {
+    if (filteredReports.value.length === 0) {
+        return [];
+    }
+    const flatData = filteredReports.value.flatMap((report) =>
+        report.students.map((student) => ({
+            ...student,
+            reportDate: report.createdAt || report.created_at
+        }))
+    );
+    flatData.sort((a, b) => moment(a.reportDate).diff(moment(b.reportDate)));
+    return flatData.map((item, index) => ({ ...item, displayIndex: index + 1 }));
+});
+
+// --- FILTERING LOGIC ---
 const applyFilters = () => {
     searched.value = true;
-    if (!filters.value.classId || !filters.value.date) {
-        selectedReport.value = null;
+    if (!filters.value.classId || (!filters.value.month && !filters.value.date)) {
+        filteredReports.value = [];
         return;
     }
 
-    const selectedDate = moment(filters.value.date);
+    const reports = rawReports.value.filter((r) => {
+        const reportDate = moment(r.createdAt || r.created_at);
 
-    let dataToFilter = rawReports.value.filter((r) => r.class_id === filters.value.classId && moment(r.createdAt || r.created_at).isSame(selectedDate, 'day'));
+        // Date filter takes precedence
+        if (filters.value.date) {
+            return r.class_id === filters.value.classId && r.duration === filters.value.durationId && reportDate.isSame(moment(filters.value.date), 'day');
+        }
 
-    if (dataToFilter.length > 0) {
-        dataToFilter.sort((a, b) => moment(b.createdAt || b.created_at).diff(moment(a.createdAt || a.created_at)));
-        selectedReport.value = dataToFilter[0];
-    } else {
-        selectedReport.value = null;
-    }
+        // Month filter
+        if (filters.value.month) {
+            const selectedMonth = moment(filters.value.month);
+            const startOfMonth = selectedMonth.clone().startOf('month');
+            const endOfMonth = selectedMonth.clone().endOf('month');
+            return r.class_id === filters.value.classId && r.duration === filters.value.durationId && reportDate.isBetween(startOfMonth, endOfMonth, null, '[]');
+        }
+
+        return false;
+    });
+
+    reports.sort((a, b) => moment(a.createdAt || a.created_at).diff(moment(b.createdAt || b.created_at)));
+    filteredReports.value = reports;
 };
 
 const clearFilters = () => {
+    filters.value.year = null;
+    filters.value.durationId = null;
     filters.value.classId = null;
+    filters.value.month = null;
     filters.value.date = null;
-    selectedReport.value = null;
+    filteredReports.value = [];
     searched.value = false;
 };
 
@@ -144,59 +231,61 @@ const getAttendanceBadge = (status) => {
 
 // --- PRINT & EXPORT ACTIONS ---
 const printReport = () => {
-    if (!selectedReport.value) return;
+    if (attendanceTableData.value.length === 0) return;
 
-    const report = selectedReport.value;
-    const className = formatClassName(report.class_id);
-    const reportDate = formatDate(report.createdAt);
+    const className = formatClassName(filters.value.classId);
+    const reportPeriod = filters.value.date ? formatDate(filters.value.date) : moment(filters.value.month).format('MMMM, YYYY');
     const schoolName = companies.value?.[0]?.name || 'School Management System';
     const generatedDate = moment().format('DD-MMM-YYYY');
 
-    let tableRows = report.students
+    let tableRows = attendanceTableData.value
         .map(
-            (s, index) => `
-        <tr>
-            <td>${index + 1}</td>
-            <td>${formatStudentName(s.student)}</td>
-            <td>${s.attendance || 'N/A'}</td>
-            <td>${formatDateTime(s.checking_at)}</td>
-            <td>${s.note || ''}</td>
-        </tr>
-    `
+            (s) => `
+            <tr>
+                <td>${s.displayIndex}</td>
+                <td>${formatStudentName(s.student)}</td>
+                <td>${formatDate(s.reportDate)}</td>
+                <td>${s.attendance || 'N/A'}</td>
+                <td>${formatDateTime(s.checking_at)}</td>
+                <td>${s.note || ''}</td>
+            </tr>
+        `
         )
         .join('');
 
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
-        <html><head><title>Attendance Report - ${className}</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .report-header { text-align: center; margin-bottom: 20px; }
-            .report-header h1 { margin: 0; font-size: 24px; }
-            .report-header p { margin: 5px 0; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
-            @page { size: A4 portrait; }
-        </style></head><body>
-        <div class="report-header">
-            <h1>${schoolName}</h1>
-            <p><strong>Student Attendance Report</strong></p>
-            <p><strong>Class:</strong> ${className} | <strong>Date:</strong> ${reportDate}</p>
-            <p><em>Generated on: ${generatedDate}</em></p>
-        </div>
-        <table><thead><tr><th>No.</th><th>Student Name</th><th>Status</th><th>Checked At</th><th>Note</th></tr></thead><tbody>${tableRows}</tbody></table>
-        </body></html>
-    `);
+            <html><head><title>Attendance Report - ${className}</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .report-header { text-align: center; margin-bottom: 20px; }
+                .report-header h1 { margin: 0; font-size: 24px; }
+                .report-header p { margin: 5px 0; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; }
+                @page { size: A4 portrait; }
+            </style></head><body>
+            <div class="report-header">
+                <h1>${schoolName}</h1>
+                <p><strong>Student Attendance Report</strong></p>
+                <p><strong>Class:</strong> ${className} | <strong>Period:</strong> ${reportPeriod}</p>
+                <p><em>Generated on: ${generatedDate}</em></p>
+            </div>
+            <table><thead><tr><th>No.</th><th>Student Name</th><th>Date</th><th>Status</th><th>Checked At</th><th>Note</th></tr></thead><tbody>${tableRows}</tbody></table>
+            </body></html>
+        `);
     printWindow.document.close();
     printWindow.print();
 };
 
 const exportReportToExcel = () => {
-    if (!selectedReport.value) return;
-    const report = selectedReport.value;
-    const dataToExport = report.students.map((s, index) => ({
-        'No.': index + 1,
+    if (attendanceTableData.value.length === 0) return;
+
+    const reportPeriod = filters.value.date ? formatDate(filters.value.date) : moment(filters.value.month).format('MMM_YYYY');
+    const dataToExport = attendanceTableData.value.map((s) => ({
+        'No.': s.displayIndex,
         'Student Name': formatStudentName(s.student),
+        Date: formatDate(s.reportDate),
         Status: s.attendance || 'N/A',
         'Checked At': formatDateTime(s.checking_at),
         Note: s.note || ''
@@ -204,11 +293,18 @@ const exportReportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance');
-    XLSX.writeFile(workbook, `Attendance_${formatClassName(report.class_id)}.xlsx`);
+    XLSX.writeFile(workbook, `Attendance_${formatClassName(filters.value.classId)}_${reportPeriod}.xlsx`);
 };
 
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
-    await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchStaff(), fetchSubjects(), fetchCompany()]);
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = 2020; year <= currentYear + 5; year++) {
+        years.push(`${year}-${year + 1}`);
+    }
+    academicYears.value = years;
+
+    await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchStaff(), fetchSubjects(), fetchSections(), fetchCompany()]);
 });
 </script>

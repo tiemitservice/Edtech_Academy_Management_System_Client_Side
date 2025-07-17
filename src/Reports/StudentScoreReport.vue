@@ -5,9 +5,10 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Student Score Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
-                <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" placeholder="* Select a Date" class="min-w-[200px]" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId || !filters.date" />
+                <Select v-model="filters.year" :options="academicYears" placeholder="* Select a Year" class="min-w-[200px]" />
+                <Select v-model="filters.durationId" :options="durations" optionLabel="duration" optionValue="_id" placeholder="* Select a Duration" class="min-w-[200px]" />
+                <Select v-model="filters.classId" :options="filteredClasses" :disabled="!filters.durationId" optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
+                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
@@ -16,7 +17,7 @@
         <div v-if="!loading">
             <!-- Initial Prompt -->
             <div v-if="!selectedReport && !searched" class="text-center p-8 bg-white rounded-lg shadow-md">
-                <p class="text-gray-500">Please select a class and a date to view its latest score report.</p>
+                <p class="text-gray-500">Please select a year, duration, and class to view the score report.</p>
             </div>
 
             <!-- Report Details and Table -->
@@ -27,7 +28,7 @@
                         <p class="text-sm text-gray-600">Subject: {{ formatSubjectName(selectedReport.subject) }} | Report Date: {{ formatDate(selectedReport.createdAt) }}</p>
                     </div>
                     <div>
-                        <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" v-tooltip.top="'Print Full Class Report'" />
+                        <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Full Class Report" v-tooltip.top="'Print Full Class Report'" />
                         <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" v-tooltip.top="'Export to Excel'" />
                     </div>
                 </div>
@@ -60,7 +61,7 @@
                     <!-- Action Buttons -->
                     <Column header="Actions" style="width: 8rem; text-align: center">
                         <template #body="{ data }">
-                            <Button icon="pi pi-print" class="p-button-rounded p-button-info" @click="printStudentReport(data)" v-tooltip.top="'Print Student Report'" />
+                            <Button icon="pi pi-print" class="p-button-rounded" @click="printStudentReport(data)" v-tooltip.top="'Print Student Report'" />
                         </template>
                     </Column>
                 </DataTable>
@@ -68,7 +69,7 @@
 
             <!-- No reports found message -->
             <div v-else-if="searched">
-                <NotFound :message="`No score reports found for '${formatClassName(filters.classId)}' on the selected date.`" />
+                <NotFound :message="`No score reports found for the selected criteria.`" />
             </div>
         </div>
         <div v-else>
@@ -78,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
@@ -97,15 +98,45 @@ const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
 const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 const { data: staffs, fetchData: fetchStaffs } = useFetch('staffs');
+const { data: durations, fetchData: fetchDurations } = useFetch('sections'); // Fetching duration from sections collection
 
 // --- Component State ---
 const selectedReport = ref(null);
 const searched = ref(false);
-const filters = ref({ classId: null, date: null });
+const filters = ref({ year: null, classId: null, durationId: null });
+const academicYears = ref([]);
+
+// --- Watchers ---
+// When the year changes, clear the previous report
+watch(
+    () => filters.value.year,
+    () => {
+        selectedReport.value = null;
+        searched.value = false;
+    }
+);
+
+// When the duration changes, reset the class filter and clear the report
+watch(
+    () => filters.value.durationId,
+    () => {
+        filters.value.classId = null;
+        selectedReport.value = null;
+        searched.value = false;
+    }
+);
 
 // --- Computed Properties ---
 const isFilterActive = computed(() => {
-    return filters.value.classId !== null || filters.value.date !== null;
+    return filters.value.year !== null || filters.value.classId !== null || filters.value.durationId !== null;
+});
+
+const filteredClasses = computed(() => {
+    if (!filters.value.durationId || !classes.value) {
+        return [];
+    }
+    // Filter classes that are scheduled for the selected duration
+    return classes.value.filter((c) => c.duration === filters.value.durationId);
 });
 
 // --- Formatting Functions ---
@@ -115,31 +146,33 @@ const formatClassName = (id) => classes.value?.find((c) => c._id === id)?.name |
 const formatStudentName = (id) => students.value?.find((s) => s._id === id)?.eng_name || 'N/A';
 const formatSubjectName = (id) => subjects.value?.find((s) => s._id === id)?.name || 'N/A';
 const formatStaffName = (id) => staffs.value?.find((s) => s._id === id)?.name || 'N/A';
+const formatDurationName = (id) => durations.value?.find((d) => d._id === id)?.duration || 'N/A';
 
 // --- Filtering Logic ---
 const applyFilters = () => {
     searched.value = true;
-    if (!filters.value.classId || !filters.value.date) {
+    if (!filters.value.classId || !filters.value.durationId || !filters.value.year) {
         selectedReport.value = null;
         return;
     }
 
-    const selectedDate = moment(filters.value.date);
-    const reportsForClass = rawReports.value.filter((r) => r.class_id === filters.value.classId);
-    const reportsOnDate = reportsForClass.filter((r) => moment(r.createdAt).isSame(selectedDate, 'day'));
+    const startYear = parseInt(filters.value.year.split('-')[0]);
 
-    if (reportsOnDate.length > 0) {
-        // Get the most recent report from the selected date
-        reportsOnDate.sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)));
-        selectedReport.value = reportsOnDate[0];
+    const reportsForCriteria = rawReports.value.filter((r) => moment(r.createdAt).year() === startYear && r.class_id === filters.value.classId && r.duration === filters.value.durationId);
+
+    if (reportsForCriteria.length > 0) {
+        // Get the most recent report from the filtered set
+        reportsForCriteria.sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)));
+        selectedReport.value = reportsForCriteria[0];
     } else {
         selectedReport.value = null;
     }
 };
 
 const clearFilters = () => {
+    filters.value.year = null;
     filters.value.classId = null;
-    filters.value.date = null;
+    filters.value.durationId = null;
     selectedReport.value = null;
     searched.value = false;
 };
@@ -220,8 +253,7 @@ const generateStudentReportHtml = (studentInfo, classData, scoreData) => {
                         <div class="text-base space-y-1">
                             <p><strong>ឈ្មោះ:</strong> ${studentInfo.eng_name}</p>
                             <p><strong>ថ្នាក់:</strong> ${classData.name}</p>
-                 
-                            <p><strong>ឆ្នាំ:</strong> ${formatYear(classData.createdAt)}</p>
+                            <p><strong>ឆ្នាំ:</strong> ${filters.value.year}</p>
                         </div>
                         <div>
                             <img src="${studentImage}" alt="Student Profile" class="w-28 h-28 object-cover rounded-md border-2 border-gray-300" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE_URL}';"/>
@@ -256,7 +288,7 @@ const generateStudentReportHtml = (studentInfo, classData, scoreData) => {
 const generateClassReportHtml = (report) => {
     const className = formatClassName(report.class_id);
     const subjectName = formatSubjectName(report.subject);
-    const reportDate = formatDate(report.createdAt);
+    const durationName = formatDurationName(report.duration);
 
     const tableRows = report.students
         .map(
@@ -292,7 +324,7 @@ const generateClassReportHtml = (report) => {
             </head>
             <body>
                 <h1>Score Report</h1>
-                <h2>Class: ${className} | Subject: ${subjectName} | Date: ${reportDate}</h2>
+                <h2>Class: ${className} | Subject: ${subjectName} | Duration: ${durationName}</h2>
                 <table>
                     <thead>
                         <tr>
@@ -362,7 +394,15 @@ const exportReportToExcel = () => {
 
 // --- Lifecycle Hook ---
 onMounted(async () => {
+    // Generate academic year ranges
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = 2020; year <= currentYear; year++) {
+        years.push(`${year}-${year + 1}`);
+    }
+    academicYears.value = years;
+
     // Fetch all necessary data when the component is mounted
-    await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchSubjects(), fetchStaffs()]);
+    await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchSubjects(), fetchStaffs(), fetchDurations()]);
 });
 </script>

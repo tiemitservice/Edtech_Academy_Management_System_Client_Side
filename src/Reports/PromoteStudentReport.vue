@@ -5,8 +5,8 @@
             <label class="text-lg font-medium text-gray-800 dark:text-white">Student Promotion Reports</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
-                <DatePicker v-model="filters.date" placeholder="Select a Date" showIcon class="min-w-[200px]" />
+                <Select v-model="filters.year" :options="academicYears" placeholder="* Select a Year" class="min-w-[200px]" />
+                <Select v-model="filters.classId" :options="availableFromClasses" :disabled="!filters.year" filter optionLabel="name" optionValue="_id" placeholder="* Select From Class" class="min-w-[200px]" />
                 <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId" />
                 <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
             </div>
@@ -16,7 +16,7 @@
         <div v-if="!loading">
             <!-- Initial Prompt -->
             <div v-if="!selectedReport && !searched" class="text-center p-8 bg-white rounded-lg shadow-md">
-                <p class="text-gray-500">Please select a class and date, then apply filters to view the promotion report.</p>
+                <p class="text-gray-500">Please select a year and class, then apply filters to view the promotion report.</p>
             </div>
 
             <!-- Report Details and Table -->
@@ -42,8 +42,8 @@
             </div>
 
             <!-- No reports found message -->
-            <div v-else>
-                <NotFound :message="`No promotion reports found for '${formatClassName(filters.classId)}' on ${formatDate(filters.date)}.`" />
+            <div v-else-if="searched">
+                <NotFound :message="`No promotion reports found for '${formatClassName(filters.classId)}' in the selected year.`" />
             </div>
         </div>
         <div v-else>
@@ -53,14 +53,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
 
 // Import UI components
 import Select from 'primevue/select';
-import DatePicker from 'primevue/datepicker';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -76,28 +75,52 @@ const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 // --- COMPONENT STATE ---
 const selectedReport = ref(null);
 const searched = ref(false);
+const filters = ref({ year: null, classId: null });
+const academicYears = ref([]);
 
-// --- FILTERING LOGIC ---
-const filters = ref({ classId: null, date: null });
+// --- WATCHERS ---
+watch(
+    () => filters.value.year,
+    () => {
+        filters.value.classId = null;
+        selectedReport.value = null;
+        searched.value = false;
+    }
+);
 
+// --- COMPUTED PROPERTIES ---
 const isFilterActive = computed(() => {
-    return filters.value.classId !== null || filters.value.date !== null;
+    return filters.value.year !== null || filters.value.classId !== null;
 });
 
+const availableFromClasses = computed(() => {
+    if (!filters.value.year || !rawReports.value || !classes.value) {
+        return [];
+    }
+    const startYear = parseInt(filters.value.year.split('-')[0]);
+
+    const relevantClassIds = rawReports.value.filter((report) => moment(report.created_at).year() === startYear).map((report) => report.from_class_id);
+
+    const uniqueClassIds = [...new Set(relevantClassIds)];
+
+    return classes.value.filter((c) => uniqueClassIds.includes(c._id));
+});
+
+// --- FILTERING LOGIC ---
 const applyFilters = () => {
     searched.value = true;
     selectedReport.value = null;
 
-    if (!filters.value.classId) {
+    if (!filters.value.classId || !filters.value.year) {
         return;
     }
 
-    let dateFilter = filters.value.date ? moment(filters.value.date) : moment();
+    const startYear = parseInt(filters.value.year.split('-')[0]);
 
     const filteredReports = rawReports.value.filter((report) => {
         const classMatch = report.from_class_id === filters.value.classId;
-        const dateMatch = moment(report.created_at).isSame(dateFilter, 'day');
-        return classMatch && dateMatch;
+        const yearMatch = moment(report.created_at).year() === startYear;
+        return classMatch && yearMatch;
     });
 
     if (filteredReports.length > 0) {
@@ -106,13 +129,9 @@ const applyFilters = () => {
     }
 };
 
-const setDefaultFilters = () => {
-    filters.value.classId = null;
-    filters.value.date = new Date();
-};
-
 const clearFilters = () => {
-    setDefaultFilters();
+    filters.value.year = null;
+    filters.value.classId = null;
     selectedReport.value = null;
     searched.value = false;
 };
@@ -121,7 +140,7 @@ const clearFilters = () => {
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : '');
 const formatClassName = (id) => classes.value?.find((c) => c._id === id)?.name || 'N/A';
 const formatStudentName = (studentData) => {
-    const studentId = typeof studentData === 'object' ? studentData?._id : studentData;
+    const studentId = typeof studentData === 'object' ? studentData?.student : studentData;
     return students.value?.find((s) => s._id === studentId)?.eng_name || 'N/A';
 };
 
@@ -137,9 +156,10 @@ const printReport = () => {
 
     let tableRows = report.students
         .map(
-            (s) => `
+            (s, index) => `
         <tr>
-            <td>${formatStudentName(s.student)}</td>
+            <td>${index + 1}</td>
+            <td>${formatStudentName(s)}</td>
         </tr>
     `
         )
@@ -164,7 +184,7 @@ const printReport = () => {
             <p><strong>Promotion Date:</strong> ${reportDate}</p>
             <p><em>Generated on: ${generatedDate}</em></p>
         </div>
-        <table><thead><tr><th> Name</th></tr></thead><tbody>${tableRows}</tbody></table>
+        <table><thead><tr><th>No.</th><th>Student Name</th></tr></thead><tbody>${tableRows}</tbody></table>
         </body></html>
     `);
     printWindow.document.close();
@@ -174,8 +194,9 @@ const printReport = () => {
 const exportReportToExcel = () => {
     if (!selectedReport.value) return;
     const report = selectedReport.value;
-    const dataToExport = report.students.map((s) => ({
-        'Promoted Student': formatStudentName(s.student)
+    const dataToExport = report.students.map((s, index) => ({
+        'No.': index + 1,
+        'Promoted Student': formatStudentName(s)
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -185,7 +206,13 @@ const exportReportToExcel = () => {
 
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
-    setDefaultFilters();
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = 2020; year <= currentYear + 5; year++) {
+        years.push(`${year}-${year + 1}`);
+    }
+    academicYears.value = years;
+
     await Promise.all([fetchReports(), fetchClasses(), fetchStudents(), fetchCompany()]);
 });
 </script>
