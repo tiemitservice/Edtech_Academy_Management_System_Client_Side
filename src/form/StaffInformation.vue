@@ -9,101 +9,106 @@
             <div class="grid grid-cols-1 gap-4">
                 <div class="bg-white dark:bg-gray-800 p-6">
                     <div class="mb-4">
-                        <img class="w-32 h-32 object-cover rounded-full mx-auto" :src="datatoedit?.image" />
+                        <img class="w-32 h-32 object-cover rounded-full mx-auto" :src="datatoedit?.image || 'https://placehold.co/128'" :alt="datatoedit?.en_name" />
                     </div>
-                    <p class="text-center font-semibold">{{ datatoedit?.eng_name }}</p>
+                    <p class="text-center font-semibold">{{ datatoedit?.en_name }}</p>
                 </div>
-                <div class="w-full border rounded-lg p-5 grid grid-cols-3 gap-4">
+                <div class="w-full border rounded-lg p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Personal Information -->
                     <div class="p-4 border rounded-lg">
-                        <h4>Personal Information</h4>
+                        <h4 class="font-semibold mb-3">{{ $t('student.personal_information') }}</h4>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> English Name : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.eng_name') }}:</label>
                             <p>{{ datatoedit?.en_name }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Khmer Name : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.kh_name') }}:</label>
                             <p>{{ datatoedit?.kh_name }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Gender : </label>
-                            <p>{{ datatoedit?.gender }}</p>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.gender') }}:</label>
+                            <p v-if="datatoedit?.gender">{{ datatoedit.gender }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Date of Birth : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.date_of_birth') }}:</label>
                             <p>{{ formatDate2(datatoedit?.dob) }}</p>
                         </div>
-                        <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Day Entered : </label>
-                            <p>{{ formatDate2(datatoedit?.date_intered) }}</p>
-                        </div>
                     </div>
+
+                    <!-- Contact Information -->
                     <div class="p-4 border rounded-lg">
-                        <h4>Contact Information</h4>
+                        <h4 class="font-semibold mb-3">{{ $t('staff.contact_information') }}</h4>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Phone : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.phone_number') }}:</label>
                             <p>{{ datatoedit?.phoneNumber }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Email : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.email') }}:</label>
                             <p>{{ datatoedit?.email }}</p>
                         </div>
                     </div>
+
+                    <!-- Place of Birth -->
                     <div class="p-4 border rounded-lg">
-                        <h4>Place of Birth</h4>
+                        <h4 class="font-semibold mb-3">{{ $t('staff.place_of_birth') }}</h4>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Province : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.province') }}:</label>
                             <p>{{ getPlaceOfBirthAddressName(datatoedit)?.province }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> District : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.district') }}:</label>
                             <p>{{ getPlaceOfBirthAddressName(datatoedit)?.district }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Commune : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.commune') }}:</label>
                             <p>{{ getPlaceOfBirthAddressName(datatoedit)?.commune }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Village : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.village') }}:</label>
                             <p>{{ getPlaceOfBirthAddressName(datatoedit)?.village }}</p>
                         </div>
                     </div>
+
+                    <!-- Living Information -->
                     <div class="p-4 border rounded-lg">
-                        <h4>Living Information</h4>
+                        <h4 class="font-semibold mb-3">{{ $t('staff.living_information') }}</h4>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Province : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.province') }}:</label>
                             <p>{{ getAddressName(datatoedit)?.province }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> District : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.district') }}:</label>
                             <p>{{ getAddressName(datatoedit)?.district }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Commune : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.commune') }}:</label>
                             <p>{{ getAddressName(datatoedit)?.commune }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Village : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.village') }}:</label>
                             <p>{{ getAddressName(datatoedit)?.village }}</p>
                         </div>
                     </div>
+
+                    <!-- Working Information -->
                     <div class="p-4 border rounded-lg">
-                        <h4>Working Information</h4>
+                        <h4 class="font-semibold mb-3">{{ $t('staff.working_information') }}</h4>
                         <div class="flex flex-nowrap mb-4 items-start space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Work Day: </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.work_day') }}:</label>
                             <div class="w-[300px] grid grid-cols-3 items-start gap-4">
-                                <Tag v-for="(work_day, index) in datatoedit?.workday" :key="index" :severity="workdayColors[work_day]" :value="work_day" rounded />
+                                <Tag v-for="(work_day, index) in datatoedit?.workday" :key="index" :severity="workdayColors[work_day]" :value="$t(`day_of_week.${work_day.toLowerCase()}`)" rounded />
                             </div>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Position : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.positsion') }}:</label>
                             <p>{{ formatePositionById(datatoedit?.position) }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Department : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.department') }}:</label>
                             <p>{{ formateDepartmentById(datatoedit?.department) }}</p>
                         </div>
                         <div class="flex flex-nowrap mb-4 items-center space-x-4">
-                            <label for="" class="text-lg font-medium text-primary"> Day Entered : </label>
+                            <label class="text-lg font-medium text-primary">{{ $t('staff.day_entered') }}:</label>
                             <p>{{ formatDate2(datatoedit?.date_intered) }}</p>
                         </div>
                     </div>

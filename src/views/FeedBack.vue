@@ -8,7 +8,7 @@
                     <InputIcon class="pi pi-search" />
                     <InputText placeholder="Search by name or email" v-model="searchQuery" class="w-full" />
                 </IconField> -->
-                <Calendar v-model="filterDate" showIcon dateFormat="yy-mm-dd" :placeholder="$t('element.Filterbycreatedat')" class="min-w-[220px]" />
+                <Calendar v-model="filterDate" showIcon dateFormat="yy-mm-dd" :placeholder="$t('element.createdat')" class="min-w-[220px]" />
             </div>
         </div>
 

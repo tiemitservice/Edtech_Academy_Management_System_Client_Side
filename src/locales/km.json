@@ -104,7 +104,12 @@
         "commune": "ឃុំ/សង្កាត់",
         "village": "ភូមិ",
         "teacher": "គ្រូបង្រៀន",
-        "teacher_details": "ព័ត៌មានអំពីគ្រូបង្រៀន"
+        "teacher_details": "ព័ត៌មានអំពីគ្រូបង្រៀន",
+        "select_position": "ជ្រើសរើសតួនាទី",
+        "select_department": "ជ្រើសរើសនាយកដ្ឋាន",
+        "contact_employment": "ទំនាក់ទំនង និងការងារ",
+        "current_address": "អាសយដ្ឋានបច្ចុប្បន្ន",
+        "work_day": "ថ្ងៃធ្វើការ"
     },
     "student": {
         "title": "បញ្ជីឈ្មោះសិស្ស",
@@ -218,10 +223,30 @@
         "final_exam": "ប្រឡងបញ្ចប់",
         "total_score": "ពិន្ទុសរុប"
     },
+    "student_info": {
+        "title": "ព័ត៌មានសិស្ស",
+        "student_name": "ឈ្មោះសិស្ស",
+        "year": "ឆ្នាំ",
+        "subject": "មុខវិជ្ជា",
+        "session": "វេនសិក្សា",
+        "noData": "មិនមានទិន្នន័យសិស្សទេ។"
+    },
+    "class_history": {
+        "title": "ប្រវត្តិថ្នាក់សិស្ស",
+        "student_name": "ឈ្មោះសិស្ស",
+        "class_name": "ឈ្មោះថ្នាក់",
+        "subject": "មុខវិជ្ជា",
+        "teacher": "គ្រូបង្រៀន",
+        "session": "វេនសិក្សា",
+        "duration": "រយៈពេល",
+        "year": "ឆ្នាំ",
+        "noData": "មិនមានប្រវត្តិថ្នាក់សិស្សទេ។"
+    },
     "student_category": {
         "title": "បញ្ជីប្រភេទសិស្ស",
         "name": "ឈ្មោះ",
-        "namePlaceholder": "ឈ្មោះប្រភេទ"
+        "namePlaceholder": "ឈ្មោះប្រភេទ",
+        "noData": "មិនមានទិន្នន័យប្រភេទសិស្សទេ។"
     },
     "session": {
         "title": "​វេនសិក្សា",

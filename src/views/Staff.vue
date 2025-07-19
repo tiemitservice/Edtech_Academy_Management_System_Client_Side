@@ -1,31 +1,31 @@
 <template>
     <section class="px-4 mx-auto">
         <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg flex-wrap">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Teacher List</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('staff.teacher') }}</label>
 
             <div class="flex items-center gap-4 flex-wrap">
                 <IconField>
                     <InputIcon class="pi pi-search" />
-                    <InputText placeholder="Search by name" v-model="searchQuery" />
+                    <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" />
                 </IconField>
-                <Dropdown v-model="selectedPosition" filter show-clear :options="positions" option-value="_id" option-label="name" placeholder="Select a position" />
-                <Dropdown v-model="selectedDepartment" filter show-clear :options="departments" option-value="_id" option-label="name" placeholder="Select a department" />
-                <Button label="Add new" @click="openModal" />
+                <Dropdown v-model="selectedPosition" filter show-clear :options="positions" option-value="_id" option-label="name" :placeholder="$t('staff.select_position')" />
+                <Dropdown v-model="selectedDepartment" filter show-clear :options="departments" option-value="_id" option-label="name" :placeholder="$t('staff.select_department')" />
+                <Button :label="$t('element.addnew')" @click="openModal" />
             </div>
         </div>
-
         <div class="flex flex-col">
             <div class="overflow-x-auto">
                 <div class="py-2">
-                    <!-- UPDATED: Using 'tableData' which is processed for sorting -->
                     <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <!-- UPDATED: This column now correctly sorts by the 'displayId' field -->
-                        <Column field="displayId" header="No. " sortable style="min-width: 150px">
+                        <!-- No. Column -->
+                        <Column field="displayId" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
-                        <Column field="profile" header="Profile" style="min-width: 150px">
+
+                        <!-- Profile Column -->
+                        <Column field="profile" :header="$t('student.profile')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex items-center space-x-3">
                                     <div class="flex w-16 h-16 items-center justify-center overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
@@ -34,54 +34,63 @@
                                 </div>
                             </template>
                         </Column>
-                        <Column field="createdAt" header="Created At" sortable style="min-width: 200px">
+
+                        <!-- Created At Column -->
+                        <Column field="createdAt" :header="$t('element.createdat')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
-                                    <p>
-                                        {{ formatDate2(slotProps.data.createdAt) }}
-                                    </p>
+                                    <p>{{ formatDate2(slotProps.data.createdAt) }}</p>
                                 </div>
                             </template>
                         </Column>
-                        <Column field="en_name" header="Name" sortable style="min-width: 200px">
+
+                        <!-- English Name Column -->
+                        <Column field="en_name" :header="$t('staff.eng_name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
-                                    <p>
-                                        {{ slotProps.data.en_name }}
-                                    </p>
+                                    <p>{{ slotProps.data.en_name }}</p>
                                 </div>
                             </template>
                         </Column>
-                        <Column field="kh_name" header="Kh Name" sortable style="min-width: 200px">
+
+                        <!-- Khmer Name Column -->
+                        <Column field="kh_name" :header="$t('staff.kh_name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                     <p>{{ slotProps.data.kh_name }}</p>
                                 </div>
                             </template>
                         </Column>
-                        <Column field="position" header="Position" sortable style="min-width: 200px">
+
+                        <!-- Position Column -->
+                        <Column field="position" :header="$t('staff.positsion')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p>{{ formatePositionById(slotProps.data.position) }}</p>
                             </template>
                         </Column>
-                        <Column field="department" header="Department" sortable style="min-width: 200px">
+
+                        <!-- Department Column -->
+                        <Column field="department" :header="$t('staff.department')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p>{{ formateDepartmentById(slotProps.data.department) }}</p>
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <!-- Actions Column -->
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
-                                    <Button icon="pi pi-info-circle" @click="openStaffModal(slotProps.data)" severity="success" rounded aria-label="Info" />
-                                    <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
+                                    <Button icon="pi pi-info-circle" @click="openStaffModal(slotProps.data)" severity="success" rounded :aria-label="$t('actions.info')" />
+                                    <Button icon="pi pi-pencil" severity="warn" rounded :aria-label="$t('element.edit')" @click="handleEdit(slotProps.data)" />
+                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded :aria-label="$t('element.delete')" />
                                 </div>
                             </template>
                         </Column>
                     </DataTable>
+
+                    <!-- Loading State -->
                     <div v-else-if="loading" class="text-center py-10">
-                        <p>Loading...</p>
+                        <p>{{ $t('element.loading') }}</p>
                     </div>
                 </div>
             </div>
@@ -124,6 +133,7 @@
                 </div>
             </Dialog>
         </TransitionRoot>
+
         <TransitionRoot appear :show="isDelete" as="template">
             <Dialog as="div" @close="handleCloseDelete" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
@@ -143,7 +153,7 @@
                 </div>
             </Dialog>
         </TransitionRoot>
-        <Toast />
+        <Toast position="top-right" />
     </section>
 </template>
 
@@ -165,6 +175,14 @@ import { useToast } from 'primevue/usetoast';
 import { formatDate2 } from '@/composible/formatDate';
 
 // Modal state
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 const isOpen = ref(false);
 const isStaffOpen = ref(false);
 const openStaffModal = (data) => {
@@ -192,35 +210,7 @@ function openModal() {
 }
 
 const toast = useToast();
-const showToast = (action, severity) => {
-    let summary;
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = ' Created Success';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = ' Updated Success';
-            break;
-        case 'delete':
-            summary = ' Deleted Success';
-            break;
-        case 'asociate':
-            severity = 'warn';
-            summary = ' Please delete the associated data first';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
 
-    toast.add({
-        severity: severity,
-        summary: summary,
-        life: 3000
-    });
-};
 // Fetch staff and positions
 const collection = ref('staffs');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);

@@ -204,6 +204,25 @@
         "select_date": "Select Date",
         "select_approve_by": "Select Approver"
     },
+    "student_info": {
+        "title": "Students Class Info",
+        "student_name": "Student Name",
+        "year": "Year",
+        "subject": "Subject",
+        "session": "Session",
+        "noData": "No student class information available."
+    },
+    "class_history": {
+        "title": "Class History",
+        "student_name": "Student Name",
+        "class_name": "Class Name",
+        "subject": "Subject",
+        "teacher": "Teacher",
+        "session": "Session",
+        "duration": "Duration",
+        "year": "Year",
+        "noData": "No class history available."
+    },
     "staff": {
         "kh_name": "Khmer Name",
         "eng_name": "English Name",
@@ -223,7 +242,10 @@
         "commune": "Commune",
         "village": "Village",
         "teacher": "Teacher",
-        "teacher_details": "Teacher Details"
+        "teacher_details": "Teacher Details",
+        "select_position": "Select Position",
+        "select_department": "Select Department",
+        "work_day": "Work Day"
     },
     "session": {
         "title": "Session List",

@@ -99,14 +99,14 @@ import { useToast } from 'primevue/usetoast';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const isOpen = ref(false);
-const datatoedit = ref(null);
 
 const toast = useToast();
 const showToast = (action, severity) => {
     const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
     toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
+const isOpen = ref(false);
+const datatoedit = ref(null);
 const isDelete = ref(false);
 const deleteData = ref(null);
 const handleDeleteConfirm = async (id, doc) => {

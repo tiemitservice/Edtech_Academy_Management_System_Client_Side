@@ -1,50 +1,50 @@
 <template>
     <div class="space-y-4">
         <div class="py-2 flex flex-col md:flex-row justify-between items-center mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Students Class Info</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('class_history.title') }}</label>
 
             <!-- Left: All filters and search in a row, wrap on small screens -->
             <div class="flex flex-wrap gap-4 items-end">
                 <div class="flex flex-col">
                     <label for="student-select" class="text-sm font-medium text-gray-700 mb-1">
-                        Select Student <span><span class="text-red-500">*</span></span>
+                        {{ $t('student_permission.select_student') }} <span><span class="text-red-500">*</span></span>
                     </label>
-                    <Dropdown id="student-select" v-model="selectedStudent" showClear filter :options="studentOptions" optionLabel="eng_name" optionValue="_id" placeholder="Select Student" class="w-full md:w-64" />
+                    <Dropdown id="student-select" v-model="selectedStudent" showClear filter :options="studentOptions" optionLabel="eng_name" optionValue="_id" :placeholder="$t('class_history.student_name')" class="w-full md:w-64" />
                 </div>
                 <div>
                     <label class="invisible mb-1 select-none">&nbsp;</label>
-                    <Button label="Apply Filter" @click="applyFilter" />
+                    <Button :label="$t('element.filter')" @click="applyFilter" />
                 </div>
             </div>
         </div>
         <div class="flex flex-col">
             <div class="overflow-x-auto">
                 <DataTable :value="filteredClasses" showGridlines class="mt-4" v-if="filteredClasses.length > 0">
-                    <Column field="name" header="Class Name" />
-                    <Column field="subject" header="Subject">
+                    <Column field="name" :header="$t('class_history.class_name')" />
+                    <Column field="subject" :header="$t('class_history.subject')">
                         <template #body="{ data }">
                             {{ formatSubject(data.subject) }}
                         </template>
                     </Column>
-                    <Column field="staff" header="Teacher">
+                    <Column field="staff" :header="$t('class_history.teacher')">
                         <template #body="{ data }">
                             {{ formatStaffName(data.staff) }}
                         </template>
                     </Column>
-                    <Column field="duration" header="Section">
+                    <Column field="duration" :header="$t('class_history.session')">
                         <template #body="{ data }">
                             {{ formatDuration(data.duration) }}
                         </template>
                     </Column>
-                    <Column field="createdAt" header="Year">
+                    <Column field="createdAt" :header="$t('class_history.year')">
                         <template #body="{ data }">
                             {{ formatYear(data.createdAt) }}
                         </template>
                     </Column>
                 </DataTable>
-                <NotFound v-else-if="searched" message="No active classes found for the selected student." />
+                <NotFound v-else-if="searched" :message="$t('class_history.noData')" />
                 <div v-else class="text-center p-8 bg-white rounded-lg shadow-md">
-                    <p class="text-gray-500">Please select a student and apply the filter to see their class history.</p>
+                    <p class="text-gray-500">{{ $t('class_history.noData') }}</p>
                 </div>
             </div>
         </div>
@@ -62,6 +62,8 @@ import Column from 'primevue/column';
 import moment from 'moment';
 import { useToast } from 'primevue/usetoast';
 import NotFound from './pages/NotFound.vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 // --- Data Fetching ---
 const { data: student, fetchData: fetchStudents } = useFetch('students');
 const { data: classes, fetchData: fetchClasses } = useFetch('classes');
@@ -107,39 +109,10 @@ const formatYear = (date) => {
     return moment(date).format('YYYY');
 };
 
-// --- Toast Notification ---
-const showToast = (payload) => {
-    let action = typeof payload === 'string' ? payload : payload.action;
-    let customMessage = typeof payload === 'object' ? payload.message : null;
-    let severity;
-    let summary;
-
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = 'Created Successfully';
-            break;
-        case 'not_found':
-            severity = 'warn';
-            summary = customMessage || 'No matching records found';
-            break;
-        case 'found':
-            severity = 'info';
-            summary = customMessage || 'Data found successfully';
-            break;
-        case 'check_fields':
-            severity = 'warn';
-            summary = customMessage || 'Please select a student first';
-            break;
-        case 'server_error':
-            severity = 'error';
-            summary = customMessage || 'Server error occurred';
-            break;
-        default:
-            severity = 'warn';
-            summary = customMessage || 'Please select a student to filter';
-    }
-    toast.add({ severity, summary, life: 3000 });
+// --- Toast Notification ---import { useI18n } from 'vue-i18n';
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
 
 // --- Filter Logic ---
