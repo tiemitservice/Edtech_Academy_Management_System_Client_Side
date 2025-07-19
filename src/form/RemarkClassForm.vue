@@ -2,13 +2,13 @@
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Update Class Status</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <div class="px-4 py-5 space-y-5">
             <div>
-                <label for="date" class="block text-sm font-medium text-gray-700">Set the re-mark status for this class.</label>
+                <label for="date" class="block text-sm font-medium text-gray-700">{{ $t('class.set_remark_class') }}</label>
             </div>
         </div>
 
@@ -81,7 +81,7 @@ const handleSubmit = async () => {
         // Execute both database operations concurrently
         await Promise.all([updateClassPromise, reportPromise]);
 
-        emit('toast', 'update');
+        emit('toast', 'update', 'success');
         emit('close');
     } catch (error) {
         console.error('Error processing class completion:', error);

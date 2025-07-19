@@ -1,27 +1,26 @@
 <template>
-    <div class="w-[820px] max-w-full bg-white dark:bg-gray-800 h-[40vh] rounded-lg shadow-lg">
+    <div class="w-[820px] max-w-full bg-white dark:bg-gray-800 h-auto rounded-lg shadow-lg">
+        <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Class Details</label>
-            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
+            <label class="text-base font-semibold text-gray-800">{{ $t('class.class_details') }}</label>
+            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded :aria-label="$t('actions.close')" />
         </div>
 
+        <!-- Content -->
         <div>
             <div class="w-full flex items-start justify-center gap-5 p-5" v-if="datatoedit">
+                <!-- Teacher Information Card -->
                 <div v-if="datatoedit" class="flex flex-col py-4 px-4 border w-[420px] rounded-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
-                    <p class="w-full text-lg text-black bg-white font-semibold text-start">Teacher Details</p>
+                    <p class="w-full text-lg text-black bg-white font-semibold text-start">{{ $t('staff.teacher') }}</p>
                     <div v-if="datatoedit.staff" class="flex items-center justify-start space-x-4 sm:space-x-6">
-                        <img class="block size-24 overflow-hidden object-cover rounded-full sm:mx-0 sm:shrink-0" :src="formatStaffNestedField(datatoedit.staff, 'image')" alt="Woman's Face" />
+                        <img class="block size-24 overflow-hidden object-cover rounded-full sm:mx-0 sm:shrink-0" :src="formatStaffNestedField(datatoedit.staff, 'image')" :alt="$t('staff.teacher_details')" />
                         <div class="text-center space-y-2 sm:text-left">
                             <div class="space-y-0.5">
                                 <p class="text-lg text-black font-semibold">{{ formatStaffNestedField(datatoedit.staff, 'en_name') }}</p>
                                 <p class="text-slate-500 font-medium">
-                                    <span>
-                                        <!-- icon bag -->
-                                        <i class="pi pi-phone text-primary"></i> :
-                                    </span>
+                                    <span> <i class="pi pi-phone text-primary"></i> : </span>
                                     {{ formatStaffNestedField(datatoedit.staff, 'phoneNumber') }}
                                 </p>
-                                <!-- dob -->
                                 <p class="text-slate-500 font-medium">
                                     <span> <i class="pi pi-calendar text-primary"></i> : </span>
                                     {{ formatDate2(formatStaffNestedField(datatoedit.staff, 'date_of_birth')) }}
@@ -33,30 +32,32 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Placeholder for when there is no teacher -->
                     <div v-else class="flex flex-col items-center justify-center py-4 px-4 w-full h-[200px]">
                         <i class="pi pi-user text-4xl text-gray-400 mb-2"></i>
-                        <p class="text-gray-500 font-medium">No Teacher Details</p>
+                        <p class="text-gray-500 font-medium">{{ $t('staff.no_teacher_details') }}</p>
                     </div>
                 </div>
 
+                <!-- Class Details Card -->
                 <div class="py-4 px-4 border w-[420px] bg-white rounded-lg space-y-2 sm:py-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-6">
                     <div class="text-center space-y-2 sm:text-left">
                         <div class="space-y-2">
-                            <p class="text-lg text-black font-semibold">Class Details</p>
+                            <p class="text-lg text-black font-semibold">{{ $t('class.class_details') }}</p>
                             <div class="flex items-center flex-wrap gap-4">
-                                <span class="text-primary font-medium text-nowrap"> Class Name : </span>
+                                <span class="text-primary font-medium text-nowrap"> {{ $t('class.name') }} : </span>
                                 <span class="inline-block px-3 py-1 text-lg font-semibold text-gray-800">
                                     {{ datatoedit.name }}
                                 </span>
                             </div>
                             <div class="flex items-center flex-wrap gap-4">
-                                <span class="text-primary font-medium text-nowrap"> Day Class : </span>
-                                <span v-for="day in datatoedit.day_class" class="inline-block px-3 py-1 text-lg font-semibold rounded-full bg-gray-100 text-gray-800">
+                                <span class="text-primary font-medium text-nowrap"> {{ $t('class.day_class') }} : </span>
+                                <span v-for="day in datatoedit.day_class" :key="day" class="inline-block px-3 py-1 text-lg font-semibold rounded-full bg-gray-100 text-gray-800">
                                     {{ day }}
                                 </span>
                             </div>
                             <div class="flex items-center flex-wrap gap-4">
-                                <span class="text-primary font-medium text-nowrap"> Total Student : </span>
+                                <span class="text-primary font-medium text-nowrap"> {{ $t('class.total_student') }} : </span>
                                 <span class="inline-block px-3 py-1 text-lg font-semibold rounded-full bg-gray-100 text-gray-800">
                                     {{ datatoedit.students?.length }}
                                 </span>

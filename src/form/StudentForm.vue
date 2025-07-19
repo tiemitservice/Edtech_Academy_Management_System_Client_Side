@@ -1,8 +1,9 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-full">
+        <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Student' : 'Add New Student' }}</label>
-            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
+            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded :aria-label="$t('actions.close')" />
         </div>
 
         <div class="p-4">
@@ -29,131 +30,181 @@
             <div class="grid grid-cols-2 gap-6 p-5 items-start">
                 <!-- Personal Information -->
                 <div>
-                    <h4 class="text-lg font-medium">Personal Information</h4>
+                    <h4 class="text-lg font-medium">{{ $t('student.personal_information') }}</h4>
                     <div class="rounded p-2 border grid grid-cols-3 gap-4">
                         <div class="flex flex-col space-y-1">
-                            <label for="kh_name" class="text-sm font-medium">Khmer Name <span class="text-red-500">*</span></label>
-                            <InputText :required="true" id="kh_name" type="text" placeholder="Khmer name" v-model="formState.kh_name" />
+                            <label for="kh_name" class="text-sm font-medium">{{ $t('student.kh_name') }} <span class="text-red-500">*</span></label>
+                            <InputText :required="true" id="kh_name" type="text" :placeholder="$t('student.kh_name')" v-model="formState.kh_name" />
                             <small v-if="errors.kh_name" class="text-red-500 mt-1">{{ errors.kh_name }}</small>
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="eng_name" class="text-sm font-medium">English Name <span class="text-red-500">*</span></label>
-                            <InputText :required="true" id="eng_name" type="text" placeholder="English name" v-model="formState.eng_name" />
+                            <label for="eng_name" class="text-sm font-medium">{{ $t('student.eng_name') }} <span class="text-red-500">*</span></label>
+                            <InputText :required="true" id="eng_name" type="text" :placeholder="$t('student.eng_name')" v-model="formState.eng_name" />
                             <small v-if="errors.eng_name" class="text-red-500 mt-1">{{ errors.eng_name }}</small>
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="selectedGender" class="text-sm font-medium">Gender <span class="text-red-500">*</span></label>
-                            <Select show-clear id="selectedGender" v-model="formState.gender" :options="genderOptions" optionLabel="name" optionValue="name" placeholder="Select a Gender" class="w-full" />
+                            <label for="selectedGender" class="text-sm font-medium">{{ $t('student.gender') }} <span class="text-red-500">*</span></label>
+                            <Select show-clear id="selectedGender" v-model="formState.gender" :options="genderOptions" optionLabel="name" optionValue="name" :placeholder="$t('student.select_gender')" class="w-full" />
                             <small v-if="errors.gender" class="text-red-500 mt-1">{{ errors.gender }}</small>
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="date_of_birth" class="text-sm font-medium">Date of Birth <span class="text-red-500">*</span></label>
-                            <Calendar id="date_of_birth" v-model="formState.date_of_birth" placeholder="Date of birth" showButtonBar dateFormat="yy-mm-dd" />
+                            <label for="date_of_birth" class="text-sm font-medium">{{ $t('student.date_of_birth') }} <span class="text-red-500">*</span></label>
+                            <Calendar id="date_of_birth" v-model="formState.date_of_birth" :placeholder="$t('student.date_of_birth')" showButtonBar dateFormat="yy-mm-dd" />
                             <small v-if="errors.date_of_birth" class="text-red-500 mt-1">{{ errors.date_of_birth }}</small>
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="categorySelected" class="text-sm font-medium">Student Category <span class="text-red-500">*</span></label>
-                            <Dropdown id="categorySelected" v-model="formState.student_type" :options="category" optionLabel="name" optionValue="_id" placeholder="Select a category" showClear class="w-full" />
+                            <label for="categorySelected" class="text-sm font-medium">{{ $t('student.student_category') }} <span class="text-red-500">*</span></label>
+                            <Dropdown id="categorySelected" v-model="formState.student_type" :options="category" optionLabel="name" optionValue="_id" :placeholder="$t('student.select_category')" showClear class="w-full" />
                             <small v-if="errors.student_type" class="text-red-500 mt-1">{{ errors.student_type }}</small>
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="email" class="text-sm font-medium">Email</label>
-                            <InputText id="email" type="email" placeholder="Email" v-model="formState.email" />
+                            <label for="email" class="text-sm font-medium">{{ $t('staff.email') }}</label>
+                            <InputText id="email" type="email" :placeholder="$t('staff.email')" v-model="formState.email" />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="phoneNumber" class="text-sm font-medium">Phone Number <span class="text-red-500">*</span></label>
-                            <InputText id="phoneNumber" type="text" placeholder="Phone number" v-model="formState.phoneNumber" />
+                            <label for="phoneNumber" class="text-sm font-medium">{{ $t('student.phone_number') }} <span class="text-red-500">*</span></label>
+                            <InputText id="phoneNumber" type="text" :placeholder="$t('student.phone_number')" v-model="formState.phoneNumber" />
                             <small v-if="errors.phoneNumber" class="text-red-500 mt-1">{{ errors.phoneNumber }}</small>
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="date_entered" class="text-sm font-medium">Date Entered</label>
-                            <Calendar id="date_entered" v-model="formState.date_intered" placeholder="Date entered" showButtonBar dateFormat="yy-mm-dd" />
+                            <label for="date_entered" class="text-sm font-medium">{{ $t('student.day_entered') }}</label>
+                            <Calendar id="date_entered" v-model="formState.date_intered" :placeholder="$t('student.day_entered')" showButtonBar dateFormat="yy-mm-dd" />
                         </div>
                     </div>
                 </div>
-                <!-- Other sections... -->
+                <!-- Live Address -->
                 <div>
-                    <h4 class="text-lg font-medium">Live Address</h4>
+                    <h4 class="text-lg font-medium">{{ $t('student.living_information') }}</h4>
                     <div class="rounded p-2 border grid grid-cols-3 gap-4">
                         <div class="flex flex-col space-y-1">
-                            <label for="selectedProvince" class="text-sm font-medium">Province</label>
-                            <Dropdown filter id="selectedProvince" v-model="formState.province" :options="provinces" optionLabel="properties.NAME1" optionValue="properties.ADMIN_ID1" placeholder="Select Province" showClear class="w-full" />
+                            <label for="selectedProvince" class="text-sm font-medium">{{ $t('student.province') }}</label>
+                            <Dropdown
+                                filter
+                                id="selectedProvince"
+                                v-model="formState.province"
+                                :options="provinces"
+                                optionLabel="properties.NAME1"
+                                optionValue="properties.ADMIN_ID1"
+                                :placeholder="$t('student.select_province')"
+                                showClear
+                                class="w-full"
+                            />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="selectedDistrict" class="text-sm font-medium">District</label>
-                            <Dropdown id="selectedDistrict" v-model="formState.district" :options="filteredDistricts" optionLabel="properties.NAME2" optionValue="properties.ADMIN_ID2" placeholder="Select District" showClear class="w-full" />
+                            <label for="selectedDistrict" class="text-sm font-medium">{{ $t('student.district') }}</label>
+                            <Dropdown
+                                id="selectedDistrict"
+                                v-model="formState.district"
+                                :options="filteredDistricts"
+                                optionLabel="properties.NAME2"
+                                optionValue="properties.ADMIN_ID2"
+                                :placeholder="$t('student.select_district')"
+                                showClear
+                                class="w-full"
+                            />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="selectedCommune" class="text-sm font-medium">Commune</label>
-                            <Dropdown id="selectedCommune" v-model="formState.commune" :options="filteredCommunes" optionLabel="properties.NAME3" optionValue="properties.ADMIN_ID3" placeholder="Select Commune" showClear class="w-full" />
+                            <label for="selectedCommune" class="text-sm font-medium">{{ $t('student.commune') }}</label>
+                            <Dropdown
+                                id="selectedCommune"
+                                v-model="formState.commune"
+                                :options="filteredCommunes"
+                                optionLabel="properties.NAME3"
+                                optionValue="properties.ADMIN_ID3"
+                                :placeholder="$t('student.select_commune')"
+                                showClear
+                                class="w-full"
+                            />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="selectedVillage" class="text-sm font-medium">Village</label>
-                            <Dropdown v-model="formState.village" :options="formattedVillages" optionLabel="label" optionValue="value" placeholder="Select Village" showClear class="w-full" />
+                            <label for="selectedVillage" class="text-sm font-medium">{{ $t('student.village') }}</label>
+                            <Dropdown v-model="formState.village" :options="formattedVillages" optionLabel="label" optionValue="value" :placeholder="$t('student.select_village')" showClear class="w-full" />
                         </div>
                     </div>
                 </div>
+                <!-- Place of Birth -->
                 <div>
-                    <h4 class="text-lg font-medium">Place of Birth</h4>
+                    <h4 class="text-lg font-medium">{{ $t('student.place_of_birth') }}</h4>
                     <div class="rounded p-2 border grid grid-cols-3 gap-4">
                         <div class="flex flex-col space-y-1">
-                            <label for="plb_province" class="text-sm font-medium">Province</label>
-                            <Dropdown filter id="plb_province" v-model="formState.st_birth_province" :options="provinces" optionLabel="properties.NAME1" optionValue="properties.ADMIN_ID1" placeholder="Select Province" showClear class="w-full" />
+                            <label for="plb_province" class="text-sm font-medium">{{ $t('student.province') }}</label>
+                            <Dropdown
+                                filter
+                                id="plb_province"
+                                v-model="formState.st_birth_province"
+                                :options="provinces"
+                                optionLabel="properties.NAME1"
+                                optionValue="properties.ADMIN_ID1"
+                                :placeholder="$t('student.select_province')"
+                                showClear
+                                class="w-full"
+                            />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="plb_district" class="text-sm font-medium">District</label>
+                            <label for="plb_district" class="text-sm font-medium">{{ $t('student.district') }}</label>
                             <Dropdown
                                 id="plb_district"
                                 v-model="formState.st_birth_district"
                                 :options="filteredDistrictsForBirth"
                                 optionLabel="properties.NAME2"
                                 optionValue="properties.ADMIN_ID2"
-                                placeholder="Select District"
+                                :placeholder="$t('student.select_district')"
                                 showClear
                                 class="w-full"
                             />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="plb_commune" class="text-sm font-medium">Commune</label>
-                            <Dropdown id="plb_commune" v-model="formState.st_birth_commune" :options="filteredCommunesForBirth" optionLabel="properties.NAME3" optionValue="properties.ADMIN_ID3" placeholder="Select Commune" showClear class="w-full" />
+                            <label for="plb_commune" class="text-sm font-medium">{{ $t('student.commune') }}</label>
+                            <Dropdown
+                                id="plb_commune"
+                                v-model="formState.st_birth_commune"
+                                :options="filteredCommunesForBirth"
+                                optionLabel="properties.NAME3"
+                                optionValue="properties.ADMIN_ID3"
+                                :placeholder="$t('student.select_commune')"
+                                showClear
+                                class="w-full"
+                            />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="plb_village" class="text-sm font-medium">Village</label>
-                            <Dropdown v-model="formState.st_birth_village" :options="formattedVillagesForBirth" optionLabel="label" optionValue="value" placeholder="Select Village" showClear class="w-full" />
+                            <label for="plb_village" class="text-sm font-medium">{{ $t('student.village') }}</label>
+                            <Dropdown v-model="formState.st_birth_village" :options="formattedVillagesForBirth" optionLabel="label" optionValue="value" :placeholder="$t('student.select_village')" showClear class="w-full" />
                         </div>
                     </div>
                 </div>
+                <!-- Family Information -->
                 <div>
-                    <h4 class="text-lg font-medium pb-2">Family Information</h4>
+                    <h4 class="text-lg font-medium pb-2">{{ $t('student.family_information') }}</h4>
                     <div class="rounded p-2 border grid grid-cols-3 gap-4">
                         <div class="flex flex-col space-y-1">
-                            <label for="father_name" class="text-sm font-medium">Father's Name</label>
-                            <InputText id="father_name" type="text" placeholder="Father's name" v-model="formState.father_name" />
+                            <label for="father_name" class="text-sm font-medium">{{ $t('student.father_name') }}</label>
+                            <InputText id="father_name" type="text" :placeholder="$t('student.father_name')" v-model="formState.father_name" />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="mother_name" class="text-sm font-medium">Mother's Name</label>
-                            <InputText id="mother_name" type="text" placeholder="Mother's name" v-model="formState.mother_name" />
+                            <label for="mother_name" class="text-sm font-medium">{{ $t('student.mother_name') }}</label>
+                            <InputText id="mother_name" type="text" :placeholder="$t('student.mother_name')" v-model="formState.mother_name" />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="father_phone" class="text-sm font-medium">Father's Phone</label>
-                            <InputText id="father_phone" type="text" placeholder="Father's phone" v-model="formState.father_phone" />
+                            <label for="father_phone" class="text-sm font-medium">{{ $t('student.father_phone') }}</label>
+                            <InputText id="father_phone" type="text" :placeholder="$t('student.father_phone')" v-model="formState.father_phone" />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="mother_phone" class="text-sm font-medium">Mother's Phone</label>
-                            <InputText id="mother_phone" type="text" placeholder="Mother's phone" v-model="formState.mother_phone" />
+                            <label for="mother_phone" class="text-sm font-medium">{{ $t('student.mother_phone') }}</label>
+                            <InputText id="mother_phone" type="text" :placeholder="$t('student.mother_phone')" v-model="formState.mother_phone" />
                         </div>
                     </div>
                 </div>
+                <!-- Document Information -->
                 <div>
-                    <h4 class="text-lg font-medium pb-2">Document Information</h4>
+                    <h4 class="text-lg font-medium pb-2">{{ $t('student.document_information') }}</h4>
                     <div class="rounded p-2 border grid grid-cols-2 gap-4">
                         <div class="flex flex-col space-y-1">
-                            <label for="document_type" class="text-sm font-medium">Document Type</label>
-                            <Dropdown id="document_type" v-model="formState.document_type" :options="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Select document type" showClear class="w-full" />
+                            <label for="document_type" class="text-sm font-medium">{{ $t('student.document_type') }}</label>
+                            <Dropdown id="document_type" v-model="formState.document_type" :options="documentTypeOptions" optionLabel="label" optionValue="value" :placeholder="$t('student.select_document_type')" showClear class="w-full" />
                         </div>
                         <div class="flex flex-col space-y-1">
-                            <label for="documentNumber" class="text-sm font-medium">Document Number</label>
-                            <InputText id="documentNumber" type="text" placeholder="Document number" v-model="formState.document_number" />
+                            <label for="documentNumber" class="text-sm font-medium">{{ $t('student.document_number') }}</label>
+                            <InputText id="documentNumber" type="text" :placeholder="$t('student.document_number')" v-model="formState.document_number" />
                         </div>
                         <div class="col-span-2">
                             <div class="flex flex-col items-center space-y-3">
@@ -176,19 +227,18 @@
                 </div>
                 <!-- Status Toggle -->
                 <div class="col-span-2">
-                    <h4 class="text-lg font-medium pb-2">Status</h4>
+                    <h4 class="text-lg font-medium pb-2">{{ $t('element.status') }}</h4>
                     <div class="rounded p-4 border flex items-center gap-4">
-                        <label for="status" class="text-sm font-medium">Active</label>
+                        <label for="status" class="text-sm font-medium">{{ $t('element.active') }}</label>
                         <ToggleSwitch v-model="formState.status" inputId="status" />
                     </div>
                 </div>
             </div>
-
-            <!-- Form Actions -->
-            <div class="w-full flex items-center justify-end mt-8 space-x-2">
-                <Button @click="$emit('close')" label="Cancel" severity="danger" outlined />
-                <Button :label="isSubmitting ? 'Saving...' : 'Save'" :disabled="isSubmitting" type="submit" />
-            </div>
+        </div>
+        <!-- Form Actions -->
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -252,7 +302,7 @@ const document_image = ref(null);
 const document_image_preview = ref(null);
 
 // --- Static Data ---
-const genderOptions = ref([{ name: 'Male' }, { name: 'Female' }, { name: 'Others' }]);
+const genderOptions = ref([{ name: 'Male' }, { name: 'Female' }]);
 const documentTypeOptions = ref([
     { label: 'National ID', value: 'national_id' },
     { label: 'Passport', value: 'passport' },
@@ -364,10 +414,10 @@ const handleSubmit = async () => {
 
         if (props.datatoedit) {
             await updateData(formData, props.datatoedit._id);
-            emit('toast', 'update');
+            emit('toast', 'update', 'success');
         } else {
             await postData(formData);
-            emit('toast', 'create');
+            emit('toast', 'create', 'success');
         }
 
         // If the student is being deactivated, remove them from all classes.

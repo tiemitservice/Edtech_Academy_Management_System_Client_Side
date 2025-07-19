@@ -1,14 +1,14 @@
 <template>
     <section class="px-4 mx-auto">
         <div class="py-2 flex flex-col md:flex-row mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg justify-between items-center">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Classes Transaction</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('class.classes_transaction') }}</label>
             <div class="flex items-center gap-4">
                 <IconField>
                     <InputIcon class="pi pi-search" />
-                    <InputText placeholder="Search by name" v-model="searchQuery" class="w-full" />
+                    <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" class="w-full" />
                 </IconField>
                 <div class="flex items-center gap-4">
-                    <DatePicker v-model="createdAt_select" show-icon selectionMode="range" show-button-bar placeholder="Filter by created at" />
+                    <DatePicker v-model="createdAt_select" show-icon selectionMode="range" show-button-bar :placeholder="$t('element.Filterbycreatedat')" />
                 </div>
             </div>
         </div>
@@ -17,24 +17,24 @@
             <div class="overflow-x-auto">
                 <div v-if="!loadingClass && data.length" class="py-2">
                     <DataTable :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="originalIndex" header="No" sortable style="min-width: 150px">
+                        <Column field="originalIndex" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.originalIndex }}</p>
                             </template>
                         </Column>
-                        <Column field="createdAt" header="Created At" sortable style="min-width: 200px">
+                        <Column field="createdAt" :header="$t('element.createdat')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
                             </template>
                         </Column>
-                        <Column field="name" header="Name" sortable style="min-width: 200px">
+                        <Column field="name" :header="$t('class.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
                                     {{ slotProps.data.name }}
                                 </div>
                             </template>
                         </Column>
-                        <Column field="subject" header="Subject" sortable style="min-width: 200px">
+                        <Column field="subject" :header="$t('class.subject')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
                                     {{ formatSubject(slotProps.data.subject) }}
@@ -42,7 +42,7 @@
                             </template>
                         </Column>
 
-                        <Column field="duration" header="Duration" sortable style="min-width: 200px">
+                        <Column field="duration" :header="$t('class.duration')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
                                     {{ formatDuration(slotProps.data.duration) }}
@@ -50,7 +50,7 @@
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button @click="handleClassDetails(slotProps.data)" icon="pi pi-user" severity="success" rounded aria-label="Info" />
@@ -157,7 +157,7 @@ import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import { useToast } from 'primevue/usetoast';
 import moment from 'moment';
-
+import { useI18n } from 'vue-i18n';
 // Import Components
 import ClassDetails from '@/form/ClassDetails.vue';
 import RemarkClassForm from '@/form/RemarkClassForm.vue';
@@ -174,7 +174,7 @@ const { data: rawData, loading: loadingClass, fetchData } = useFetch(collection.
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
 const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
 const toast = useToast();
-
+const { t } = useI18n();
 // State for Modals
 const datatoedit = ref(null);
 const isClassDetails = ref(false);
@@ -263,12 +263,7 @@ const handleCloseStudentClassDetail = () => {
 // --- General Functions ---
 
 const showToast = (action, severity) => {
-    const summary =
-        {
-            create: 'Created Success',
-            update: 'Updated Success',
-            delete: 'Deleted Success'
-        }[action] || action;
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
     toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
 

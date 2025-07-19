@@ -2,26 +2,28 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="flex flex-col md:flex-row mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg justify-between items-center">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Attendance</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_attendance.title') }}</label>
             <div class="flex items-center gap-4">
                 <div class="flex items-end gap-4 flex-wrap">
-                    <!-- **MODIFIED:** Duration Filter -->
+                    <!-- Duration Filter -->
                     <div class="flex flex-col">
-                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a Duration <span class="text-red-500">*</span> </label>
-                        <Select v-model="selectedDuration" :options="sections" option-value="_id" option-label="duration" show-clear placeholder="Select a duration" class="min-w-[180px]" />
+                        <label class="text-lg font-medium text-gray-700 mb-1"> {{ $t('student_attendance.select_duration') }} <span class="text-red-500">*</span> </label>
+                        <Select v-model="selectedDuration" :options="sections" option-value="_id" option-label="duration" show-clear :placeholder="$t('student_attendance.select_duration')" class="min-w-[180px]" />
                     </div>
-                    <!-- Class Select (now filtered by duration) -->
+                    <!-- Class Select -->
                     <div class="flex flex-col">
-                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a class <span class="text-red-500">*</span> </label>
-                        <Select v-model="classSelected" :options="filteredClassesByDuration" option-value="_id" option-label="name" show-clear placeholder="Select a class" class="min-w-[180px]" :disabled="!selectedDuration" />
+                        <label class="text-lg font-medium text-gray-700 mb-1"> {{ $t('student_attendance.select_class') }} <span class="text-red-500">*</span> </label>
+                        <Select v-model="classSelected" :options="filteredClassesByDuration" option-value="_id" option-label="name" show-clear :placeholder="$t('student_attendance.select_class')" class="min-w-[180px]" :disabled="!selectedDuration" />
                     </div>
+                    <!-- Apply Filter Button -->
                     <div class="flex flex-col">
                         <label class="invisible mb-1 select-none">&nbsp;</label>
-                        <Button @click="() => filterData(true)" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 bg-blue-600" />
+                        <Button @click="() => filterData(true)" :label="apply_loading ? $t('element.apply') : $t('element.filter')" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 bg-blue-600" />
                     </div>
+                    <!-- Clear Filter Button -->
                     <div class="flex flex-col">
                         <label class="invisible mb-1 select-none">&nbsp;</label>
-                        <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" outlined />
+                        <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" outlined />
                     </div>
                 </div>
             </div>
@@ -32,42 +34,42 @@
                 <div v-if="!loading">
                     <div v-if="filteredData.length > 0" class="py-2">
                         <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                            <Column field="_id" header="No." style="min-width: 150px">
+                            <Column field="_id" :header="$t('element.num')" style="min-width: 150px">
                                 <template #body="slotProps">
                                     <p class="font-medium">{{ slotProps.index + 1 }}</p>
                                 </template>
                             </Column>
-                            <Column field="createdAt" sortable header="Created at" style="min-width: 150px">
+                            <Column field="createdAt" sortable :header="$t('element.createdat')" style="min-width: 150px">
                                 <template #body="slotProps">
                                     <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
                                 </template>
                             </Column>
-                            <Column field="name" header="Name" sortable style="min-width: 200px">
+                            <Column field="name" :header="$t('student.name')" sortable style="min-width: 200px">
                                 <template #body="slotProps">
                                     <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                         {{ slotProps.data.name }}
                                     </div>
                                 </template>
                             </Column>
-                            <Column field="duration" header="Duration" sortable style="min-width: 200px">
+                            <Column field="duration" :header="$t('class.duration')" sortable style="min-width: 200px">
                                 <template #body="slotProps">
                                     <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                         {{ formatDuration(slotProps.data?.duration) || 'N/A' }}
                                     </div>
                                 </template>
                             </Column>
-                            <Column header="Actions" style="min-width: 150px">
+                            <Column :header="$t('element.action')" style="min-width: 150px">
                                 <template #body="slotProps">
                                     <div class="flex space-x-2">
-                                        <Button @click="handleStudentClassDetail(slotProps.data)" icon="pi pi-users" rounded aria-label="Info" />
-                                        <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
+                                        <Button @click="handleStudentClassDetail(slotProps.data)" icon="pi pi-users" rounded />
+                                        <Button icon="pi pi-pencil" severity="warn" rounded @click="handleEdit(slotProps.data)" />
                                     </div>
                                 </template>
                             </Column>
                         </DataTable>
                     </div>
                     <div v-else class="w-full flex justify-center items-center bg-white p-4 rounded-lg">
-                        <NotFound message="No data found for the selected criteria." />
+                        <NotFound :message="$t('student.noData')" />
                     </div>
                 </div>
                 <div v-else>
@@ -152,7 +154,13 @@ import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Toast from 'primevue/toast';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
 const toast = useToast();
 const isOpen = ref(false);
@@ -224,40 +232,6 @@ const clearFilters = () => {
 };
 
 watch(rawData, () => filterData(false), { deep: true });
-
-const showToast = (payload) => {
-    let action = typeof payload === 'string' ? payload : payload.action;
-    let customMessage = typeof payload === 'object' ? payload.message : null;
-    let severity;
-    let summary;
-
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = 'Created Successfully';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = 'Updated Successfully';
-            break;
-        case 'check_fields':
-            severity = 'warn';
-            summary = customMessage || 'Please fill all the required fields';
-            break;
-        case 'not_found':
-            severity = 'warn';
-            summary = customMessage || 'No matching records found';
-            break;
-        case 'found':
-            severity = 'info';
-            summary = 'Data found successfully';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
-    toast.add({ severity, summary, life: 3000 });
-};
 
 const openModal = () => {
     isOpen.value = true;

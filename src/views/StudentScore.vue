@@ -1,26 +1,24 @@
 <template>
     <section class="px-4 mx-auto">
-        <!-- Header and Filter Controls -->
         <div class="flex flex-col md:flex-row mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg justify-between items-center">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Scores</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ t('student_score.title') }}</label>
             <div class="flex items-center gap-4">
                 <div class="flex items-end gap-4 flex-wrap">
-                    <!-- Filters -->
                     <div class="flex flex-col">
-                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a Duration <span class="text-red-500">*</span> </label>
-                        <Select v-model="selectedDuration" :options="sections" option-value="_id" option-label="duration" show-clear placeholder="Select a duration" class="min-w-[180px]" />
+                        <label class="text-lg font-medium text-gray-700 mb-1"> {{ t('session.duration') }} <span class="text-red-500">*</span> </label>
+                        <Select v-model="selectedDuration" :options="sections" option-value="_id" option-label="duration" show-clear :placeholder="t('session.duration')" class="min-w-[180px]" />
                     </div>
                     <div class="flex flex-col">
-                        <label class="text-lg font-medium text-gray-700 mb-1"> Select a class <span class="text-red-500">*</span> </label>
-                        <Select v-model="classSelected" :options="filteredClassesByDuration" option-value="_id" option-label="name" show-clear placeholder="Select a class" class="min-w-[180px]" :disabled="!selectedDuration" />
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="invisible mb-1 select-none">&nbsp;</label>
-                        <Button @click="() => filterData(true)" :label="apply_loading ? 'Applying...' : 'Apply filter'" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 bg-blue-600" />
+                        <label class="text-lg font-medium text-gray-700 mb-1"> {{ t('student_score.select_class') }} <span class="text-red-500">*</span> </label>
+                        <Select v-model="classSelected" :options="filteredClassesByDuration" option-value="_id" option-label="name" show-clear :placeholder="t('student_score.select_class')" class="min-w-[180px]" :disabled="!selectedDuration" />
                     </div>
                     <div class="flex flex-col">
                         <label class="invisible mb-1 select-none">&nbsp;</label>
-                        <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" outlined />
+                        <Button @click="() => filterData(true)" :label="apply_loading ? t('element.apply') : t('element.filter')" :loading="apply_loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 bg-blue-600" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="invisible mb-1 select-none">&nbsp;</label>
+                        <Button v-if="isFilterActive" @click="clearFilters" :label="t('element.clear')" icon="pi pi-times" class="p-button-secondary" outlined />
                     </div>
                 </div>
             </div>
@@ -31,34 +29,34 @@
                 <div v-if="!loading">
                     <div v-if="filteredData.length > 0" class="py-2 bg-white p-4 rounded-lg shadow-md">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">Filtered Class</h3>
+                            <h3 class="text-lg font-semibold">{{ t('student_score.class') }}</h3>
                             <div>
                                 <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
                                 <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
                             </div>
                         </div>
                         <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                            <Column field="displayIndex" header="No." sortable style="min-width: 150px"></Column>
-                            <Column field="createdAt" sortable header="Created at" style="min-width: 150px">
+                            <Column field="displayIndex" :header="t('element.num')" sortable style="min-width: 150px"></Column>
+                            <!-- <Column field="createdAt" sortable :header="t('element.createdat')" style="min-width: 150px">
                                 <template #body="slotProps">
                                     <p class="font-medium">{{ formatDate2(slotProps.data.createdAt) }}</p>
                                 </template>
-                            </Column>
-                            <Column field="name" header="Name" sortable style="min-width: 200px">
+                            </Column> -->
+                            <Column field="name" :header="t('class.name')" sortable style="min-width: 200px">
                                 <template #body="slotProps">
                                     <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                         {{ slotProps.data.name }}
                                     </div>
                                 </template>
                             </Column>
-                            <Column field="duration" header="Duration" sortable style="min-width: 200px">
+                            <Column field="duration" :header="t('class.duration')" sortable style="min-width: 200px">
                                 <template #body="slotProps">
                                     <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                         {{ formatDuration(slotProps.data?.duration) || 'N/A' }}
                                     </div>
                                 </template>
                             </Column>
-                            <Column header="Actions" style="min-width: 150px">
+                            <Column :header="t('element.action')" style="min-width: 150px">
                                 <template #body="slotProps">
                                     <div class="flex space-x-2">
                                         <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
@@ -68,7 +66,7 @@
                         </DataTable>
                     </div>
                     <div v-else class="w-full flex justify-center items-center bg-white p-4 rounded-lg">
-                        <NotFound message="No data found for the selected criteria." />
+                        <NotFound :message="t('student_score.no_data_found')" />
                     </div>
                 </div>
                 <div v-else>
@@ -98,6 +96,7 @@
         <Toast position="top-right" />
     </section>
 </template>
+```
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue';
@@ -116,7 +115,13 @@ import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Toast from 'primevue/toast';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
 const { data: companies, fetchData: fetchCompany } = useFetch('companies');
 const toast = useToast();
@@ -187,40 +192,6 @@ const clearFilters = () => {
 };
 
 watch(rawData, () => filterData(false), { deep: true });
-
-const showToast = (payload) => {
-    let action = typeof payload === 'string' ? payload : payload.action;
-    let customMessage = typeof payload === 'object' ? payload.message : null;
-    let severity;
-    let summary;
-
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = 'Created Successfully';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = 'Updated Successfully';
-            break;
-        case 'check_fields':
-            severity = 'warn';
-            summary = customMessage || 'Please fill all the required fields';
-            break;
-        case 'not_found':
-            severity = 'warn';
-            summary = customMessage || 'No matching records found';
-            break;
-        case 'found':
-            severity = 'info';
-            summary = customMessage || 'Data found successfully';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
-    toast.add({ severity, summary, life: 3000 });
-};
 
 const openModal = () => {
     isOpen.value = true;

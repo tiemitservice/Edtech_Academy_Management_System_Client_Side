@@ -3,7 +3,7 @@
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50 sticky top-0 z-10">
             <label class="text-base font-semibold text-gray-800">{{ $t('class.class_details') }}</label>
-            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
+            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded :aria-label="$t('actions.close')" />
         </div>
 
         <!-- Loading Spinner -->
@@ -14,8 +14,6 @@
         <!-- Content Area (shown after loading) -->
         <div v-else>
             <div class="p-4" v-if="hasStudents">
-                <!-- Action Buttons -->
-
                 <!-- Data Table -->
                 <div>
                     <div class="flex items-center justify-between py-3 w-auto">
@@ -23,82 +21,82 @@
                             <label class="text-lg font-semibold text-primary">{{ $t('class.student_list') }}</label>
                         </div>
                         <div>
-                            <Button @click="printStudentList" icon="pi pi-print" class="mr-2" aria-label="Print" />
-                            <Button @click="exportStudentListToExcel" icon="pi pi-file-excel" aria-label="Export to Excel" />
+                            <Button @click="printStudentList" icon="pi pi-print" class="mr-2" :aria-label="$t('actions.print')" />
+                            <Button @click="exportStudentListToExcel" icon="pi pi-file-excel" :aria-label="$t('actions.export_excel')" />
                         </div>
                     </div>
                     <DataTable scrollable scrollHeight="400px" :value="activeStudentsInClass" showGridlines stripedRows class="text-nowrap">
-                        <Column frozen style="width: 25%" header="No">
+                        <Column frozen style="width: 25%" :header="$t('element.num')">
                             <template #body="slotProps">
                                 {{ slotProps.index + 1 }}
                             </template>
                         </Column>
-                        <Column frozen style="width: 25%" header="Khmer Name">
+                        <Column frozen style="width: 25%" :header="$t('student.kh_name')">
                             <template #body="slotProps">
                                 {{ slotProps.data.student?.kh_name || 'N/A' }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="English Name">
+                        <Column style="width: 25%" :header="$t('student.eng_name')">
                             <template #body="slotProps">
                                 {{ slotProps.data.student?.eng_name || 'N/A' }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Gender">
+                        <Column style="width: 25%" :header="$t('student.gender')">
                             <template #body="slotProps">
                                 {{ slotProps.data.student?.gender || 'N/A' }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Date of Birth">
+                        <Column style="width: 25%" :header="$t('student.date_of_birth')">
                             <template #body="slotProps">
                                 {{ formatDate2(slotProps.data.student?.date_of_birth) }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Phone Number">
+                        <Column style="width: 25%" :header="$t('student.phone_number')">
                             <template #body="slotProps">
                                 {{ slotProps.data.student?.phoneNumber || 'N/A' }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Attendance Score">
+                        <Column style="width: 25%" :header="$t('student.attendance_score')">
                             <template #body="slotProps">
                                 {{ slotProps.data.attendance_score }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Assignment Score">
+                        <Column style="width: 25%" :header="$t('student.assigment_score')">
                             <template #body="slotProps">
                                 {{ slotProps.data.assignment_score }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Home Work">
+                        <Column style="width: 25%" :header="$t('student.home_work')">
                             <template #body="slotProps">
                                 {{ slotProps.data.home_work }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Presentation">
+                        <Column style="width: 25%" :header="$t('student.prentation')">
                             <template #body="slotProps">
                                 {{ slotProps.data.presentation }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Work Book">
+                        <Column style="width: 25%" :header="$t('student.work_book')">
                             <template #body="slotProps">
                                 {{ slotProps.data.work_book }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Practice">
+                        <Column style="width: 25%" :header="$t('student.practice')">
                             <template #body="slotProps">
                                 {{ slotProps.data.class_practice }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Revision">
+                        <Column style="width: 25%" :header="$t('student.revision')">
                             <template #body="slotProps">
                                 {{ slotProps.data.revision_test }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Final Exam">
+                        <Column style="width: 25%" :header="$t('student.final_exam')">
                             <template #body="slotProps">
                                 {{ slotProps.data.final_exam }}
                             </template>
                         </Column>
-                        <Column style="width: 25%" header="Total Score">
+                        <Column style="width: 25%" :header="$t('student.total_score')">
                             <template #body="slotProps">
                                 {{ slotProps.data.total_score }}
                             </template>
@@ -109,7 +107,7 @@
             <div v-else class="h-[70vh] flex items-center justify-center">
                 <div class="text-center text-gray-500">
                     <i class="pi pi-users text-4xl mb-2"></i>
-                    <p>No active students found in this class.</p>
+                    <p>{{ $t('class.no_active_students') }}</p>
                 </div>
             </div>
         </div>

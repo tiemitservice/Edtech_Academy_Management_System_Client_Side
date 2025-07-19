@@ -2,13 +2,13 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Feedback List</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('feedback.title') }}</label>
             <div class="flex items-center gap-4 flex-wrap justify-end">
-                <IconField>
+                <!-- <IconField>
                     <InputIcon class="pi pi-search" />
                     <InputText placeholder="Search by name or email" v-model="searchQuery" class="w-full" />
-                </IconField>
-                <Calendar v-model="filterDate" showIcon dateFormat="yy-mm-dd" placeholder="Filter by Date" />
+                </IconField> -->
+                <Calendar v-model="filterDate" showIcon dateFormat="yy-mm-dd" :placeholder="$t('element.Filterbycreatedat')" class="min-w-[220px]" />
             </div>
         </div>
 
@@ -17,18 +17,18 @@
             <div class="overflow-x-auto">
                 <div v-if="filteredData.length > 0" class="py-2">
                     <DataTable :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column header="No." style="min-width: 50px">
+                        <Column :header="$t('element.num')" style="min-width: 50px">
                             <template #body="slotProps">{{ slotProps.index + 1 }}</template>
                         </Column>
-                        <Column field="createdAt" header="Date" sortable>
+                        <Column field="createdAt" :header="$t('element.createdat')" sortable>
                             <template #body="slotProps">{{ formatDate(slotProps.data.createdAt) }}</template>
                         </Column>
-                        <Column field="from" header="From">
+                        <Column field="from" :header="$t('feedback.From')">
                             <template #body="slotProps">Anonymous</template>
                         </Column>
 
-                        <Column field="feedback" header="Message" style="min-width: 300px"></Column>
-                        <Column header="Actions" style="min-width: 100px">
+                        <Column field="feedback" :header="$t('feedback.message')" style="min-width: 300px"></Column>
+                        <Column :header="$t('element.action')" style="min-width: 100px">
                             <template #body="slotProps">
                                 <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
                             </template>

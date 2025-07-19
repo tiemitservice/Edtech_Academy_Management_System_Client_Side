@@ -2,11 +2,11 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Assign Student To Class</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('asign_student.title') }}</label>
             <div class="flex flex-wrap gap-4 items-start">
                 <IconField>
                     <InputIcon class="pi pi-search" />
-                    <InputText v-model="searchQuery" placeholder="Search by name" class="min-w-[200px]" />
+                    <InputText v-model="searchQuery" :placeholder="$t('element.Searchbyname')" class="min-w-[200px]" />
                 </IconField>
                 <div class="w-64">
                     <Calendar show-icon v-model="createdAt_select" selectionMode="range" show-button-bar placeholder="Filter by created at" />
@@ -18,13 +18,13 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="!loading">
                     <DataTable v-if="data.length > 0" :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="No" sortable style="min-width: 150px">
+                        <Column field="_id" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.index + 1 }}</p>
                             </template>
                         </Column>
 
-                        <Column field="name" header="Name" sortable style="min-width: 200px">
+                        <Column field="name" :header="$t('class.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                     {{ slotProps.data.name }}
@@ -32,7 +32,7 @@
                             </template>
                         </Column>
 
-                        <Column field="duration" header="Duration" sortable style="min-width: 200px">
+                        <Column field="duration" :header="$t('class.duration')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                     {{ formatDuration(slotProps.data.duration) }}
@@ -40,7 +40,7 @@
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />

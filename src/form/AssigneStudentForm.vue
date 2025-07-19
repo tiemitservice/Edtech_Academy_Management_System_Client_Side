@@ -1,21 +1,21 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[320px] bg-white rounded-lg shadow-md overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Assigned Students' : 'Assign Students' }}</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
         <div class="p-4 space-y-4">
             <div class="flex flex-col text-start">
-                <label for="student_list" class="mb-2 font-medium">Students</label>
+                <label for="student_list" class="mb-2 font-medium">{{ $t('asign_student.student') }}</label>
                 <!-- Added v-if to prevent rendering before options are ready -->
-                <MultiSelect v-if="!loading" id="student_list" v-model="selectedStudents" :options="availableStudents" filter show-clear optionLabel="eng_name" optionValue="_id" placeholder="Select Students" class="w-full" />
+                <MultiSelect v-if="!loading" id="student_list" v-model="selectedStudents" :options="availableStudents" filter show-clear optionLabel="eng_name" optionValue="_id" :placeholder="$t('asign_student.select_student')" class="w-full" />
                 <div v-else class="w-full p-2 border rounded-md bg-gray-100 text-gray-500">Loading students...</div>
                 <small v-if="error" class="text-red-500 mt-1">{{ error }}</small>
             </div>
         </div>
-        <div class="w-full flex items-center justify-end gap-2 p-4 border-t bg-gray-50">
-            <Button label="Cancel" @click="$emit('close')" severity="secondary" outlined />
-            <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>

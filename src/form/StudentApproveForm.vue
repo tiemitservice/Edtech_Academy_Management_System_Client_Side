@@ -1,37 +1,37 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Approve Permission Request' : 'New Permission Request' }}</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
         <div class="p-4 text-start space-y-4">
             <div>
-                <label for="student" class="block mb-2 text-sm font-medium">Student <span class="text-red-500">*</span></label>
+                <label for="student" class="block mb-2 text-sm font-medium">{{ $t('student_permission.student') }} <span class="text-red-500">*</span></label>
                 <Dropdown id="student" :filter="true" v-model="formState.studentId" :options="students" option-value="_id" option-label="eng_name" placeholder="Select Student" class="w-full" />
                 <small v-if="errors.studentId" class="text-red-500 mt-1">{{ errors.studentId }}</small>
             </div>
             <div>
-                <label for="reason" class="block mb-2 text-sm font-medium">Reason <span class="text-red-500">*</span></label>
-                <InputText id="reason" v-model="formState.reason" placeholder="Reason for leave" class="w-full" />
+                <label for="reason" class="block mb-2 text-sm font-medium"> {{ $t('student_permission.reason') }} <span class="text-red-500">*</span></label>
+                <InputText id="reason" v-model="formState.reason" :placeholder="$t('student_permission.leave_reason')" class="w-full" />
                 <small v-if="errors.reason" class="text-red-500 mt-1">{{ errors.reason }}</small>
             </div>
             <div>
-                <label for="hold_date" class="block mb-2 text-sm font-medium">Start Date - End Date <span class="text-red-500">*</span></label>
-                <Calendar v-model="formState.hold_date" placeholder="Select date range" selectionMode="range" showClear class="w-full" />
+                <label for="hold_date" class="block mb-2 text-sm font-medium">{{ $t('student_permission.start_date') }} - {{ $t('student_permission.end_date') }} <span class="text-red-500">*</span></label>
+                <Calendar v-model="formState.hold_date" :placeholder="$t('student_permission.select_date')" selectionMode="range" showClear class="w-full" />
                 <small v-if="errors.hold_date" class="text-red-500 mt-1">{{ errors.hold_date }}</small>
             </div>
             <div>
-                <label for="status" class="block mb-2 text-sm font-medium">Status <span class="text-red-500">*</span></label>
-                <Dropdown id="status" v-model="formState.status" :options="statusOptions" optionLabel="label" optionValue="value" placeholder="Select Status" showClear class="w-full" />
+                <label for="status" class="block mb-2 text-sm font-medium">{{ $t('student_permission.status') }} <span class="text-red-500">*</span></label>
+                <Dropdown id="status" v-model="formState.status" :options="statusOptions" optionLabel="label" optionValue="value" :placeholder="$t('student_permission.status')" showClear class="w-full" />
             </div>
             <div>
-                <label for="approver" class="block mb-2 text-sm font-medium">Approve By</label>
-                <Dropdown id="approver" :filter="true" v-model="formState.approve_by" :options="staffs" option-value="_id" option-label="en_name" placeholder="Select Approver" class="w-full" />
+                <label for="approver" class="block mb-2 text-sm font-medium">{{ $t('student_permission.approve_by') }}</label>
+                <Dropdown id="approver" :filter="true" v-model="formState.approve_by" :options="staffs" option-value="_id" option-label="en_name" :placeholder="$t('student_permission.select_approve_by')" class="w-full" />
             </div>
         </div>
-        <div class="w-full flex justify-end gap-3 p-4 border-t bg-gray-50">
-            <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
-            <Button :label="loading ? 'Saving...' : 'Submit'" type="submit" :loading="loading" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -121,11 +121,11 @@ const handleSubmit = async () => {
             }
 
             await reportPromise;
-            emit('toast', 'update');
+            emit('toast', 'update', 'success');
         } else {
             // --- CREATE LOGIC ---
             await postData(payload);
-            emit('toast', 'create');
+            emit('toast', 'create', 'info');
         }
 
         emit('save');

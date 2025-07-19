@@ -2,14 +2,14 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg flex-wrap">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Permissions List</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_permission.title') }}</label>
             <div class="flex items-center gap-4 flex-wrap">
                 <!-- Filters -->
-                <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" placeholder="Filter by Student" showClear class="min-w-[180px]" />
-                <Select v-model="filters.status" :options="statusOptions" optionLabel="label" optionValue="value" placeholder="Filter by Status" showClear class="min-w-[150px]" />
-                <Calendar v-model="filters.date" dateFormat="yy-mm-dd" showIcon placeholder="Filter by Date" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear Filters" icon="pi pi-times" class="p-button-secondary" />
-                <Button @click="openModal" label="Add new" />
+                <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" :placeholder="$t('student_permission.filter_by_student')" showClear class="min-w-[180px]" />
+                <Select v-model="filters.status" :options="statusOptions" optionLabel="label" optionValue="value" :placeholder="$t('student_permission.filter_by_status')" showClear class="min-w-[150px]" />
+                <Calendar v-model="filters.date" dateFormat="yy-mm-dd" showIcon :placeholder="$t('element.date')" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
+                <Button @click="openModal" :label="$t('element.addnew')" />
             </div>
         </div>
 
@@ -23,30 +23,30 @@
                 <div v-else class="py-2">
                     <DataTable v-if="tableData.length > 0" :value="tableData" striped-rows="true" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
                         <!-- UPDATED: This column now correctly sorts by the 'displayId' field -->
-                        <Column field="displayId" header="No." sortable style="min-width: 50px">
+                        <Column field="displayId" :header="$t('element.num')" sortable style="min-width: 50px">
                             <template #body="slotProps">{{ slotProps.data.displayId }}</template>
                         </Column>
-                        <Column field="studentId" header="Student" sortable style="min-width: 200px">
+                        <Column field="studentId" :header="$t('student_permission.student')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ formatStudentName(slotProps.data.studentId) }}</div>
                             </template>
                         </Column>
-                        <Column field="created_at" header="Created At" sortable style="min-width: 200px">
+                        <Column field="created_at" :header="$t('element.createdat')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ formatDate2(slotProps.data.created_at) }}</div>
                             </template>
                         </Column>
-                        <Column field="reason" header="Reason" sortable style="min-width: 200px">
+                        <Column field="reason" :header="$t('student_permission.reason')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.reason }}</div>
                             </template>
                         </Column>
-                        <Column field="permissent_status" class="capitalize" header="Status" sortable style="min-width: 150px">
+                        <Column field="permissent_status" class="capitalize" :header="$t('student_permission.status')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <Tag :severity="getStatusSeverity(slotProps.data.permissent_status)" :value="slotProps.data.permissent_status"></Tag>
                             </template>
                         </Column>
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-inbox" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
@@ -116,7 +116,14 @@ import Laoding from './pages/Laoding.vue';
 import NotFound from './pages/NotFound.vue';
 import moment from 'moment';
 import { formatDate2 } from '@/composible/formatDate';
+import { useI18n } from 'vue-i18n';
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 
+// Initialize i18n
+const { t } = useI18n();
 // --- Component State ---
 const isOpen = ref(false);
 const datatoedit = ref(null);
@@ -193,16 +200,6 @@ const formatStudentName = (studentId) => {
 const getStatusSeverity = (status) => {
     const severityMap = { accepted: 'success', rejected: 'danger', pending: 'warn' };
     return severityMap[status] || 'info';
-};
-
-const showToast = (action) => {
-    const severityMap = { create: 'success', update: 'info', delete: 'error' };
-    const summaryMap = { create: 'Created Success', update: 'Updated Success', delete: 'Deleted Success' };
-    toast.add({
-        severity: severityMap[action] || 'info',
-        summary: summaryMap[action] || 'Action Completed',
-        life: 3000
-    });
 };
 
 // --- Modal and CRUD Handlers ---

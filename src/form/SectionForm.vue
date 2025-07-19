@@ -1,26 +1,26 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[320px]">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Section' : 'Add New Section' }}</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
         <div class="p-4 text-start space-y-4">
             <div>
-                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Start time: <span class="text-red-500">*</span></label>
+                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"> {{ $t('session.start_time') }} : <span class="text-red-500">*</span></label>
                 <div class="relative">
-                    <DatePicker timeOnly class="w-full" placeholder="Start  Time" :required="true" required id="start-time" v-model="start_time" />
+                    <DatePicker require="true" timeOnly class="w-full" :placeholder="$t('session.enter_time')" :required="true" required id="start-time" v-model="start_time" />
                 </div>
             </div>
             <div>
-                <label for="end-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">End time: <span class="text-red-500">*</span></label>
+                <label for="end-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('session.end_time') }}: <span class="text-red-500">*</span></label>
                 <div class="relative">
-                    <DatePicker timeOnly class="w-full" placeholder="End Time" :required="true" v-model="end_time" id="end-time" required />
+                    <DatePicker require="true" timeOnly class="w-full" :placeholder="$t('session.enter_time')" :required="true" v-model="end_time" id="end-time" required />
                 </div>
             </div>
         </div>
-        <div class="w-full flex justify-end gap-3 p-4">
-            <Button :label="loading ? 'Loading...' : 'Submit'" type="submit" :disabled="loading" />
-            <Button @click="$emit('close')" label="Cancel" severity="danger" />
+        <div class="flex justify-end gap-2 p-4 border-t">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -29,6 +29,7 @@
 import { ref, onMounted, watch } from 'vue';
 import moment from 'moment';
 import { useFetch } from '@/composible/useFetch';
+import { $t } from '@primeuix/themes';
 
 export default {
     props: ['datatoedit'],
@@ -42,6 +43,7 @@ export default {
         // Format to h:mm A (e.g., 1:30 PM)
 
         const handleSubmit = async () => {
+            if (!start_time.value || !end_time.value) return emit('toast', 'error', $t('session.enter_time'));
             try {
                 loading.value = true;
                 const req = {
@@ -52,11 +54,11 @@ export default {
                 if (props.datatoedit) {
                     await updateData(req, props.datatoedit._id);
                     emit('close');
-                    emit('toast', 'updated');
+                    emit('toast', 'update', 'success');
                 } else {
                     await postData(req);
                     emit('close');
-                    emit('toast', 'created');
+                    emit('toast', 'created', 'info');
                 }
             } catch (error) {
                 console.error('Submission error:', error);

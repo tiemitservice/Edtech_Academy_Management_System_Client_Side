@@ -81,7 +81,7 @@ const handleSubmit = async () => {
         // Execute both database operations concurrently
         await Promise.all([updateClassPromise, reportPromise]);
 
-        emit('toast', 'update');
+        emit('toast', 'update', 'success');
         emit('close');
     } catch (error) {
         console.error('Error processing class completion:', error);

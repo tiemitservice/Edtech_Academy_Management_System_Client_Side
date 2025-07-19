@@ -7,16 +7,16 @@
             <div class="flex flex-wrap gap-4 items-start justify-end">
                 <IconField>
                     <InputIcon class="pi pi-search" />
-                    <InputText v-model="searchQuery" placeholder="Search by name" class="min-w-[200px]" />
+                    <InputText v-model="searchQuery" :placeholder="$t('element.Searchbyname')" class="min-w-[100px]" />
                 </IconField>
-                <Dropdown :options="genders" show-clear option-value="value" v-model="selectGender" option-label="label" placeholder="Filter by gender" class="min-w-[150px]" />
-                <Dropdown :options="category" show-clear option-value="_id" v-model="selectCategory" option-label="name" placeholder="Filter by category" class="min-w-[150px]" />
-                <DatePicker selectionMode="range" show-button-bar v-model="selectDOB" placeholder="Filter by date of birth" class="min-w-[120px]" />
-                <DatePicker selectionMode="range" show-button-bar v-model="selectEntered" placeholder="Filter by entered" class="min-w-[120px]" />
-                <Button label="Apply Filter" @click="filterData" />
+                <Dropdown :options="genders" show-clear option-value="value" v-model="selectGender" option-label="label" :placeholder="$t('student.filter_by_gender')" class="min-w-[150px]" />
+                <Dropdown :options="category" show-clear option-value="_id" v-model="selectCategory" option-label="name" :placeholder="$t('student.filter_by_category')" class="min-w-[150px]" />
+                <DatePicker selectionMode="range" show-button-bar v-model="selectDOB" :placeholder="$t('student.filter_date_of_birth')" class="min-w-[120px]" />
+                <DatePicker selectionMode="range" show-button-bar v-model="selectEntered" :placeholder="$t('student.filter_by_entered')" class="min-w-[120px]" />
+                <Button :label="$t('element.filter')" @click="filterData" />
 
                 <div class="flex-shrink-0">
-                    <Button @click="openModal" label="Add new" class="!text-white w-[100px]" />
+                    <Button @click="openModal" :label="$t('element.addnew')" class="!text-white w-[100px]" />
                 </div>
             </div>
         </div>
@@ -25,13 +25,15 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="!studentLoading && data.length > 0">
                     <DataTable :value="data" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <!-- UPDATED: This column is now sortable by the 'displayId' field -->
-                        <Column field="displayId" header="No." sortable style="min-width: 150px">
+                        <!-- Column for row number -->
+                        <Column field="displayId" :header="$t('element.num')" sortable style="min-width: 50px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
-                        <Column field="image" header="Profile" style="min-width: 150px">
+
+                        <!-- Column for student profile image -->
+                        <Column field="image" :header="$t('student.profile')" style="min-width: 100px">
                             <template #body="slotProps">
                                 <div class="flex items-center space-x-3">
                                     <div class="flex items-center justify-center w-16 h-16 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
@@ -40,53 +42,68 @@
                                 </div>
                             </template>
                         </Column>
-                        <Column field="date_intered" header="Date Entered" sortable style="min-width: 200px">
+
+                        <!-- Column for date entered -->
+                        <Column field="date_intered" :header="$t('student.day_entered')" sortable style="min-width: 50px">
                             <template #body="slotProps">
                                 <p>{{ formatDate2(slotProps.data.date_intered) }}</p>
                             </template>
                         </Column>
-                        <Column field="eng_name" header="English Name" sortable style="min-width: 200px">
+
+                        <!-- Column for English name -->
+                        <Column field="eng_name" :header="$t('student.eng_name')" sortable style="min-width: 100px">
                             <template #body="slotProps">
                                 <p>{{ slotProps.data.eng_name }}</p>
                             </template>
                         </Column>
-                        <Column field="kh_name" header="Khmer Name" sortable style="min-width: 200px">
+
+                        <!-- Column for Khmer name -->
+                        <Column field="kh_name" :header="$t('student.kh_name')" sortable style="min-width: 100px">
                             <template #body="slotProps">
                                 <p>{{ slotProps.data.kh_name }}</p>
                             </template>
                         </Column>
-                        <Column field="gender" header="Gender" sortable style="min-width: 200px">
+
+                        <!-- Column for gender -->
+                        <Column field="gender" :header="$t('student.gender')" sortable style="min-width: 100px">
                             <template #body="slotProps">
                                 <p>{{ slotProps.data.gender }}</p>
                             </template>
                         </Column>
 
-                        <Column field="student_type" header="Student Type" sortable style="min-width: 200px">
+                        <!-- Column for student type -->
+                        <Column field="student_type" :header="$t('student.type')" sortable style="min-width: 100px">
                             <template #body="slotProps">
                                 <p>{{ formatCategoryById(slotProps.data.student_type) }}</p>
                             </template>
                         </Column>
-                        <Column field="status" :header="$t('element.status')" sortable style="min-width: 200px">
+
+                        <!-- Column for status -->
+                        <Column field="status" :header="$t('element.status')" sortable style="min-width: 100px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
-                                    <Tag :severity="slotProps.data.status ? 'success' : 'danger'" :value="slotProps.data.status ? 'Active' : 'Inactive'"></Tag>
+                                    <Tag :severity="slotProps.data.status ? 'success' : 'danger'" :value="slotProps.data.status ? $t('element.active') : $t('element.inactive')"></Tag>
                                 </div>
                             </template>
                         </Column>
-                        <Column header="Actions" style="min-width: 150px">
+
+                        <!-- Column for actions -->
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
-                                    <Button icon="pi pi-info-circle" @click="openStaffModal(slotProps.data)" severity="success" rounded aria-label="Info" />
-                                    <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
+                                    <Button icon="pi pi-info-circle" @click="openStaffModal(slotProps.data)" severity="success" rounded :aria-label="$t('actions.info')" />
+                                    <Button icon="pi pi-pencil" severity="warn" rounded :aria-label="$t('actions.edit')" @click="handleEdit(slotProps.data)" />
+                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded :aria-label="$t('actions.delete')" />
                                 </div>
                             </template>
                         </Column>
                     </DataTable>
                 </div>
+                <!-- No data state -->
                 <div v-else-if="!studentLoading && data.length === 0 && hasFiltered" class="py-10 text-center text-gray-500">
                     <NotFound />
                 </div>
+                <!-- Loading state -->
                 <div v-else class="py-10 text-center text-gray-500">
                     <Laoding />
                 </div>
@@ -162,11 +179,18 @@ import { useToast } from 'primevue';
 import { formatDate2 } from '@/composible/formatDate';
 import moment from 'moment';
 import { useUserStore } from '@/store/useUserStore';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 const userStore = useUserStore();
 if (userStore.hasPermission('student:create')) {
     console.log('You have permission to create student');
 }
+
 const collection = ref('students');
 const { data: rawData, fetchData, loading: studentLoading } = useFetch(collection.value);
 const { data: category, fetchData: fetchCategory } = useFetch('student_categories');
@@ -174,35 +198,7 @@ const isOpen = ref(false);
 const isStaffOpen = ref(false);
 const datatoedit = ref(null);
 const toast = useToast();
-const showToast = (action, severity) => {
-    let summary;
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = ' Created Success';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = ' Updated Success';
-            break;
-        case 'delete':
-            summary = ' Deleted Success';
-            break;
-        case 'asociate':
-            severity = 'warn';
-            summary = ' Please delete the associated data first';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
 
-    toast.add({
-        severity: severity,
-        summary: summary,
-        life: 3000
-    });
-};
 const openModal = async () => {
     datatoedit.value = null;
     isOpen.value = true;

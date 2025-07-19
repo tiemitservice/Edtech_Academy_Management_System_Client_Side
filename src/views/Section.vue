@@ -3,29 +3,29 @@
         <!-- <p class="mt-1 text-lg text-gray-800">Staff list</p> -->
 
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Session list</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('session.title') }}</label>
 
-            <Button @click="openModal" label="Add new" />
+            <Button @click="openModal" :label="$t('element.addnew')" />
         </div>
 
         <div class="flex flex-col" v-if="data">
             <div class="overflow-x-auto">
                 <div class="py-2">
                     <DataTable v-if="data" :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="No" sortable style="min-width: 150px">
+                        <Column field="_id" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.index + 1 }}</p>
                             </template>
                         </Column>
 
                         <!-- start data -->
-                        <Column field="duration" header="Duration" sortable style="min-width: 200px">
+                        <Column field="duration" :header="$t('session.duration')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.duration }}</div>
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
@@ -96,48 +96,17 @@ import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
 import { useToast } from 'primevue/usetoast';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const isOpen = ref(false);
 const datatoedit = ref(null);
 
 const toast = useToast();
-const showToast = (payload) => {
-    const action = typeof payload === 'string' ? payload : payload.action;
-    const customMessage = typeof payload === 'object' ? payload.message : null;
-
-    let severity = 'info';
-    let summary = 'Action Completed';
-
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = 'Created Success';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = 'Updated Success';
-            break;
-        case 'delete':
-            severity = 'error';
-            summary = 'Deleted Success';
-            break;
-        case 'associate':
-            severity = 'warn';
-            summary = 'Please delete the associated data first';
-            break;
-        case 'error':
-            severity = 'error';
-            summary = 'An error occurred';
-            break;
-    }
-
-    toast.add({
-        severity: severity,
-        summary: customMessage || summary, // Use custom message if provided, otherwise default
-        life: 3000
-    });
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
-
 const isDelete = ref(false);
 const deleteData = ref(null);
 const handleDeleteConfirm = async (id, doc) => {

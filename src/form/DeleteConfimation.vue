@@ -68,11 +68,11 @@ export default {
             try {
                 await deleteData(props.deleteData); // Pass the correct id
                 emit('close');
-                emit('toast', 'deleted');
+                emit('toast', 'delete', 'error');
             } catch (err) {
                 console.error('Delete failed:', err);
                 emit('close'); // Close even if delete fails
-                emit('toast', 'asociate');
+                emit('toast', 'asociate', 'warn');
             }
         };
         onMounted(async () => {

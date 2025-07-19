@@ -3,13 +3,13 @@
         <!-- Header and Filter Controls -->
 
         <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Assign teacher to class</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('asign_teacher.title') }}</label>
 
             <div class="flex gap-4">
                 <IconField>
                     <InputIcon class="pi pi-search" />
 
-                    <InputText placeholder="Search by name" v-model="searchQuery" />
+                    <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" />
                 </IconField>
 
                 <div>
@@ -17,10 +17,10 @@
                 </div>
 
                 <div>
-                    <Dropdown class="w-full" filter="true" v-model="selectStaff" show-clear :options="staffData" option-value="_id" option-label="en_name" placeholder="Select a teacher" />
+                    <Dropdown class="w-full" filter="true" v-model="selectStaff" show-clear :options="staffData" option-value="_id" option-label="en_name" :placeholder="$t('asign_teacher.select_teacher')" />
                 </div>
 
-                <div><Button @click="filterData" :label="loading ? 'Applying...' : 'Apply filter'" :loading="loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 text-nowrap" /></div>
+                <div><Button @click="filterData" :label="loading ? $t('element.adding') : $t('element.filter')" :disabled="loading" :loading="loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 text-nowrap" /></div>
             </div>
         </div>
 
@@ -28,7 +28,7 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="!loading && data.length">
                     <DataTable :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="No" sortable style="min-width: 150px">
+                        <Column field="_id" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.index + 1 }}</p>
                             </template>
@@ -36,27 +36,27 @@
 
                         <!-- Teacher -->
 
-                        <Column field="staff" header="Teacher" style="min-width: 150px">
+                        <Column field="staff" :header="$t('asign_teacher.teacher')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ formatName(slotProps.data.staff) }}</p>
                             </template>
                         </Column>
 
-                        <Column field="en_name" header="Name" sortable style="min-width: 200px">
+                        <Column field="en_name" :header="$t('class.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">    {{ slotProps.data.name }}</div>
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">{{ slotProps.data.name }}</div>
                             </template>
                         </Column>
 
                         <!-- start data -->
 
-                        <Column field="duration" header="Duration" sortable style="min-width: 200px">
+                        <Column field="duration" :header="$t('class.duration')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">    {{ formatDuration(slotProps.data.duration) }}</div>
+                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">{{ formatDuration(slotProps.data.duration) }}</div>
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2 text-nowrap">
                                     <Button icon="pi pi-pencil " severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
@@ -67,9 +67,9 @@
                     </DataTable>
                 </div>
 
-                <div v-else-if="!loading && data.length === 0" class="w-full flex justify-center items-center bg-white p-4 rounded-lg">    <NotFound /></div>
+                <div v-else-if="!loading && data.length === 0" class="w-full flex justify-center items-center bg-white p-4 rounded-lg"><NotFound /></div>
 
-                <div v-else>    <Laoding /></div>
+                <div v-else><Laoding /></div>
             </div>
         </div>
 
@@ -83,7 +83,9 @@
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 align-middle shadow-xl transition-all">
-                                <div class="mt-2">    <AssigneTeacherToclassForm :datatoedit="datatoedit" @close="handleClose" @toast="showToast" /></div>
+                                <div class="mt-2">
+                                    <AssigneTeacherToclassForm :datatoedit="datatoedit" @close="handleClose" @toast="showToast" />
+                                </div>
                             </DialogPanel>
                         </TransitionChild>
                     </div>
@@ -101,7 +103,9 @@
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
                             <DialogPanel class="w-full max-w-3xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
-                                <div class="mt-2">    <ClassDetails :datatoedit="datatoedit" @close="handleCloseDetails" /></div>
+                                <div class="mt-2">
+                                    <ClassDetails :datatoedit="datatoedit" @close="handleCloseDetails" />
+                                </div>
                             </DialogPanel>
                         </TransitionChild>
                     </div>
@@ -113,7 +117,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue'; // Make sure to import computed
 import { useFetch } from '../composible/useFetch';
 import ClassDetails from '@/form/ClassDetails.vue';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
@@ -122,38 +126,19 @@ import AssigneTeacherToclassForm from '@/form/AssigneTeacherToclassForm.vue';
 import moment from 'moment';
 import Laoding from './pages/Laoding.vue';
 import NotFound from './pages/NotFound.vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const toast = useToast();
 const showToast = (action, severity) => {
-    let summary;
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = ' Created Success';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = ' Updated Success';
-            break;
-        case 'delete':
-            summary = ' Deleted Success';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
-
-    toast.add({
-        severity: severity,
-        summary: summary,
-        life: 3000
-    });
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
 
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
 const formatDuration = (id) => {
     const section_id = sections.value?.find((section) => section._id === id);
-    return section_id ? section_id.duration : 'N/A'; // Assuming section has a 'name' property
+    return section_id ? section_id.duration : 'N/A';
 };
 const collection = ref('classes');
 const isOpen = ref(false);
@@ -172,9 +157,8 @@ const handleEdit = (item) => {
 const handleClose = async () => {
     isOpen.value = false;
     datatoedit.value = null;
-    // Re-fetch data and re-apply filters after closing the modal.
     await fetchData();
-    filterData();
+    filterData(); // Re-apply filters after closing modal
 };
 function closeModal() {
     isOpen.value = false;
@@ -187,35 +171,47 @@ function openModal() {
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const { data: staffData, fetchData: fetchStaff } = useFetch('staffs');
 
+// Filter states
 const searchQuery = ref('');
 const selectStaff = ref(null);
 const createdAt_select = ref([moment().startOf('year').toDate(), moment().endOf('year').toDate()]);
 
-const data = ref([]);
+// This ref will hold the data filtered by the "Apply Filter" button
+const appliedFilterData = ref([]);
 
+// This function is now ONLY for the button-based filters (date and teacher)
 const filterData = () => {
-    const q = searchQuery.value.trim().toLowerCase();
     const start = Array.isArray(createdAt_select.value) ? createdAt_select.value[0] : null;
     const end = Array.isArray(createdAt_select.value) ? createdAt_select.value[1] : null;
 
     if (!rawData.value) {
-        data.value = [];
+        appliedFilterData.value = [];
         return;
     }
 
-    data.value =
+    appliedFilterData.value =
         rawData.value.filter((item) => {
-            const matchesName = !q || item.name?.toLowerCase().includes(q);
             const matchesStaff = !selectStaff.value || item.staff === selectStaff.value;
             const matchesCreatedAt = !start || !end ? true : moment(item.createdAt).isBetween(moment(start).startOf('day'), moment(end).endOf('day'), undefined, '[]');
             const isCompleted = item.mark_as_completed === true;
-            return matchesName && matchesCreatedAt && isCompleted && matchesStaff;
+            return matchesCreatedAt && isCompleted && matchesStaff;
         }) || [];
 };
 
+// A computed property for the data table that applies the live search on top of the filtered data
+const data = computed(() => {
+    const q = searchQuery.value.trim().toLowerCase();
+    if (!q) {
+        return appliedFilterData.value; // If no search query, return the data as is
+    }
+    return appliedFilterData.value.filter((item) => {
+        return item.name?.toLowerCase().includes(q);
+    });
+});
+
 onMounted(async () => {
-    await Promise.allSettled([fetchData(), fetchStaff(), fetchSections()]); // Initial filter after data is fetched.
-    filterData();
+    await Promise.allSettled([fetchData(), fetchStaff(), fetchSections()]);
+    filterData(); // Apply initial filters when component loads
 });
 
 const formatName = (id) => {

@@ -1,17 +1,16 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[320px] bg-white rounded-lg shadow-md overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">
-                {{ datatoedit ? 'Edit Assign Teacher' : 'Add Assign Teacher' }}
-            </label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
+
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <div class="px-4 py-5 space-y-5">
             <!-- Staff Selection -->
-            <div class="space-y-1 text-start flex flex-col">
-                <label for="select_staff">Teacher</label>
-                <Select id="select_staff" v-model="selectStaff" :options="staffs" filter show-clear optionLabel="en_name" optionValue="_id" placeholder="Select a Teacher" class="w-full" />
+            <div class="space-y-2 text-start flex flex-col">
+                <label for="select_staff">{{ $t('asign_teacher.teacher') }}</label>
+                <Select id="select_staff" v-model="selectStaff" :options="staffs" filter show-clear optionLabel="en_name" optionValue="_id" :placeholder="$t('asign_teacher.select_teacher')" class="w-full" />
                 <!-- Validation Message -->
                 <Message severity="error" variant="simple" v-if="isValidateTeacher">
                     <p class="text-sm text-start">
@@ -22,9 +21,9 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-2 p-4">
-            <Button label="Cancel" @click="$emit('close')" severity="danger" outlined />
-            <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -93,7 +92,7 @@ export default {
 
                 if (props.datatoedit) {
                     await updateData(req, props.datatoedit._id);
-                    emit('toast', 'update');
+                    emit('toast', 'update', 'success');
                 } else {
                     await postData(req);
                 }

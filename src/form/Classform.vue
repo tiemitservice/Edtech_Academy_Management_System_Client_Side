@@ -19,12 +19,12 @@
 
             <div class="space-y-1 text-start">
                 <label for="section" class="block text-sm font-medium text-gray-700"> {{ $t('class.select_day') }} </label>
-                <MultiSelect id="day_class" v-model="dayclass" :options="workDay" optionLabel="name" optionValue="name" filter show-clear placeholder="Select days of week" class="w-full" />
+                <MultiSelect id="day_class" v-model="dayclass" :options="workDay" optionLabel="name" optionValue="name" filter show-clear :placeholder="$t('class.select_day')" class="w-full" />
             </div>
             <!-- Holiday -->
             <div class="space-y-1 text-start">
                 <label for="holiday" class="block text-sm font-medium text-gray-700"> {{ $t('class.holiday_schedule') }} </label>
-                <Select id="holiday" :options="holidays" option-label="year" option-value="_id" v-model="selectHoliday" filter show-clear placeholder="Select a Holiday Year" class="w-full" />
+                <Select id="holiday" :options="holidays" option-label="year" option-value="_id" v-model="selectHoliday" filter show-clear :placeholder="$t('class.select_holiday')" class="w-full" />
             </div>
 
             <div class="space-y-1 text-start">
@@ -42,7 +42,7 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-2 p-4">
+        <div class="flex justify-end border-t gap-2 p-4">
             <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
             <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
@@ -132,11 +132,11 @@ export default {
                 if (props.datatoedit) {
                     await updateData(req, props.datatoedit._id);
                     emit('close');
-                    emit('toast', 'update');
+                    emit('toast', 'update', 'success');
                 } else {
                     await postData(req);
                     emit('close');
-                    emit('toast', 'create');
+                    emit('toast', 'create', 'info');
                 }
             } catch (error) {
                 console.log('error', error);

@@ -119,7 +119,6 @@ import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import { useToast } from 'primevue/usetoast';
 import Calendar from 'primevue/calendar';
-import Select from 'primevue/select';
 import InputText from 'primevue/inputtext';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';

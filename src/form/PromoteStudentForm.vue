@@ -2,20 +2,20 @@
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Promote Students to New Class</label>
+            <label class="text-base font-semibold text-gray-800">{{ $t('class.promote_student') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <div class="p-4 text-start space-y-4">
             <!-- From Class (Disabled) -->
             <div>
-                <label for="from_class" class="block mb-2 text-sm font-medium text-gray-900">From Class</label>
+                <label for="from_class" class="block mb-2 text-sm font-medium text-gray-900">{{ $t('class.from_class') }}</label>
                 <InputText id="from_class" :value="datatoedit?.name" class="w-full" disabled />
             </div>
 
             <!-- Student Selection -->
             <div>
-                <label for="student_list" class="block mb-2 text-sm font-medium text-gray-900"> Students to Promote <span class="text-red-500">*</span> </label>
+                <label for="student_list" class="block mb-2 text-sm font-medium text-gray-900"> {{ $t('class.student_to_promote') }} <span class="text-red-500">*</span> </label>
                 <MultiSelect
                     id="student_list"
                     v-model="selectedStudentIds"
@@ -24,7 +24,7 @@
                     show-clear
                     optionLabel="student.eng_name"
                     optionValue="student._id"
-                    placeholder="Select students to promote"
+                    :placeholder="$t('class.promote_selected_student')"
                     class="w-full"
                     :disabled="!datatoedit || studentsInFromClass.length === 0"
                 />
@@ -33,16 +33,16 @@
 
             <!-- To Class (Selectable) -->
             <div>
-                <label for="to_class" class="block mb-2 text-sm font-medium text-gray-900"> To Class <span class="text-red-500">*</span> </label>
-                <Select id="to_class" filter show-clear class="w-full" :options="availableClasses" optionLabel="name" optionValue="_id" placeholder="Select a destination class" v-model="toClassId" />
+                <label for="to_class" class="block mb-2 text-sm font-medium text-gray-900"> {{ $t('class.to_class') }} <span class="text-red-500">*</span> </label>
+                <Select id="to_class" filter show-clear class="w-full" :options="availableClasses" optionLabel="name" optionValue="_id" :placeholder="$t('class.to_class')" v-model="toClassId" />
             </div>
             <small v-if="error" class="text-red-500 mt-1">{{ error }}</small>
         </div>
 
         <!-- Action Buttons -->
         <div class="w-full flex justify-end gap-3 p-4 border-t bg-gray-50">
-            <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
-            <Button :label="loading ? 'Promoting...' : 'Promote Selected Students'" type="submit" :loading="loading" />
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -135,7 +135,7 @@ const handleSubmit = async () => {
         // 4. Execute all database operations.
         await Promise.all([updateData(fromClassPayload, fromClass._id), updateData(toClassPayload, toClassId.value), postPromoteReport(reportPayload)]);
 
-        emit('toast', 'update');
+        emit('toast', 'update', 'success');
         emit('close');
     } catch (e) {
         console.error('Error promoting students:', e);

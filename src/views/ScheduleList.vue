@@ -30,9 +30,15 @@
                             <p class="font-bold text-primary text-sm">{{ schedule.name }}</p>
                             <p class="text-xs text-gray-600 font-semibold">{{ formatSectionTime(schedule.duration) }}</p>
                             <div class="mt-2 pt-2 border-t text-xs space-y-1">
-                                <p><span class="font-semibold">Teacher:</span> {{ formatStaffName(schedule.staff) }}</p>
-                                <p><span class="font-semibold">Subject:</span> {{ formatSubjectName(schedule.subject) }}</p>
-                                <p><span class="font-semibold">Students:</span> {{ schedule.students.length }}</p>
+                                <p>
+                                    <span class="font-semibold">{{ $t('staff.teacher') }}:</span> {{ formatStaffName(schedule.staff) }}
+                                </p>
+                                <p>
+                                    <span class="font-semibold">{{ $t('subject.title') }}:</span> {{ formatSubjectName(schedule.subject) }}
+                                </p>
+                                <p>
+                                    <span class="font-semibold">{{ $t('class.studentPlaceholder') }}:</span> {{ schedule.students.length }}
+                                </p>
                             </div>
                         </div>
                     </div>

@@ -2,48 +2,47 @@
     <form class="max-h-[90vh] h-fit overflow-auto">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50 sticky top-0 z-10">
-            <label class="text-base font-semibold text-gray-800"> Check Attendance for {{ datatoedit?.name }}</label>
-            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
+            <label class="text-base font-semibold text-gray-800"> {{ $t('student_attendance.check_attendance') }} {{ datatoedit?.name }}</label>
+            <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded :aria-label="$t('actions.close')" />
         </div>
 
         <div class="p-4">
             <!-- Attendance Table -->
             <DataTable :value="editableStudents" showGridlines responsiveLayout="scroll">
-                <Column field="name" header="No" class="text-nowrap text-center" headerStyle="width: 3rem">
+                <Column :header="$t('element.num')" class="text-nowrap text-center" headerStyle="width: 3rem">
                     <template #body="{ index }">
                         {{ index + 1 }}
                     </template>
                 </Column>
 
-                <Column field="name" header="Student Name" class="text-nowrap">
+                <Column :header="$t('student.name')" class="text-nowrap">
                     <template #body="{ data }">
                         {{ formatStudentName(data.student) }}
                     </template>
                 </Column>
 
-                <Column header="Attendance">
+                <Column :header="$t('student_attendance.status')">
                     <template #body="{ data }">
-                        <Dropdown v-model="data.attendance" :options="attendanceOptions" optionLabel="label" optionValue="value" placeholder="Select" class="w-[150px]" />
+                        <Dropdown v-model="data.attendance" :options="attendanceOptions" optionLabel="label" optionValue="value" :placeholder="$t('common.select')" class="w-[150px]" />
                     </template>
                 </Column>
 
-                <Column header="Checked At">
+                <Column :header="$t('student_attendance.checked_at')">
                     <template #body="{ data }">
-                        <!-- Use a standard input for the datetime string -->
                         <InputText v-model="data.checking_at" class="w-[180px]" placeholder="YYYY-MM-DD HH:mm" />
                     </template>
                 </Column>
-                <Column header="Note">
+                <Column :header="$t('student_attendance.note')">
                     <template #body="{ data }">
-                        <Textarea v-model="data.note" rows="1" class="w-[250px]" autoResize placeholder="Optional note..." />
+                        <Textarea v-model="data.note" rows="1" class="w-[250px]" autoResize :placeholder="$t('student_attendance.optional_note')" />
                     </template>
                 </Column>
             </DataTable>
 
             <!-- Action Buttons -->
             <div class="py-4 flex items-center justify-end gap-4">
-                <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
-                <Button :label="isSubmitting ? 'Submitting...' : 'Submit Attendance'" :disabled="isSubmitting" :loading="isSubmitting" @click="submitAttendance" />
+                <Button @click="$emit('close')" :label="$t('element.cancel')" severity="secondary" outlined />
+                <Button :label="isSubmitting ? $t('student_attendance.submitting') : $t('student_attendance.submit_attendance')" :disabled="isSubmitting" :loading="isSubmitting" @click="submitAttendance" />
             </div>
         </div>
     </form>
@@ -141,7 +140,7 @@ const submitAttendance = async () => {
         // We can run them in parallel for better performance
         await Promise.all([updateData(updatePayload, props.datatoedit._id), postAttendanceReport(reportPayload)]);
 
-        emit('toast', 'update', 'Attendance submitted successfully.');
+        emit('toast', 'update', 'success');
         emit('save'); // Notify parent to refresh data
         emit('close');
     } catch (error) {

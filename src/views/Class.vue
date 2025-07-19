@@ -157,7 +157,7 @@
                 <div class="fixed inset-0 overflow-y-auto">
                     <div class="flex min-h-full items-start justify-center p-4 text-center">
                         <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
-                            <DialogPanel class="w-full transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
+                            <DialogPanel class="w-fit transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all">
                                 <div class="mt-2">
                                     <MarkClassForm :datatoedit="datatoedit" @close="handleCloseMarkClass" @toast="showToast" />
                                 </div>
@@ -184,6 +184,10 @@ import MarkClassForm from '@/form/MarkClassForm.vue';
 import StudentClassDetial from '../../App/StudentClassDetial.vue';
 import Laoding from './pages/Laoding.vue';
 import { useI18n } from 'vue-i18n';
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 
 // Initialize i18n
 const { t } = useI18n();
@@ -243,16 +247,16 @@ const formatSubject = (id) => {
     return subject ? subject.name : 'N/A';
 };
 
-const showToast = (action, severity) => {
-    const summary =
-        {
-            create: 'Created Success',
-            update: 'Updated Success',
-            delete: 'Deleted Success',
-            asociate: 'Please delete the associated data first'
-        }[action] || 'Action Completed';
-    toast.add({ severity: severity || 'info', summary, life: 3000 });
-};
+// const showToast = (action, severity) => {
+//     const summary =
+//         {
+//             create: 'Created Success',
+//             update: 'Updated Success',
+//             delete: 'Deleted Success',
+//             asociate: 'Please delete the associated data first'
+//         }[action] || 'Action Completed';
+//     toast.add({ severity: severity || 'info', summary, life: 3000 });
+// };
 
 const openModal = () => {
     isOpen.value = true;
