@@ -1,18 +1,18 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[320px]">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Position' : 'Add New Position' }}</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
         <div class="p-4 text-start space-y-4">
             <div>
-                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Position Name <span class="text-red-500">*</span></label>
+                <label for="start-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('position.name') }} <span class="text-red-500">*</span></label>
                 <InputText :required="true" v-model="name" placeholder="Name" class="w-full" />
             </div>
         </div>
-        <div class="w-full flex justify-end gap-3 p-4">
-            <Button :label="loading ? 'Loading...' : 'Submit'" type="submit" :disabled="loading" />
-            <Button @click="$emit('close')" label="Cancel" severity="danger" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -35,11 +35,11 @@ export default {
                 if (props.datatoedit) {
                     await updateData(req, props.datatoedit._id);
                     emit('close');
-                    emit('toast', 'updated');
+                    emit('toast', 'update', 'success');
                 } else {
                     await postData(req);
                     emit('close');
-                    emit('toast', 'created');
+                    emit('toast', 'create', 'info');
                 }
             } catch (error) {
                 console.log(error);

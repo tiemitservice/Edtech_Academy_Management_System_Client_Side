@@ -2,8 +2,8 @@
     <section class="px-4 mx-auto">
         <!-- Header and Add Button -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">School Holidays Management</label>
-            <Button @click="openModal" label="Add New Holiday Year" icon="pi pi-plus" />
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('holiday.title') }}</label>
+            <Button @click="openModal" :label="$t('element.addnew')" />
         </div>
 
         <!-- Data Table -->
@@ -11,15 +11,15 @@
             <div class="overflow-x-auto">
                 <div v-if="holidays.length > 0" class="py-2">
                     <DataTable :value="holidays" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="year" header="Year" sortable style="min-width: 100px"></Column>
-                        <Column header="Holidays" style="min-width: 400px">
+                        <Column field="year" :header="$t('holiday.date')" sortable style="min-width: 100px"></Column>
+                        <Column :header="$t('holiday.date')" style="min-width: 400px">
                             <template #body="{ data }">
                                 <div class="flex flex-wrap gap-2">
                                     <Tag v-for="holiday in data.holidays" :key="holiday" :value="formatDate(holiday)" severity="info" class="text-sm"></Tag>
                                 </div>
                             </template>
                         </Column>
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
@@ -51,24 +51,26 @@
                                 <!-- Holiday Form Component -->
                                 <form @submit.prevent="handleSubmit" class="w-[420px]">
                                     <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-                                        <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Holidays' : 'Add New Holidays' }}</label>
+                                        <label class="text-base font-semibold text-gray-800">
+                                            {{ datatoedit ? `${datatoedit.year}` : $t('holiday.addnew') }}
+                                        </label>
                                         <Button icon="pi pi-times" size="small" @click="closeModal" severity="danger" rounded aria-label="Close" />
                                     </div>
                                     <div class="p-4 text-start space-y-4">
                                         <div>
                                             <label for="year" class="block mb-2 text-sm font-medium">Year <span class="text-red-500">*</span></label>
-                                            <InputText id="year" v-model="formState.year" placeholder="Enter year (e.g., 2025)" class="w-full" :disabled="!!datatoedit" />
+                                            <InputText id="year" v-model="formState.year" placeholder="Enter year (e.g., 2025)" class="w-full" />
                                             <small v-if="errors.year" class="text-red-500 mt-1">{{ errors.year }}</small>
                                         </div>
                                         <div>
-                                            <label for="holidays" class="block mb-2 text-sm font-medium">Select Holiday Dates <span class="text-red-500">*</span></label>
+                                            <label for="holidays" class="block mb-2 text-sm font-medium">{{ $t('holiday.date') }} <span class="text-red-500">*</span></label>
                                             <Calendar v-model="formState.holidays" selectionMode="multiple" :manualInput="false" inline class="w-full" />
                                             <small v-if="errors.holidays" class="text-red-500 mt-1">{{ errors.holidays }}</small>
                                         </div>
                                     </div>
                                     <div class="w-full flex justify-end gap-3 p-4 border-t bg-gray-50">
-                                        <Button @click="closeModal" label="Cancel" severity="secondary" outlined />
-                                        <Button :label="isSubmitting ? 'Saving...' : 'Submit'" type="submit" :loading="isSubmitting" />
+                                        <Button @click="closeModal" :label="$t('element.cancel')" severity="secondary" outlined />
+                                        <Button :label="isSubmitting ? $t('element.saving') : $t('element.addnew')" type="submit" :loading="isSubmitting" />
                                     </div>
                                 </form>
                             </DialogPanel>
@@ -124,8 +126,15 @@ const isOpen = ref(false);
 const isDelete = ref(false);
 const datatoedit = ref(null);
 const deleteId = ref(null);
+
+import { useI18n } from 'vue-i18n'; // Initialize i18n
+const { t } = useI18n();
 const toast = useToast();
 
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 // --- Data Fetching ---
 const { data: holidays, loading, fetchData } = useFetch(collection.value);
 const { postData, updateData, loading: isSubmitting } = useFetch(collection.value);
@@ -139,16 +148,6 @@ const errors = ref({});
 
 // --- Helper Functions ---
 const formatDate = (date) => moment(date).format('MMM D, YYYY');
-
-const showToast = (action, severity = 'info') => {
-    const summaryMap = { create: 'Created Successfully', update: 'Updated Successfully', delete: 'Deleted Successfully' };
-    const severityMap = { create: 'success', update: 'info', delete: 'error' };
-    toast.add({
-        severity: severityMap[action] || severity,
-        summary: summaryMap[action] || 'Action Completed',
-        life: 3000
-    });
-};
 
 // --- Modal and CRUD Handlers ---
 const openModal = () => {

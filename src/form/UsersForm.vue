@@ -2,7 +2,7 @@
     <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
         <!-- User Info -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit User' : 'Add New User' }}</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
@@ -31,24 +31,24 @@
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <label class="block text-sm font-medium text-gray-700">{{ $t('user.name') }}</label>
                             <InputText v-model="form.name" type="text" class="w-full" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                            <label class="block text-sm font-medium text-gray-700">{{ $t('user.email') }}</label>
                             <InputText v-model="form.email" type="email" class="w-full" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Password</label>
-                            <Password v-model="form.password" placeholder="Password" fluid :toggleMask="true" class="w-full" :feedback="false" />
+                            <label class="block text-sm font-medium text-gray-700">{{ $t('login.password') }}</label>
+                            <Password v-model="form.password" :placeholder="$t('login.password')" fluid :toggleMask="true" class="w-full" :feedback="false" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <label class="block text-sm font-medium text-gray-700">{{ $t('student.phone_number') }}</label>
                             <InputText v-model="form.phoneNumber" type="text" class="w-full" />
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700">Role</label>
-                            <Select v-model="form.role" :options="roles" option-label="name" option-value="_id" placeholder="Select a role" class="w-full" />
+                            <label class="block text-sm font-medium text-gray-700">{{ $t('user.role') }}</label>
+                            <Select v-model="form.role" :options="roles" option-label="name" option-value="_id" :placeholder="$t('user.role')" class="w-full" />
                         </div>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
 
             <!-- Permissions -->
             <div class="mt-8">
-                <h3 class="text-lg font-semibold mb-4">Permissions</h3>
+                <h3 class="text-lg font-semibold mb-4">{{ $t('user.permissions') }}</h3>
                 <div class="space-y-4">
                     <div v-for="group in permissionGroups" :key="group.name" class="p-4 border rounded-lg">
                         <div class="flex items-center justify-between mb-3">
@@ -77,7 +77,7 @@
         <!-- Submit Button -->
         <div class="p-4 bg-gray-50 border-t">
             <Button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full" :disabled="loading">
-                {{ loading ? 'Saving...' : 'Save Changes' }}
+                {{ loading ? $t('element.adding') : $t('element.addnew') }}
             </Button>
             <p v-if="error" class="text-red-500 mt-2 text-center">{{ error }}</p>
         </div>
@@ -263,10 +263,11 @@ const handleSubmit = async () => {
     try {
         if (props.datatoedit) {
             await updateData(payload, props.datatoedit._id);
+            emit('toast', 'update', 'success');
         } else {
             await createUser(payload);
+            emit('toast', 'create', 'info');
         }
-        emit('save');
         emit('close');
     } catch (err) {
         console.error('Error submitting:', err);

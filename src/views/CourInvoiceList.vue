@@ -1,7 +1,7 @@
 <template>
     <section class="px-4 mx-auto">
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Payment Transactions</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_payment_transaction.title') }}</label>
             <div class="flex items-center gap-2">
                 <!-- Dropdowns for Day, Month, Year -->
                 <Select v-model="selectedDay" :options="days" placeholder="Day" showClear class="min-w-[100px]" />
@@ -9,8 +9,8 @@
                 <Select v-model="selectedYear" :options="years" placeholder="Year" showClear class="min-w-[120px]" />
 
                 <!-- Separate Apply and Clear Buttons -->
-                <Button @click="filterData" label="Apply Filter" icon="pi pi-filter" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear Filter" icon="pi pi-times" class="p-button-secondary" />
+                <Button @click="filterData" :label="$t('element.filter')" icon="pi pi-filter" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
 
@@ -18,59 +18,59 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="!loading && data.length > 0">
                     <DataTable :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="invoice_id" header="Invoice ID" sortable style="min-width: 150px">
+                        <Column field="invoice_id" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-bold text-blue-600">{{ slotProps.data.invoice_id }}</p>
                             </template>
                         </Column>
 
-                        <Column field="student_id" header="Student" sortable style="min-width: 200px">
+                        <Column field="student_id" :header="$t('student_payment_transaction.student_name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="font-semibold">{{ formatStudentNestedField(slotProps.data.student_id, 'eng_name') }}</div>
                             </template>
                         </Column>
 
-                        <Column field="course_id" header="Course" sortable style="min-width: 200px">
+                        <Column field="course_id" :header="$t('student_payment_transaction.class')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="font-semibold">{{ formatClassName(slotProps.data.course_id, 'name') }}</div>
                             </template>
                         </Column>
 
-                        <Column field="amount" header="Amount" sortable style="min-width: 120px">
+                        <Column field="amount" :header="$t('student_payment_transaction.amount')" sortable style="min-width: 120px">
                             <template #body="slotProps"> ${{ slotProps.data.amount?.toFixed(2) }} </template>
                         </Column>
 
-                        <Column field="discount" header="Discount" sortable style="min-width: 120px">
+                        <Column field="discount" :header="$t('student_payment_transaction.discount')" sortable style="min-width: 120px">
                             <template #body="slotProps"> {{ slotProps.data.discount }}% </template>
                         </Column>
 
-                        <Column field="final_price" header="Final Price" sortable style="min-width: 120px">
+                        <Column field="final_price" :header="$t('student_payment_transaction.final_price')" sortable style="min-width: 120px">
                             <template #body="slotProps">
                                 <span class="font-bold text-green-600">${{ slotProps.data.final_price?.toFixed(2) }}</span>
                             </template>
                         </Column>
 
-                        <Column field="first_payment_date" header="First Payment" sortable style="min-width: 150px">
+                        <Column field="first_payment_date" :header="$t('student_payment_transaction.first_payment')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 {{ formatDate2(slotProps.data.first_payment_date) }}
                             </template>
                         </Column>
 
-                        <Column field="next_payment_date" header="Next Payment" sortable style="min-width: 150px">
+                        <Column field="next_payment_date" :header="$t('student_payment_transaction.next_payment')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 {{ formatDate2(slotProps.data.next_payment_date) }}
                             </template>
                         </Column>
 
-                        <Column field="payment_type" header="Type" sortable style="min-width: 120px"></Column>
+                        <Column field="payment_type" :header="$t('student_payment_transaction.payment_type')" sortable style="min-width: 120px"></Column>
 
-                        <Column field="status" header="Status" sortable style="min-width: 150px">
+                        <Column field="status" :header="$t('student_payment_transaction.status')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <Tag :severity="slotProps.data.status === false ? 'success' : 'danger'" :value="slotProps.data.status ? 'Pending' : 'Completed'"></Tag>
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-undo" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" v-tooltip.top="'Mark as Pending'" />
@@ -129,12 +129,15 @@ import Laoding from './pages/Laoding.vue';
 import { useToast } from 'primevue/usetoast';
 import { formatDate2 } from '@/composible/formatDate';
 // PrimeVue components
-import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Select from 'primevue/select';
-import Tag from 'primevue/tag';
 
+import { useI18n } from 'vue-i18n'; // Initialize i18n
+const { t } = useI18n();
+const toast = useToast();
+
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 const collection = ref('studentinvoicegenerates');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const isOpen = ref(false);
@@ -162,32 +165,6 @@ const formatStudentNestedField = (id, fieldPath, fallback = 'Unknown') => {
     } catch (err) {
         return fallback;
     }
-};
-
-const toast = useToast();
-const showToast = (action, severity) => {
-    let summary;
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = 'Created Success';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = 'Updated Success';
-            break;
-        case 'delete':
-            summary = 'Deleted Success';
-            break;
-        case 'asociate':
-            severity = 'warn';
-            summary = 'Please delete the associated data first';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
-    toast.add({ severity, summary, life: 3000 });
 };
 
 const data = ref([]);
@@ -225,7 +202,7 @@ const isFilterActive = computed(() => {
 const filterData = () => {
     loading.value = true;
     setTimeout(() => {
-        let filtered = rawData.value?.filter((item) => item.status === false && item.mark_as_completed === true) || [];
+        let filtered = rawData.value?.filter((item) => item.status === false) || [];
         const yearToFilter = selectedYear.value;
         const monthToFilter = selectedMonth.value;
         const dayToFilter = selectedDay.value;

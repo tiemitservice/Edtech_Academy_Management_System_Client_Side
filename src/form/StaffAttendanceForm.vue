@@ -1,38 +1,39 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[420px]">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Teacher Attendance</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
+
         <div class="p-4 text-start grid grid-cols-2 gap-4">
             <div>
-                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('student.name') }}</label>
                 <InputText id="name" :value="datatoedit?.en_name" disabled class="w-full bg-gray-100" />
             </div>
             <div>
-                <label for="checking_at" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date</label>
+                <label for="checking_at" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('teacher_attendance.date') }}</label>
                 <Calendar id="checking_at" v-model="formState.checking_at" showIcon dateFormat="yy-mm-dd" class="w-full" />
             </div>
             <div>
-                <label for="entry-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Entry Time <span class="text-red-500">*</span></label>
-                <Calendar id="entry-time" timeOnly required v-model="formState.entry_time" placeholder="Entry Time" class="w-full" />
+                <label for="entry-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('teacher_attendance.entry_time') }} <span class="text-red-500">*</span></label>
+                <Calendar id="entry-time" timeOnly required v-model="formState.entry_time" :placeholder="$t('teacher_attendance.entry_time')" class="w-full" />
             </div>
             <div>
-                <label for="exit-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Exit Time <span class="text-red-500">*</span></label>
-                <Calendar id="exit-time" timeOnly required v-model="formState.exit_time" placeholder="Exit Time" class="w-full" />
+                <label for="exit-time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('teacher_attendance.exit_time') }} <span class="text-red-500">*</span></label>
+                <Calendar id="exit-time" timeOnly required v-model="formState.exit_time" :placeholder="$t('teacher_attendance.exit_time')" class="w-full" />
             </div>
             <div class="col-span-2">
-                <label for="status" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mark Status <span class="text-red-500">*</span></label>
-                <Select id="status" :options="attendanceOptions" required v-model="formState.attendance" option-label="name" option-value="value" placeholder="Select Attendance" class="w-full" />
+                <label for="status" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('teacher_attendance.status') }} <span class="text-red-500">*</span></label>
+                <Select id="status" :options="attendanceOptions" required v-model="formState.attendance" option-label="name" option-value="value" :placeholder="$t('teacher_attendance.select_attendance')" class="w-full" />
             </div>
             <div class="col-span-2">
-                <label for="note" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Note</label>
-                <Textarea id="note" v-model="formState.note" placeholder="Optional note..." class="w-full" rows="2" />
+                <label for="note" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('teacher_attendance.note') }}</label>
+                <Textarea id="note" v-model="formState.note" :placeholder="$t('teacher_attendance.optional_note')" class="w-full" rows="2" />
             </div>
         </div>
-        <div class="w-full flex justify-end gap-3 p-4 border-t bg-gray-50">
-            <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
-            <Button :label="loading ? 'Submitting...' : 'Submit'" type="submit" :loading="loading" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -135,7 +136,6 @@ const handleSubmit = async () => {
         // Execute both operations concurrently
         await Promise.all([updateStaff(staffUpdatePayload, props.datatoedit._id), postAttendanceReport(reportPayload)]);
 
-        toast.add({ severity: 'success', summary: 'Success', detail: 'Attendance recorded successfully.', life: 3000 });
         emit('close');
     } catch (error) {
         console.error('Error submitting attendance:', error);

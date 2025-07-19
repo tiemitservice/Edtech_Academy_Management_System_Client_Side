@@ -50,36 +50,36 @@
 
             <div class="grid grid-cols-2 gap-4 mx-auto mt-12">
                 <div class="field">
-                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="name">Name <span class="text-red-500">*</span></label>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="name">{{ $t('class.name') }} <span class="text-red-500">*</span></label>
                     <InputText size="large" type="text" required id="name" v-model="form.name" placeholder="Name" />
                 </div>
 
                 <div class="field">
-                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="email">Email <span class="text-red-500">*</span></label>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="email">{{ $t('login.email') }} <span class="text-red-500">*</span></label>
                     <InputText size="large" type="email" required id="email" v-model="form.email" placeholder="Email" />
                 </div>
                 <div class="field">
-                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="phone">Phone <span class="text-red-500">*</span></label>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="phone">{{ $t('student.phone_number') }} <span class="text-red-500">*</span></label>
                     <InputText size="large" type="text" required id="phone" v-model="form.phone" placeholder="Phone" />
                 </div>
                 <div class="field">
-                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="address">Address <span class="text-red-500">*</span></label>
-                    <InputText size="large" type="text" required id="address" v-model="form.address" placeholder="Address" />
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="address">{{ $t('student.address') }} <span class="text-red-500">*</span></label>
+                    <InputText size="large" type="text" required id="address" v-model="form.address" :placeholder="$t('student.address')" />
                 </div>
                 <!-- currency -->
 
                 <div class="field">
-                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="currency">Currencey (Khmer - ៛)<span class="text-red-500">*</span></label>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="currency">{{ $t('element.currency') }} (៛)<span class="text-red-500">*</span></label>
                     <InputNumber size="large" type="text" required id="currency" v-model="form.currencey" placeholder="Currencey" />
                 </div>
 
                 <div class="field col-span-2">
-                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="description">Description</label>
+                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="description">{{ $t('element.description') }}</label>
                     <Textarea placeholder="Description" style="resize: none" rows="10" class="w-full" id="description" v-model="form.description" />
                 </div>
 
                 <div class="flex w-full justify-end field col-span-2">
-                    <Button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full" :disabled="loading">Save</Button>
+                    <Button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full" :disabled="loading">{{ $t('element.save') }}</Button>
                 </div>
                 <p v-if="successMessage" class="text-green-500 mt-2 text-center">{{ successMessage }}</p>
                 <p v-if="errorMessage" class="text-red-500 mt-2 text-center">{{ errorMessage }}</p>

@@ -2,17 +2,17 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Payments</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_payment.title') }}</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
                 <Select v-model="filters.period" :options="periodOptions" optionLabel="label" optionValue="value" class="min-w-[180px]" />
-                <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" placeholder="Filter by Student" showClear class="min-w-[180px]" />
-                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="Filter by Class" showClear class="min-w-[180px]" />
+                <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" :placeholder="$t('student_payment.filter_by_student')" showClear class="min-w-[180px]" />
+                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" :placeholder="$t('student_payment.filter_by_class')" showClear class="min-w-[180px]" />
 
                 <!-- Action Buttons -->
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
-                <Button @click="openModal" label="Add new" />
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
+                <Button @click="openModal" :label="$t('element.addnew')" />
             </div>
         </div>
 
@@ -21,7 +21,7 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="tableData.length > 0">
                     <DataTable :value="tableData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <Column field="displayId" header="No" sortable style="min-width: 80px">
+                        <Column field="displayId" :header="$t('element.num')" sortable style="min-width: 80px">
                             <template #body="slotProps">
                                 <div class="p-3 rounded" :class="getHighlightClass(slotProps.data)">
                                     <p class="font-medium">{{ slotProps.data.displayId }}</p>
@@ -29,7 +29,7 @@
                             </template>
                         </Column>
 
-                        <Column field="student_name" header="Student Name" sortable style="min-width: 200px">
+                        <Column field="student_name" :header="$t('student.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="px-3 py-1 text-lg font-semibold text-nowrap rounded" :class="getHighlightClass(slotProps.data)">
                                     {{ slotProps.data.student_name }}
@@ -37,7 +37,7 @@
                             </template>
                         </Column>
 
-                        <Column field="class_name" header="Class" sortable style="min-width: 200px">
+                        <Column field="class_name" :header="$t('class_history.class_name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="px-3 py-1 text-lg font-semibold text-nowrap rounded" :class="getHighlightClass(slotProps.data)">
                                     {{ slotProps.data.class_name }}
@@ -45,7 +45,7 @@
                             </template>
                         </Column>
 
-                        <Column field="first_payment_date" header="Payment Date" sortable style="min-width: 200px">
+                        <Column field="first_payment_date" :header="$t('student_payment.payment_date')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="px-3 py-1 text-lg font-semibold text-nowrap rounded" :class="getHighlightClass(slotProps.data)">
                                     {{ slotProps.data?.first_payment_date ? formatDate2(slotProps.data?.first_payment_date) : 'N/A' }}
@@ -53,7 +53,7 @@
                             </template>
                         </Column>
 
-                        <Column field="next_payment_date" header="Next Payment Date" sortable style="min-width: 200px">
+                        <Column field="next_payment_date" :header="$t('student_payment.next_payment_date')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="px-3 py-1 text-lg font-semibold text-nowrap rounded" :class="getHighlightClass(slotProps.data)">
                                     {{ slotProps.data?.next_payment_date ? formatDate2(slotProps.data.next_payment_date) : 'N/A' }}
@@ -61,7 +61,7 @@
                             </template>
                         </Column>
 
-                        <Column field="payment_type" header="Payment Type" sortable style="min-width: 200px">
+                        <Column field="payment_type" :header="$t('student_payment.payment_type')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="px-3 py-1 text-lg font-semibold text-nowrap rounded" :class="getHighlightClass(slotProps.data)">
                                     {{ slotProps.data?.payment_type ?? 'N/A' }}
@@ -69,7 +69,7 @@
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2 p-1 rounded" :class="getHighlightClass(slotProps.data)">
                                     <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
@@ -175,12 +175,14 @@ import { useToast } from 'primevue/usetoast';
 import moment from 'moment';
 import { formatDate2 } from '@/composible/formatDate';
 
-// PrimeVue components
-import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Select from 'primevue/select';
+import { useI18n } from 'vue-i18n'; // Initialize i18n
+const { t } = useI18n();
+const toast = useToast();
 
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 const collection = ref('studentinvoicegenerates');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
 const { data: students, fetchData: fetchStudents } = useFetch('students');
@@ -197,7 +199,6 @@ const handleCloseTracking = () => {
 const isOpen = ref(false);
 const datatoedit = ref(null);
 const isReset = ref(false);
-const toast = useToast();
 const filteredData = ref([]);
 
 const filters = ref({
@@ -290,16 +291,6 @@ const getHighlightClass = (data) => {
         return 'text-[#F97316]'; // Orange for upcoming
     }
     return null;
-};
-
-const showToast = (action) => {
-    const severityMap = { create: 'success', update: 'info', delete: 'error' };
-    const summaryMap = { create: 'Created Success', update: 'Updated Success', delete: 'Deleted Success' };
-    toast.add({
-        severity: severityMap[action] || 'info',
-        summary: summaryMap[action] || 'Action Completed',
-        life: 3000
-    });
 };
 
 const handleReset = (item) => {

@@ -5,9 +5,9 @@
             <div class="flex items-center gap-4">
                 <IconField>
                     <InputIcon class="pi pi-search" />
-                    <InputText placeholder="Search by name" v-model="searchQuery" class="w-full" />
+                    <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" class="w-full" />
                 </IconField>
-                <Button @click="openModal" label="Add new" />
+                <Button @click="openModal" :label="$t('element.addnew')" />
             </div>
         </div>
 
@@ -15,20 +15,20 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="!loading">
                     <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="displayId" header="No." sortable style="min-width: 150px">
+                        <Column field="displayId" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
 
                         <!-- start data -->
-                        <Column field="name" header="Name" sortable style="min-width: 200px">
+                        <Column field="name" :header="$t('book_category.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.name }}</div>
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
@@ -100,7 +100,13 @@ import BookCategoryForm from '@/form/BookCategoryForm.vue';
 import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
-
+const toast = useToast();
+import { useI18n } from 'vue-i18n'; // Initialize i18n
+const { t } = useI18n();
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 // === Refs ===
 const isOpen = ref(false);
 const isDelete = ref(false);
@@ -108,34 +114,6 @@ const datatoedit = ref(null);
 const deleteData = ref(null);
 const searchQuery = ref('');
 const collection = ref('book_categories');
-
-// === Toast ===
-const toast = useToast();
-const showToast = (action, severity) => {
-    let summary;
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = 'Created Successfully';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = 'Updated Successfully';
-            break;
-        case 'delete':
-            severity = 'error';
-            summary = 'Deleted Successfully';
-            break;
-        case 'asociate':
-            severity = 'warn';
-            summary = 'Please delete the associated data first';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
-    toast.add({ severity, summary, life: 3000 });
-};
 
 // === Fetch Hook ===
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);

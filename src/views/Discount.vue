@@ -3,34 +3,34 @@
         <!-- <p class="mt-1 text-lg text-gray-800">Staff list</p> -->
 
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Discount list</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('discount.title') }}</label>
 
-            <Button @click="openModal" label="Add new" />
+            <Button @click="openModal" :label="$t('element.addnew')" />
         </div>
 
         <div class="flex flex-col" v-if="data">
             <div class="overflow-x-auto">
                 <div class="py-2">
                     <DataTable v-if="data.length > 0" :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="_id" header="ID" sortable style="min-width: 150px">
+                        <Column field="_id" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.index + 1 }}</p>
                             </template>
                         </Column>
 
                         <!-- start data -->
-                        <Column field="name" header="Name" sortable style="min-width: 200px">
+                        <Column field="name" :header="$t('discount.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.name }}</div>
                             </template>
                         </Column>
-                        <Column field="discount" header="Discount" sortable style="min-width: 200px">
+                        <Column field="discount" :header="$t('discount.amount')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.discount }} %</div>
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
@@ -97,42 +97,19 @@ import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import NotFound from './pages/NotFound.vue';
 import DiscountForm from '@/form/DiscountForm.vue';
 import { useToast } from 'primevue/usetoast';
+import { useI18n } from 'vue-i18n'; // Initialize i18n
 
 const collection = ref('discounts');
 const isOpen = ref(false);
 const datatoedit = ref(null);
 
+const { t } = useI18n();
 const toast = useToast();
+
 const showToast = (action, severity) => {
-    let summary;
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = ' Created Success';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = ' Updated Success';
-            break;
-        case 'delete':
-            summary = ' Deleted Success';
-            break;
-        case 'asociate':
-            severity = 'warn';
-            summary = ' Please delete the associated data first';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
-
-    toast.add({
-        severity: severity,
-        summary: summary,
-        life: 3000
-    });
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
-
 const isDelete = ref(false);
 const deleteData = ref(null);
 const handleDeleteConfirm = async (id, doc) => {

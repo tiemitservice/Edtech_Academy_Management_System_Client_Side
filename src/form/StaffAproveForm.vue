@@ -6,27 +6,27 @@
         </div>
         <div class="p-4 text-start space-y-4">
             <div>
-                <label for="staff" class="block mb-2 text-sm font-medium">Staff <span class="text-red-500">*</span></label>
-                <Dropdown id="staff" :filter="true" v-model="formState.staff" :options="staffs || []" option-value="_id" option-label="name" placeholder="Select Staff" class="w-full" />
+                <label for="staff" class="block mb-2 text-sm font-medium">{{ $t('teacher_permission.teacher') }} <span class="text-red-500">*</span></label>
+                <Dropdown id="staff" :filter="true" v-model="formState.staff" :options="staffs || []" option-value="_id" option-label="name" :placeholder="$t('teacher_permission.select_staff')" class="w-full" />
                 <small v-if="errors.staff" class="text-red-500 mt-1">{{ errors.staff }}</small>
             </div>
             <div>
-                <label for="reason" class="block mb-2 text-sm font-medium">Reason <span class="text-red-500">*</span></label>
-                <InputText id="reason" v-model="formState.reason" placeholder="Reason for leave" class="w-full" />
+                <label for="reason" class="block mb-2 text-sm font-medium">{{ $t('teacher_permission.reason') }} <span class="text-red-500">*</span></label>
+                <InputText id="reason" v-model="formState.reason" :placeholder="$t('teacher_permission.reason_placeholder')" class="w-full" />
                 <small v-if="errors.reason" class="text-red-500 mt-1">{{ errors.reason }}</small>
             </div>
             <div>
-                <label for="hold_date" class="block mb-2 text-sm font-medium">Start Date - End Date <span class="text-red-500">*</span></label>
-                <Calendar :min-date="new Date()" id="hold_date" v-model="formState.hold_date" placeholder="Select date range" selectionMode="range" showClear class="w-full" />
+                <label for="hold_date" class="block mb-2 text-sm font-medium">{{ $t('teacher_permission.holder_date') }} <span class="text-red-500">*</span></label>
+                <Calendar :min-date="new Date()" id="hold_date" v-model="formState.hold_date" :placeholder="$t('teacher_permission.select_date_range')" selectionMode="range" showClear class="w-full" />
                 <small v-if="errors.hold_date" class="text-red-500 mt-1">{{ errors.hold_date }}</small>
             </div>
             <div>
-                <label for="status" class="block mb-2 text-sm font-medium">Status <span class="text-red-500">*</span></label>
-                <Dropdown id="status" v-model="formState.status" :options="statusOptions" optionLabel="label" optionValue="value" placeholder="Select Status" showClear class="w-full" />
+                <label for="status" class="block mb-2 text-sm font-medium">{{ $t('teacher_permission.status') }} <span class="text-red-500">*</span></label>
+                <Dropdown id="status" v-model="formState.status" :options="statusOptions" optionLabel="label" optionValue="value" :placeholder="$t('teacher_permission.select_status')" showClear class="w-full" />
             </div>
             <div>
-                <label for="note" class="block mb-2 text-sm font-medium">Note</label>
-                <Textarea id="note" v-model="formState.note" placeholder="Optional note..." rows="2" class="w-full" />
+                <label for="note" class="block mb-2 text-sm font-medium">{{ $t('teacher_permission.note') }}</label>
+                <Textarea id="note" v-model="formState.note" :placeholder="$t('teacher_permission.optional_note')" rows="2" class="w-full" />
             </div>
         </div>
         <div class="flex justify-end border-t gap-2 p-4">
@@ -118,12 +118,12 @@ const handleSubmit = async () => {
                 };
                 await postPermissionReport(reportPayload);
             }
-            emit('toast', 'update');
+            emit('toast', 'update', 'success');
         } else {
             // --- CREATE LOGIC ---
             // When creating a new request, it's usually 'pending' and doesn't need a report yet.
             await postData(payload);
-            emit('toast', 'create');
+            emit('toast', 'create', 'info');
         }
 
         emit('save');

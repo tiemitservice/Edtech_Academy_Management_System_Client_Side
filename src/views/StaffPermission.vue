@@ -2,22 +2,22 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg flex-wrap">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Staff Permissions List</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('teacher_permission.title') }}</label>
 
             <div class="flex items-center gap-4 flex-wrap">
                 <!-- Filter by Staff Name -->
                 <IconField>
                     <InputIcon class="pi pi-search" />
-                    <InputText placeholder="Search by staff name" v-model="searchQuery" class="min-w-[180px]" />
+                    <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" class="min-w-[180px]" />
                 </IconField>
                 <!-- Filter by a single day -->
                 <div class="flex items-center gap-2">
-                    <Calendar v-model="filterDate" dateFormat="yy-mm-dd" showIcon inputId="date_filter" />
+                    <Calendar v-model="filterDate" :placeholder="$t('element.createdat')" dateFormat="yy-mm-dd" showIcon inputId="date_filter" />
                 </div>
                 <!-- Apply Filter Button -->
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
+                <Button @click="applyFilters" :label="$t('element.filter')" />
                 <!-- Add New Button -->
-                <Button @click="openModal" label="Add new" />
+                <Button @click="openModal" :label="$t('element.addnew')" />
             </div>
         </div>
 
@@ -25,42 +25,42 @@
             <div class="overflow-x-auto">
                 <div class="py-2" v-if="!loading">
                     <DataTable v-if="filteredData.length > 0" :value="filteredData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column header="No." style="min-width: 50px">
+                        <Column :header="$t('element.num')" style="min-width: 50px">
                             <template #body="slotProps">{{ slotProps.index + 1 }}</template>
                         </Column>
-                        <Column field="staff" header="Staff" sortable style="min-width: 200px">
+                        <Column field="staff" :header="$t('teacher_permission.teacher')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg">{{ formatStaffName(slotProps.data.staff) }}</div>
                             </template>
                         </Column>
-                        <Column field="reason" header="Reason" sortable style="min-width: 200px">
+                        <Column field="reason" :header="$t('teacher_permission.reason')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg">{{ slotProps.data.reason }}</div>
                             </template>
                         </Column>
-                        <Column field="hold_date" header="Start Date - End Date" sortable style="min-width: 200px">
+                        <Column field="hold_date" :header="$t('teacher_permission.holder_date')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p v-if="Array.isArray(slotProps.data.hold_date)">
                                     {{ slotProps.data.hold_date.map((d) => new Date(d).toLocaleDateString()).join(' - ') }}
                                 </p>
                             </template>
                         </Column>
-                        <Column field="status" header="Status" class="capitalize" sortable style="min-width: 150px">
+                        <Column field="status" :header="$t('element.status')" class="capitalize" sortable style="min-width: 150px">
                             <template #body="slotProps">
-                                <Tag :severity="getStatusSeverity(slotProps.data.status)" :value="slotProps.data.status"></Tag>
+                                <Tag :severity="getStatusSeverity(slotProps.data.status)" :value="slotProps.data.status.toLowerCase()"></Tag>
                             </template>
                         </Column>
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
-                                    <Button icon="pi pi-inbox" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
+                                    <Button icon="pi pi-inbox" severity="warn" rounded :aria-label="$t('element.edit')" @click="handleEdit(slotProps.data)" />
+                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded :aria-label="$t('element.delete')" />
                                 </div>
                             </template>
                         </Column>
                     </DataTable>
                     <div v-else>
-                        <NotFound message="No permission requests found for the selected criteria." />
+                        <NotFound :message="$t('teacher_permission.no_requests_found')" />
                     </div>
                 </div>
                 <div v-else>
@@ -68,7 +68,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Add/Edit Modal -->
         <TransitionRoot appear :show="isOpen" as="template">
             <Dialog as="div" @close="closeModal" class="relative z-[99]">
@@ -127,7 +126,12 @@ import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
 import moment from 'moment';
-
+import { useI18n } from 'vue-i18n'; // Initialize i18n
+const { t } = useI18n();
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 const isOpen = ref(false);
 const datatoedit = ref(null);
 const collection = ref('staffpermissions');
@@ -159,15 +163,6 @@ const getStatusSeverity = (status) => {
 };
 
 const toast = useToast();
-const showToast = (action) => {
-    const severityMap = { create: 'success', update: 'info', delete: 'error' };
-    const summaryMap = { create: 'Created Success', update: 'Updated Success', delete: 'Deleted Success' };
-    toast.add({
-        severity: severityMap[action] || 'info',
-        summary: summaryMap[action] || 'Action Completed',
-        life: 3000
-    });
-};
 
 const isDelete = ref(false);
 const deleteId = ref(null);

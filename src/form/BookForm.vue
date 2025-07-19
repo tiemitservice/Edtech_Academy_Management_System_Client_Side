@@ -1,34 +1,34 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[320px]">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Book' : 'Add New Book' }}</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
         <div class="p-4 text-start space-y-4">
             <div>
-                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Book Name <span class="text-red-500">*</span></label>
-                <InputText class="w-full" placeholder="Book Name" :required="true" id="name" v-model="formState.name" />
+                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('book.name') }} <span class="text-red-500">*</span></label>
+                <InputText class="w-full" :placeholder="$t('book.name')" :required="true" id="name" v-model="formState.name" />
             </div>
             <div>
-                <label for="book_type" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Book Type <span class="text-red-500">*</span></label>
-                <Select filter show-clear class="w-full" :options="book_categories" optionLabel="name" optionValue="_id" placeholder="Book Type" id="book_type" v-model="formState.bookType" />
+                <label for="book_type" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('book.type') }} <span class="text-red-500">*</span></label>
+                <Select filter show-clear class="w-full" :options="book_categories" optionLabel="name" optionValue="_id" :placeholder="$t('book.bookType')" id="book_type" v-model="formState.bookType" />
             </div>
             <div>
-                <label for="stock" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Book Stock <span class="text-red-500">*</span></label>
-                <InputNumber show-clear class="w-full" placeholder="Stock Quantity" id="stock" v-model="formState.stock" />
+                <label for="stock" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('book.quantity') }} <span class="text-red-500">*</span></label>
+                <InputNumber show-clear class="w-full" :placeholder="$t('book.quantity')" id="stock" v-model="formState.stock" />
             </div>
             <div>
-                <label for="price" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Price <span class="text-red-500">*</span></label>
-                <InputNumber class="w-full" placeholder="Price" :required="true" id="price" v-model="formState.price" mode="currency" currency="USD" locale="en-US" />
+                <label for="price" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('book.price') }} <span class="text-red-500">*</span></label>
+                <InputNumber class="w-full" :placeholder="$t('book.price')" :required="true" id="price" v-model="formState.price" mode="currency" currency="USD" locale="en-US" />
             </div>
             <div class="space-y-1 text-start flex items-center gap-4">
                 <ToggleSwitch id="status_switch" v-model="formState.status" />
-                <label for="status_switch">Is Active</label>
+                <!-- <label for="status_switch">Is Active</label> -->
             </div>
         </div>
-        <div class="w-full flex justify-end gap-3 p-4">
-            <Button :label="loading ? 'Saving...' : 'Submit'" type="submit" :disabled="loading" />
-            <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -88,7 +88,7 @@ const handleSubmit = async () => {
                 };
                 await postStockHistoryReport(historyPayload);
             }
-            emit('toast', 'update');
+            emit('toast', 'update', 'success');
         } else {
             // --- CREATE LOGIC ---
             const newBookResponse = await postData(payload);
@@ -102,7 +102,7 @@ const handleSubmit = async () => {
                 };
                 await postStockHistoryReport(historyPayload);
             }
-            emit('toast', 'create');
+            emit('toast', 'create', 'info');
         }
 
         emit('save'); // Notify parent to refresh its data

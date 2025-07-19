@@ -2,17 +2,17 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white"> Book Payment Transactions</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white"> {{ $t('book_payment_transaction.title') }}</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select filter v-model="filters.studentId" :options="students" optionLabel="eng_name" optionValue="_id" placeholder="Filter by Student" showClear class="min-w-[180px]" />
-                <Select v-model="filters.bookId" :options="books" optionLabel="name" optionValue="_id" placeholder="Filter by Book" showClear class="min-w-[180px]" />
+                <Select filter v-model="filters.studentId" :options="students" optionLabel="eng_name" optionValue="_id" :placeholder="$t('book_payment_transaction.student_name')" showClear class="min-w-[180px]" />
+                <Select v-model="filters.bookId" :options="books" optionLabel="name" optionValue="_id" :placeholder="$t('book_payment_transaction.book_name')" showClear class="min-w-[180px]" />
                 <Select v-model="filters.day" :options="days" placeholder="Day" showClear class="min-w-[100px]" />
-                <Select v-model="filters.month" :options="months" optionLabel="name" optionValue="value" placeholder="Month" showClear class="min-w-[120px]" />
-                <Select v-model="filters.year" :options="years" placeholder="Year" showClear class="min-w-[120px]" />
+                <Select v-model="filters.month" :options="months" optionLabel="name" optionValue="value" showClear class="min-w-[120px]" />
+                <Select v-model="filters.year" :options="years" :placeholder="$t('book_payment_transaction.year')" showClear class="min-w-[120px]" />
 
                 <!-- Action Buttons -->
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
                 <!-- <Button @click="openModal" label="Add new" /> -->
             </div>
         </div>
@@ -22,49 +22,49 @@
             <div class="overflow-x-auto">
                 <div v-if="tableData.length > 0" class="py-2">
                     <DataTable :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="displayId" header="No." sortable style="min-width: 150px">
+                        <Column field="displayId" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
 
-                        <Column field="createdAt" header="Date" sortable style="min-width: 150px">
+                        <Column field="createdAt" :header="$t('element.createdat')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ formatDate(slotProps.data.createdAt) }}</p>
                             </template>
                         </Column>
 
-                        <Column field="student_name" header="Student" sortable style="min-width: 200px">
+                        <Column field="student_name" :header="$t('student_payment_transaction.student_name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg rounded-full">{{ slotProps.data.student_name }}</div>
                             </template>
                         </Column>
 
-                        <Column field="book_names" header="Books" sortable style="min-width: 250px">
+                        <Column field="book_names" :header="$t('book_payment.book_name')" sortable style="min-width: 250px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg rounded-full">{{ slotProps.data.book_names }}</div>
                             </template>
                         </Column>
 
-                        <Column field="book_amount" header="Book Amount" sortable style="min-width: 150px">
+                        <Column field="book_amount" :header="$t('book_payment.total_amount')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.book_amount }}</p>
                             </template>
                         </Column>
 
-                        <Column field="final_price" header="Total Price" sortable style="min-width: 150px">
+                        <Column field="final_price" :header="$t('book_payment.total_price')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-bold text-green-600">${{ slotProps.data.final_price?.toFixed(2) }}</p>
                             </template>
                         </Column>
 
-                        <Column field="mark_as_completed" header="Status" sortable style="min-width: 150px">
+                        <Column field="mark_as_completed" :header="$t('element.status')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <Tag :severity="slotProps.data.mark_as_completed ? 'success' : 'danger'" :value="slotProps.data.mark_as_completed ? 'Completed' : 'Pending'"></Tag>
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-undo" severity="warn" rounded aria-label="Undo" @click="handleEdit(slotProps.data)" />
@@ -116,14 +116,16 @@ import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessu
 import RemarkBookInvoice from '@/form/RemarkBookInvoice.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
-import { useToast } from 'primevue/usetoast';
-import Select from 'primevue/select';
-import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Toast from 'primevue/toast';
-import Tag from 'primevue/tag';
 
+import { useToast } from 'primevue/usetoast';
+
+import { useI18n } from 'vue-i18n'; // Initialize i18n
+const { t } = useI18n();
+
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 // === DATA FETCHING ===
 const collection = ref('bookpayments');
 const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
@@ -204,12 +206,6 @@ const tableData = computed(() => {
 
 // === HELPER FUNCTIONS ===
 const toast = useToast();
-
-const showToast = (action, severity) => {
-    const summary = { create: 'Created Success', update: 'Updated Success', delete: 'Deleted Success' }[action] || 'Action Completed';
-    const finalSeverity = { create: 'success', update: 'info', delete: 'success' }[action] || severity;
-    toast.add({ severity: finalSeverity, summary, life: 3000 });
-};
 
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : 'N/A');
 const formatStudentName = (studentId) => students.value?.find((s) => s._id === studentId)?.eng_name || 'Unknown';

@@ -2,32 +2,33 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg flex-wrap">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Teacher Attendance</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('teacher_attendance.title') }}</label>
 
             <div class="flex items-center gap-4 flex-wrap">
                 <IconField>
                     <InputIcon class="pi pi-search" />
-                    <InputText placeholder="Search by name" v-model="searchQuery" />
+                    <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" />
                 </IconField>
-                <Dropdown v-model="selectedPosition" filter show-clear :options="positions" option-value="_id" option-label="name" placeholder="Select a position" />
-                <Dropdown v-model="selectedDepartment" filter show-clear :options="departments" option-value="_id" option-label="name" placeholder="Select a department" />
-                <Button @click="applySelectFilters" label="Apply Filter" icon="pi pi-filter" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
+                <Dropdown v-model="selectedPosition" filter show-clear :options="positions" option-value="_id" option-label="name" :placeholder="$t('staff.select_position')" />
+                <Dropdown v-model="selectedDepartment" filter show-clear :options="departments" option-value="_id" option-label="name" :placeholder="$t('staff.select_department')" />
+                <Button @click="applySelectFilters" :label="$t('element.filter')" icon="pi pi-filter" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" class="p-button-secondary" />
             </div>
         </div>
 
         <div class="flex flex-col">
             <div class="overflow-x-auto">
                 <div v-if="!loading" class="py-2">
-                    <!-- Using 'tableData' which is processed for sorting -->
                     <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <!-- This column now correctly sorts by the 'displayId' field -->
-                        <Column field="displayId" header="No." sortable style="min-width: 150px">
+                        <!-- No. Column -->
+                        <Column field="displayId" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
-                        <Column field="profile" header="Profile" style="min-width: 150px">
+
+                        <!-- Profile Column -->
+                        <Column field="profile" :header="$t('student.profile')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex items-center space-x-3">
                                     <div class="flex items-center justify-center w-16 h-16 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
@@ -36,55 +37,74 @@
                                 </div>
                             </template>
                         </Column>
-                        <Column field="en_name" header="Name" sortable style="min-width: 200px">
+
+                        <!-- Name Column -->
+                        <Column field="en_name" :header="$t('staff.eng_name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
                                     <p>{{ slotProps.data.en_name }}</p>
                                 </div>
                             </template>
                         </Column>
-                        <Column field="attendance" header="Attendance" sortable style="min-width: 200px">
+
+                        <!-- Attendance Status Column -->
+                        <Column field="attendance" :header="$t('teacher_attendance.status')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
-                                    <Tag :severity="getAttendanceSeverity(slotProps.data.attendance)" :value="slotProps.data.attendance || 'Un-check'"></Tag>
+                                    <Tag
+                                        :severity="getAttendanceSeverity(slotProps.data.attendance)"
+                                        :value="slotProps.data.attendance ? $t(`teacher_attendance.${slotProps.data.attendance.toLowerCase()}`) : $t('teacher_attendance.un_checked')"
+                                    ></Tag>
                                 </div>
                             </template>
                         </Column>
-                        <Column field="position" header="Position" sortable style="min-width: 200px">
+
+                        <!-- Position Column -->
+                        <Column field="position" :header="$t('staff.positsion')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p>{{ formatPositionById(slotProps.data.position) }}</p>
                             </template>
                         </Column>
-                        <Column field="department" header="Department" sortable style="min-width: 200px">
+
+                        <!-- Department Column -->
+                        <Column field="department" :header="$t('staff.department')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p>{{ formatDepartmentById(slotProps.data.department) }}</p>
                             </template>
                         </Column>
-                        <Column field="entry_time" header="Entry Time" sortable style="min-width: 200px">
+
+                        <!-- Entry Time Column -->
+                        <Column field="entry_time" :header="$t('teacher_attendance.entry_time')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p>{{ slotProps.data.entry_time || 'N/A' }}</p>
                             </template>
                         </Column>
-                        <Column field="exit_time" header="Exit Time" sortable style="min-width: 200px">
+
+                        <!-- Exit Time Column -->
+                        <Column field="exit_time" :header="$t('teacher_attendance.exit_time')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p>{{ slotProps.data.exit_time || 'N/A' }}</p>
                             </template>
                         </Column>
-                        <Column field="note" header="Note" sortable style="min-width: 200px">
+
+                        <!-- Note Column -->
+                        <Column field="note" :header="$t('teacher_attendance.note')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p>{{ slotProps.data.note || 'N/A' }}</p>
                             </template>
                         </Column>
-                        <Column header="Actions" style="min-width: 150px">
+
+                        <!-- Actions Column -->
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div>
-                                    <Button icon="pi pi-check-square" severity="warn" rounded @click="handleEdit(slotProps.data)" />
+                                    <Button icon="pi pi-check-square" severity="warn" rounded @click="handleEdit(slotProps.data)" :aria-label="$t('actions.edit')" />
                                 </div>
                             </template>
                         </Column>
                     </DataTable>
                     <div v-else>
-                        <NotFound message="No staff members found matching your criteria." />
+                        <NotFound :message="$t('teacher_attendance.no_staff_found')" />
                     </div>
                 </div>
                 <div v-else>
@@ -123,6 +143,12 @@ import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessu
 import StaffAttendanceForm from '@/form/StaffAttendanceForm.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
+import { useI18n } from 'vue-i18n'; // Initialize i18n
+const { t } = useI18n();
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
 
 // --- Component State ---
 const isOpen = ref(false);
@@ -192,19 +218,6 @@ const formatPositionById = (id) => positions.value?.find((item) => item._id === 
 const getAttendanceSeverity = (status) => {
     const map = { present: 'success', absent: 'danger', late: 'warning', permission: 'info' };
     return map[status] || 'secondary';
-};
-
-// --- Modal and Action Handlers ---
-const showToast = (payload) => {
-    const action = typeof payload === 'string' ? payload : payload.action;
-    const customMessage = typeof payload === 'object' ? payload.message : null;
-    const severityMap = { create: 'success', update: 'info', delete: 'error' };
-    const summaryMap = { create: 'Created Successfully', update: 'Updated Successfully', delete: 'Deleted Successfully' };
-    toast.add({
-        severity: severityMap[action] || 'info',
-        summary: summaryMap[action] || customMessage || 'Action Completed',
-        life: 3000
-    });
 };
 
 const handleEdit = (data) => {

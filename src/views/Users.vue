@@ -1,15 +1,15 @@
 <template>
     <div>
         <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Users List</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('user.title') }}</label>
             <div class="flex items-center gap-4 justify-end">
                 <IconField>
                     <InputIcon class="pi pi-search" />
-                    <InputText placeholder="Search by name" v-model="filters.search" />
+                    <InputText :placeholder="$t('element.Searchbyname')" v-model="filters.search" />
                 </IconField>
                 <div class="flex items-center gap-4">
                     <!-- <Dropdown placeholder="Select a role" class="dropdown" /> -->
-                    <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" @click="handleAdd" label="Add new" />
+                    <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" @click="handleAdd" :label="$t('element.addnew')" />
                 </div>
             </div>
         </div>
@@ -17,13 +17,13 @@
             <div class="overflow-x-auto">
                 <div class="py-2">
                     <DataTable v-if="users" :value="users" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <Column field="_id" header="ID" sortable style="width: 70px">
+                        <Column field="_id" :header="$t('element.num')" sortable style="width: 70px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.index + 1 }}</p>
                                 <!-- <p class="font-medium">{{ slotProps.data._id }}</p> -->
                             </template>
                         </Column>
-                        <Column field="image" header="Profile" style="min-width: 150px">
+                        <Column field="image" :header="$t('student.profile')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex items-center space-x-3">
                                     <div class="flex items-center justify-center w-16 h-16 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
@@ -32,23 +32,23 @@
                                 </div>
                             </template>
                         </Column>
-                        <Column field="name" header="Name" sortable style="min-width: 200px">
+                        <Column field="name" :header="$t('user.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <p>{{ slotProps.data.name }}</p>
                             </template>
                         </Column>
 
-                        <Column field="role" header="Role" sortable style="min-width: 150px">
+                        <Column field="role" :header="$t('user.role')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p>{{ slotProps.data.role || 'N/A' }}</p>
                             </template>
                         </Column>
-                        <Column field="email" header="Email" sortable style="min-width: 150px">
+                        <Column field="email" :header="$t('user.email')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p>{{ slotProps.data.email || 'N/A' }}</p>
                             </template>
                         </Column>
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <!-- <Button v-if="user?.role === 'admin' || user?.role === 'superadmin'" icon="pi pi-info-circle" @click="openStaffModal(slotProps.data)" severity="success" rounded aria-label="Info" /> -->
@@ -62,11 +62,12 @@
             </div>
         </div>
         <Dialog v-model:visible="isOpen" class="w-full md:w-1/2 !p-0" modal :closable="false">
-            <component :is="currentComponent" @close="handleClose" :datatoedit="datatoedit" />
+            <component :is="currentComponent" @close="handleClose" :datatoedit="datatoedit" @toast="showToast" />
         </Dialog>
         <Dialog v-model:visible="isDelete" class="w-fit" modal :closable="false">
-            <DeleteConfimation :deleteData="deleteData" :datatoedit="datatoedit" :collection="collection" @close="handleCloseDelete" @toast="showToast" />
+            <DeleteConfimation :deleteData="deleteData" :datatoedit="datatoedit" @close="handleCloseDelete" :collection="collection" @toast="showToast" />
         </Dialog>
+        <Toast position="top-right" />
     </div>
 </template>
 
@@ -77,12 +78,22 @@ import { useFetch } from '@/composible/useFetch';
 import socket from '@/composible/socket';
 import UsersForm from '@/form/UsersForm.vue';
 import DeleteConfimation from '@/form/DeleteConfimation.vue';
+import { useI18n } from 'vue-i18n'; // Initialize i18n
+import { useToast } from 'primevue/usetoast';
+
 export default {
     components: {
         UsersForm,
         DeleteConfimation
     },
     setup() {
+        const { t } = useI18n();
+        const toast = useToast();
+
+        const showToast = (action, severity) => {
+            const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+            toast.add({ severity: severity || 'info', summary, life: 3000 });
+        };
         const { user } = useAuth();
         const isDelete = ref(false);
         const deleteData = ref(null);
@@ -158,7 +169,8 @@ export default {
             isDelete,
             deleteData,
             handleCloseDelete,
-            collection
+            collection,
+            showToast
         };
     }
 };

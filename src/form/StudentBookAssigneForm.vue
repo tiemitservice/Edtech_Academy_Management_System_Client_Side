@@ -1,35 +1,35 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Book Payment' : 'Create Book Payment' }}</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
         <div class="p-4 space-y-4">
             <div class="flex flex-col text-start">
-                <label for="student_list" class="mb-2 font-medium">Student</label>
+                <label for="student_list" class="mb-2 font-medium">{{ $t('student_info.student_name') }}</label>
                 <Select id="student_list" v-model="formState.student_id" :options="students" filter show-clear optionLabel="eng_name" optionValue="_id" placeholder="Select a Student" class="w-full" :disabled="!!datatoedit" />
                 <small v-if="errors.student_id" class="text-red-500 mt-1">{{ errors.student_id }}</small>
             </div>
             <div class="flex flex-col text-start">
-                <label for="book_list" class="mb-2 font-medium">Books</label>
+                <label for="book_list" class="mb-2 font-medium">{{ $t('book_payment.book_name') }}</label>
                 <MultiSelect id="book_list" v-model="formState.book_ids" :options="availableBooks" filter show-clear optionLabel="name" optionValue="_id" placeholder="Select Books" class="w-full" />
                 <small v-if="errors.book_ids" class="text-red-500 mt-1">{{ errors.book_ids }}</small>
             </div>
 
             <div class="flex flex-col text-start">
-                <label for="discount" class="mb-2 font-medium">Discount</label>
+                <label for="discount" class="mb-2 font-medium">{{ $t('student_payment_transaction.discount') }}</label>
                 <Select id="discount" v-model="formState.discount" :options="discounts" filter show-clear optionLabel="name" optionValue="discount" placeholder="Select Discount" class="w-full" />
             </div>
 
             <div class="text-start">
                 <p class="font-medium">
-                    Total Price: <span class="font-bold text-lg text-green-600">${{ formState.final_price.toFixed(2) }}</span>
+                    {{ $t('book_payment.total_price') }}: <span class="font-bold text-lg text-green-600">${{ formState.final_price.toFixed(2) }}</span>
                 </p>
             </div>
         </div>
-        <div class="w-full flex items-center justify-end gap-2 p-4 border-t bg-gray-50">
-            <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined />
-            <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>

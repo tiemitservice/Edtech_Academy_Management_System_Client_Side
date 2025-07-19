@@ -111,6 +111,50 @@
         "current_address": "អាសយដ្ឋានបច្ចុប្បន្ន",
         "work_day": "ថ្ងៃធ្វើការ"
     },
+    "teacher_attendance": {
+        "title": "វត្តមានគ្រូបង្រៀន",
+        "date": "កាលបរិច្ឆេទ",
+        "status": "ស្ថានភាព",
+        "present": "មានវត្តមាន",
+        "absent": "គ្មានវត្តមាន",
+        "late": "មកយឺត",
+        "permission": "អនុញ្ញាត",
+        "note": "កំណត់ចំណាំ",
+        "entry_time": "ម៉ោងចូល",
+        "exit_time": "ម៉ោងចេញ",
+        "optional_note": "កំណត់ចំណាំជ្រើសរើស",
+        "submit_attendance": "ដាក់ស្នើវត្តមាន",
+        "submitting": "កំពុងដាក់ស្នើ...",
+        "attendance_submitted": "ដាក់ស្នើវត្តមានបានជោគជ័យ។",
+        "attendance_failed": "ការដាក់ស្នើវត្តមានបានបរាជ័យ។",
+        "select_position": "ជ្រើសរើសតួនាទី",
+        "select_department": "ជ្រើសរើសនាយកដ្ឋាន",
+        "un_checked": "មិនបានត្រួតពិនិត្យ"
+    },
+    "teacher_permission": {
+        "title": "សំណើរច្បាប់គ្រូបង្រៀន",
+        "teacher": "គ្រូបង្រៀន",
+        "createdat": "កាលបរិច្ឆេទបង្កើត",
+        "reason": "មូលហេតុ",
+        "select_date": "ជ្រើសរើសកាលបរិច្ឆេទ",
+        "select_approve_by": "ជ្រើសរើសអ្នកអនុម័ត",
+        "optional_note": "កំណត់ចំណាំជ្រើសរើស",
+        "note": "កំណត់ចំណាំ",
+        "holder_date": "កាលបរិច្ឆេទ",
+        "status": "ស្ថានភាព"
+    },
+    "department": {
+        "title": "បញ្ជីនាយកដ្ឋាន",
+        "name": "ឈ្មោះ",
+        "namePlaceholder": "ឈ្មោះនាយកដ្ឋាន",
+        "noData": "មិនមានទិន្នន័យនាយកដ្ឋានទេ។"
+    },
+    "position": {
+        "title": "បញ្ជីតួនាទី",
+        "name": "ឈ្មោះ",
+        "namePlaceholder": "ឈ្មោះតួនាទី",
+        "noData": "មិនមានទិន្នន័យតួនាទីទេ។"
+    },
     "student": {
         "title": "បញ្ជីឈ្មោះសិស្ស",
         "name": "ឈ្មោះ",
@@ -260,6 +304,87 @@
         "name": "ឈ្មោះ",
         "enter_subject_name": "បញ្ចូលឈ្មោះមុខវិជ្ជា"
     },
+    "book": {
+        "title": "បញ្ជីសៀវភៅ",
+        "name": "ឈ្មោះសៀវភៅ",
+        "quantity": "បរិមាណ",
+        "noData": "មិនមានទិន្នន័យសៀវភៅទេ។",
+        "select_type": "ជ្រើសរើសប្រភេទ",
+        "price": "តម្លៃ",
+        "type": "ប្រភេទ",
+        "bookType": "ប្រភេទសៀវភៅ",
+        "book_categories": "ប្រភេទសៀវភៅ"
+    },
+    "book_category": {
+        "title": "បញ្ជីប្រភេទសៀវភៅ",
+        "name": "ឈ្មោះប្រភេទ",
+        "enter_category_name": "បញ្ចូលឈ្មោះប្រភេទ"
+    },
+    "student_payment": {
+        "title": "ការទូទាត់សិស្ស",
+        "filter_by_student": "ច្រោះតាមសិស្ស",
+        "filter_by_class": "ច្រោះតាមថ្នាក់រៀន",
+        "payment_date": "កាលបរិច្ឆេទទូទាត់",
+        "next_payment_date": "កាលបរិច្ឆេទទូទាត់បន្ទាប់",
+        "payment_type": "ប្រភេទទូទាត់",
+        "course_price": "តម្លៃវគ្គសិក្សា",
+        "discount": "ការបញ្ចុះតម្លៃ",
+        "final_price": "តម្លៃចុងក្រោយ",
+        "save_and_generate_invoice": "រក្សាទុក និងបង្កើតវិក្កយបត្រ",
+        "generate_invoice": "បង្កើតវិក្កយបត្រ",
+        "confirm_mark_completed": "តើអ្នកប្រាកដទេថាចង់សម្គាល់ការទូទាត់នេះថាបានបញ្ចប់?",
+        "info_mark_completed": "នេះនឹងបង្កើតរបាយការណ៍ទូទាត់ចុងក្រោយ និងនាំអ្នកទៅកាន់ទំព័របោះពុម្ព។",
+        "are_you_sure": "តើអ្នកប្រាកដទេថាចង់សម្គាល់ការទូទាត់នេះថាបានបញ្ចប់ (មិនអាចយកមកវិញបាន)?"
+    },
+    "student_payment_transaction": {
+        "title": "ការទូទាត់សិស្ស",
+        "student_name": "ឈ្មោះសិស្ស",
+        "class": "ថ្នាក់រៀន",
+        "payment_date": "កាលបរិច្ឆេទទូទាត់",
+        "payment_type": "ប្រភេទទូទាត់",
+        "amount": "ចំនួនទូទាត់",
+        "status": "ស្ថានភាព",
+        "discount": "ការបញ្ចុះតម្លៃ",
+        "final_price": "តម្លៃចុងក្រោយ",
+        "payment_method": "វិធីសាស្រ្តទូទាត់",
+        "first_payment": "ការទូទាត់ដំបូង",
+        "next_payment": "ការទូទាត់បន្ទាប់",
+        "noData": "មិនមានទិន្នន័យប្រតិបត្តិការទូទាត់ទេ។",
+        "return_invoice": "ត្រឡប់វិក្កយបត្រ",
+        "are_you_sure_return": "តើអ្នកប្រាកដទេថាចង់ត្រឡប់វិក្កយបត្រនេះ?"
+    },
+    "book_payment": {
+        "title": "ការទូទាត់សៀវភៅ",
+        "book_name": "ឈ្មោះសៀវភៅ",
+        "quantity": "បរិមាណ",
+        "price": "តម្លៃ",
+        "total_amount": "ចំនួនទូទាត់សរុប",
+        "payment_date": "កាលបរិច្ឆេទទូទាត់",
+        "payment_method": "វិធីសាស្រ្តទូទាត់",
+        "book_amount": "បរិមាណសៀវភៅ",
+        "total_price": "តម្លៃសរុប",
+        "filter_by_book": "ច្រោះតាមសៀវភៅ",
+        "filter_by_student": "ច្រោះតាមសិស្ស",
+        "noData": "មិនមានទិន្នន័យប្រតិបត្តិការទូទាត់សៀវភៅទេ។",
+        "student_name": "ឈ្មោះសិស្ស"
+    },
+    "book_payment_transaction": {
+        "title": "ប្រតិបត្តិការទូទាត់សៀវភៅ",
+        "student_name": "ឈ្មោះសិស្ស",
+        "book_name": "ឈ្មោះសៀវភៅ",
+        "quantity": "បរិមាណ",
+        "price": "តម្លៃ",
+        "total_amount": "ចំនួនទូទាត់សរុប",
+        "payment_date": "កាលបរិច្ឆេទទូទាត់",
+        "payment_method": "វិធីសាស្រ្តទូទាត់",
+        "noData": "មិនមានទិន្នន័យប្រតិបត្តិការទូទាត់សៀវភៅទេ។",
+        "return_invoice": "ត្រឡប់វិក្កយបត្រ",
+        "are_you_sure_return": "តើអ្នកប្រាកដទេថាចង់ត្រឡប់វិក្កយបត្រនេះ?",
+        "regenerate_invoice": "បង្កើតវិក្កយបត្រ​ឡើងវិញ",
+        "are_you_sure_regenerate": "តើអ្នកប្រាកដទេថាចង់បង្កើតវិក្កយបត្រ​ឡើងវិញ?",
+        "this_will_return": "នេះនឹងត្រឡប់វិក្កយបត្រនេះ",
+        "to_the_inventory": "ទៅកាន់សារពើភ័ណ្ឌ"
+    },
     "asign_teacher": {
         "title": "បញ្ចូលគ្រូទៅកាន់ថ្នាក់",
         "teacher": "គ្រូបង្រៀន",
@@ -275,6 +400,20 @@
         "name": "Name",
         "message": "សារ",
         "From": "អ្នកផ្ញើរ"
+    },
+    "discount": {
+        "title": "បញ្ជីការបញ្ចុះតម្លៃ",
+        "name": "ឈ្មោះ",
+        "amount": "ចំនួន"
+    },
+    "holiday": {
+        "title": "បញ្ជីថ្ងៃឈប់សម្រាក",
+        "name": "ឆ្នាំ",
+        "date": "កាលបរិច្ឆេទ",
+        "description": "ការពិពណ៌នា",
+        "noData": "មិនមានទិន្នន័យថ្ងៃឈប់សម្រាកទេ។",
+        "addnew": "បន្ថែមថ្ងៃឈប់សម្រាក",
+        "edit": "កែប្រែថ្ងៃឈប់សម្រាក"
     },
     "element": {
         "noData": "មិនមានទិន្នន័យទេ។",
@@ -302,7 +441,23 @@
         "Filterbycreatedat": "ច្រោះតាមកាលបរិច្ឆេទបង្កើត",
         "active": "សកម្ម",
         "inactive": "អសកម្ម",
-        "clear": "សម្អាត"
+        "clear": "សម្អាត",
+        "currency": "អត្រាការប្រាក់",
+        "description": "ការពិពណ៌នា"
+    },
+    "reset_password": {
+        "current_password": "ពាក្យសម្ងាត់បច្ចុប្បន្ន",
+        "new_password": "ពាក្យសម្ងាត់ថ្មី",
+        "confirm_password": "បញ្ជាក់ពាក្យសម្ងាត់",
+        "change_password": "ប្តូរពាក្យសម្ងាត់"
+    },
+    "user": {
+        "title": "បញ្ជីអ្នកប្រើប្រាស់",
+        "name": "ឈ្មោះ",
+        "email": "អ៊ីមែល",
+        "permissions": "អនុសាសន៍",
+        "role": "តួនាទី",
+        "Update_Profile_Picture": "បន្ទាន់សម័យរូបភាពប្រវត្តិរូប"
     },
     "toast": {
         "create": "បង្កើតបានជោគជ័យ",

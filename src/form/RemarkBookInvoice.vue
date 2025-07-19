@@ -2,22 +2,22 @@
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Regenerate Invoice</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <!-- Confirmation Message -->
         <div class="p-4 space-y-4 text-start">
-            <p>Are you sure you want to mark this invoice as pending?</p>
+            <p>{{ $t('book_payment_transaction.are_you_sure_regenerate') }}</p>
             <p v-if="props.datatoedit?.book_amount > 0">
-                This will return <strong>{{ props.datatoedit.book_amount }}</strong> book(s) to the inventory.
+                {{ $t('book_payment_transaction.this_will_return') }} <strong>{{ props.datatoedit.book_amount }}</strong> {{ $t('book_payment_transaction.to_the_inventory') }}.
             </p>
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-2 p-4 border-t bg-gray-50">
-            <Button label="Cancel" @click="$emit('close')" severity="secondary" outlined />
-            <Button :label="isSubmitting ? 'Saving...' : 'Save'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -90,8 +90,7 @@ const handleSubmit = async () => {
         }
 
         // 3. Notify the parent component of success
-        emit('toast', 'update', 'Invoice regenerated and stock returned.');
-        emit('save'); // Notify parent to refresh its data
+        emit('toast', 'update', 'success');
         emit('close');
     } catch (error) {
         console.error('Error regenerating invoice:', error);

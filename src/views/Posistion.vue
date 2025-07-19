@@ -1,8 +1,8 @@
 <template>
     <section class="px-4 mx-auto">
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Position list</label>
-            <Button @click="openModal" label="Add new" />
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('position.title') }}</label>
+            <Button @click="openModal" :label="$t('element.addnew')" />
         </div>
 
         <div class="flex flex-col">
@@ -11,20 +11,20 @@
                     <!-- UPDATED: Using 'tableData' which is processed for sorting -->
                     <DataTable v-if="tableData.length > 0" :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
                         <!-- UPDATED: This column now correctly sorts by the 'displayId' field -->
-                        <Column field="displayId" header="No." sortable style="min-width: 150px">
+                        <Column field="displayId" :header="$t('element.num')" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
 
                         <!-- start data -->
-                        <Column field="name" header="Name" sortable style="min-width: 200px">
+                        <Column field="name" :header="$t('position.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.name }}</div>
                             </template>
                         </Column>
 
-                        <Column header="Actions" style="min-width: 150px">
+                        <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
                                     <Button icon="pi pi-pencil" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
@@ -95,35 +95,11 @@ const isOpen = ref(false);
 const datatoedit = ref(null);
 const collection = ref('positions');
 const toast = useToast();
-
+import { useI18n } from 'vue-i18n'; // Initialize i18n
+const { t } = useI18n();
 const showToast = (action, severity) => {
-    let summary;
-    switch (action) {
-        case 'create':
-            severity = 'success';
-            summary = ' Created Success';
-            break;
-        case 'update':
-            severity = 'info';
-            summary = ' Updated Success';
-            break;
-        case 'delete':
-            summary = ' Deleted Success';
-            break;
-        case 'asociate':
-            severity = 'warn';
-            summary = ' Please delete the associated data first';
-            break;
-        default:
-            severity = 'info';
-            summary = 'Action Completed';
-    }
-
-    toast.add({
-        severity: severity,
-        summary: summary,
-        life: 3000
-    });
+    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
 
 const isDelete = ref(false);

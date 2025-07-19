@@ -2,20 +2,51 @@
     <div class="w-full mx-auto">
         <div class="flex items-center justify-center">
             <form @submit.prevent="handleChangePassword" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 space-y-4 text-center w-full max-w-md">
-                <h2 class="text-xl font-semibold mb-4">Change Password</h2>
+                <h2 class="text-xl font-semibold mb-4">{{ $t('reset_password.change_password') }}</h2>
 
                 <!-- Current Password -->
-                <InputText v-model="form.currentPassword" type="password" placeholder="Current Password" class="w-full border px-3 py-2 rounded" />
+                <InputText
+                    v-model="form.currentPassword"
+                    type="password"
+                    :placeholder="$t('reset_password.current_password')"
+                    :label="$t('reset_password.current_password')"
+                    name="currentPassword"
+                    id="currentPassword"
+                    required
+                    autocomplete="current-password"
+                    placeholder=""
+                    class="w-full border px-3 py-2 rounded"
+                />
 
                 <!-- New Password -->
-                <InputText v-model="form.newPassword" type="password" placeholder="New Password" class="w-full border px-3 py-2 rounded" />
+                <InputText
+                    v-model="form.newPassword"
+                    type="password"
+                    :placeholder="$t('reset_password.new_password')"
+                    :label="$t('reset_password.new_password')"
+                    name="newPassword"
+                    id="newPassword"
+                    required
+                    autocomplete="new-password"
+                    class="w-full border px-3 py-2 rounded"
+                />
 
                 <!-- Confirm Password -->
-                <InputText v-model="form.confirmPassword" type="password" placeholder="Confirm New Password" class="w-full border px-3 py-2 rounded" />
+                <InputText
+                    v-model="form.confirmPassword"
+                    type="password"
+                    :placeholder="$t('reset_password.confirm_password')"
+                    :label="$t('reset_password.confirm_password')"
+                    name="confirmPassword"
+                    id="confirmPassword"
+                    required
+                    autocomplete="Confirm New Password"
+                    class="w-full border px-3 py-2 rounded"
+                />
 
                 <!-- Submit Button -->
                 <Button type="submit" class="bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 rounded w-full" :disabled="loading">
-                    {{ loading ? 'Updating...' : 'Change Password' }}
+                    {{ loading ? $t('reset_password.updating') : $t('reset_password.change_password') }}
                 </Button>
 
                 <!-- Success & Error Messages -->

@@ -247,12 +247,137 @@
         "select_department": "Select Department",
         "work_day": "Work Day"
     },
+    "teacher_attendance": {
+        "title": "Teacher Attendance",
+        "date": "Date",
+        "status": "Status",
+        "present": "Present",
+        "absent": "Absent",
+        "late": "Late",
+        "permission": "Permission",
+        "note": "Note",
+        "entry_time": "Entry Time",
+        "exit_time": "Exit Time",
+        "optional_note": "Optional Note",
+        "submit_attendance": "Submit Attendance",
+        "submitting": "Submitting...",
+        "attendance_submitted": "Attendance submitted successfully.",
+        "attendance_failed": "Attendance submission failed.",
+        "select_position": "Select Position",
+        "select_department": "Select Department",
+        "un_checked": "Unchecked"
+    },
+    "teacher_permission": {
+        "title": "Teacher Permissions",
+        "teacher": "Teacher",
+        "createdat": "Email",
+        "reason": "Reason",
+        "select_date": "Select Date",
+        "select_approve_by": "Select Approver",
+        "optional_note": "Optional Note",
+        "note": "Note",
+        "holder_date": "Hold Date",
+        "status": "Status"
+    },
+    "department": {
+        "title": "Department List",
+        "name": "Name",
+        "namePlaceholder": "Department Name",
+        "noData": "No department data available."
+    },
+    "position": {
+        "title": "Position List",
+        "name": "Name",
+        "namePlaceholder": "Position Name",
+        "noData": "No position data available."
+    },
     "session": {
         "title": "Session List",
         "duration": "Duration",
         "start_time": "Start Time",
         "end_time": "End Time",
         "enter_time": "Enter Time"
+    },
+    "book": {
+        "title": "Book List",
+        "name": "Book Name",
+        "quantity": "Quantity",
+        "noData": "No book data available.",
+        "type": "Type",
+        "select_type": "Select Type",
+        "price": "Price",
+        "bookType": "Book Type",
+        "book_categories": "Book Categories"
+    },
+    "book_category": {
+        "title": "Book Category",
+        "name": "Category Name",
+        "enter_category_name": "Enter Category Name"
+    },
+    "student_payment": {
+        "title": "Student Payments",
+        "filter_by_student": "Filter by Student",
+        "filter_by_class": "Filter by Class",
+        "payment_date": "Payment Date",
+        "next_payment_date": "Next Payment Date",
+        "payment_type": "Payment Type",
+        "course_price": "Course Price",
+        "discount": "Discount",
+        "final_price": "Final Price",
+        "save_and_generate_invoice": "Save and Generate Invoice",
+        "generate_invoice": "Generate Invoice",
+        "confirm_mark_completed": "Are you sure you want to mark this payment as completed?",
+        "info_mark_completed": "This will create a final payment report and take you to the print page.",
+        "are_you_sure": "Are you sure you want to mark this payment as completed [can not restore] ?"
+    },
+    "student_payment_transaction": {
+        "title": "Student Payment Transaction",
+        "student_name": "Student Name",
+        "class": "Class",
+        "payment_date": "Payment Date",
+        "payment_type": "Payment Type",
+        "amount": "Amount",
+        "status": "Status",
+        "discount": "Discount",
+        "final_price": "Final Price",
+        "payment_method": "Payment Method",
+        "first_payment": "First Payment",
+        "next_payment": "Next Payment",
+        "noData": "No payment transaction data available.",
+        "return_invoice": "Return Invoice",
+        "are_you_sure_return": "Are you sure you want to return this invoice?"
+    },
+    "book_payment": {
+        "title": "Book Payment",
+        "book_name": "Book Name",
+        "quantity": "Quantity",
+        "price": "Price",
+        "total_amount": "Total Amount",
+        "payment_date": "Payment Date",
+        "payment_method": "Payment Method",
+        "book_amount": "Book Amount",
+        "total_price": "Total Price",
+        "filter_by_book": "Filter by Book",
+        "filter_by_student": "Filter by Student",
+        "student_name": "Student Name",
+        "noData": "No book payment transaction data available."
+    },
+    "book_payment_transaction": {
+        "title": "Book Payment Transaction",
+        "student_name": "Student Name",
+        "book_name": "Book Name",
+        "quantity": "Quantity",
+        "price": "Price",
+        "total_amount": "Total Amount",
+        "payment_date": "Payment Date",
+        "payment_method": "Payment Method",
+        "noData": "No book payment transaction data available.",
+        "return_invoice": "Return Invoice",
+        "are_you_sure_return": "Are you sure you want to return this invoice?",
+        "regenerate_invoice": "Regenerate Invoice",
+        "are_you_sure_regenerate": "Are you sure you want to regenerate this invoice?",
+        "this_will_return": "This will return this invoice",
+        "to_the_inventory": "to the inventory"
     },
     "subject": {
         "title": "Subject List",
@@ -274,6 +399,20 @@
         "name": "Name",
         "message": "Message",
         "From": "From"
+    },
+    "discount": {
+        "title": "Discount List",
+        "name": "Name",
+        "amount": "Amount"
+    },
+    "holiday": {
+        "title": "Holiday List",
+        "name": "Year",
+        "date": "Date",
+        "description": "Description",
+        "noData": "No holiday data available.",
+        "addnew": "បន្ថែមថ្ងៃឈប់សម្រាក",
+        "edit": "កែប្រែថ្ងៃឈប់សម្រាក"
     },
     "element": {
         "noData": "No data available.",
@@ -301,7 +440,23 @@
         "active": "Active",
         "inactive": "Inactive",
         "note": "Note",
-        "clear": "Clear"
+        "clear": "Clear",
+        "currency": "Currency",
+        "description": "Description"
+    },
+    "reset_password": {
+        "current_password": "Current Password",
+        "new_password": "New Password",
+        "confirm_password": "Confirm Password",
+        "change_password": "Change Password"
+    },
+    "user": {
+        "title": "User List",
+        "name": "Name",
+        "email": "Email",
+        "permissions": "Permissions",
+        "role": "Role",
+        "Update_Profile_Picture": "Update Profile Picture"
     },
     "toast": {
         "create": "Create Success",

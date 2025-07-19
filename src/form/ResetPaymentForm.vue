@@ -2,21 +2,21 @@
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Complete Payment & Print</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('student_payment.save_and_generate_invoice') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <div class="px-4 py-5 space-y-5 text-start">
             <div>
-                <label for="date" class="block text-sm font-medium text-gray-700 mb-2 text-start"> Are you sure you want to mark this payment as completed? </label>
-                <p class="text-sm text-gray-500">This will create a final payment report and take you to the print page.</p>
+                <label for="date" class="block text-sm font-medium text-gray-700 mb-2 text-start"> {{ $t('student_payment.confirm_mark_completed') }} </label>
+                <p class="text-sm text-gray-500">{{ $t('student_payment.info_mark_completed') }}</p>
             </div>
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-2 p-4 bg-gray-50 border-t">
-            <Button label="Cancel" @click="$emit('close')" severity="secondary" outlined />
-            <Button :label="isSubmitting ? 'Processing...' : 'Print'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>

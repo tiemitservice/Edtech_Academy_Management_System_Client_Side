@@ -2,67 +2,67 @@
     <form @submit.prevent="handleSubmit" class="w-[520px] bg-white rounded-lg shadow-md overflow-hidden text-start">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? 'Edit Invoice' : 'Generate Student Invoice' }}</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <div class="p-5 grid grid-cols-2 gap-4">
             <!-- Student Select -->
             <div class="flex flex-col space-y-1 w-full">
-                <label for="student" class="font-medium">Student <span class="text-red-500">*</span></label>
+                <label for="student" class="font-medium">{{ $t('student.name') }} <span class="text-red-500">*</span></label>
                 <Select id="student" v-model="formState.student_id" :options="students" filter optionLabel="eng_name" optionValue="_id" placeholder="Select a student" class="w-full" />
                 <small v-if="errors.student_id" class="text-red-500">{{ errors.student_id }}</small>
             </div>
 
             <!-- Class Select -->
             <div class="flex flex-col space-y-1 w-full">
-                <label for="class" class="font-medium">Class <span class="text-red-500">*</span></label>
+                <label for="class" class="font-medium">{{ $t('class_history.class_name') }} <span class="text-red-500">*</span></label>
                 <Select id="class" v-model="formState.course_id" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="Select a class" class="w-full" />
                 <small v-if="errors.course_id" class="text-red-500">{{ errors.course_id }}</small>
             </div>
 
             <!-- Price -->
             <div class="flex flex-col space-y-1 w-full">
-                <label for="price" class="font-medium">Course Price ($) <span class="text-red-500">*</span></label>
+                <label for="price" class="font-medium">{{ $t('student_payment.course_price') }} ($) <span class="text-red-500">*</span></label>
                 <InputNumber id="price" v-model="formState.amount" placeholder="Enter price" class="w-full" mode="currency" currency="USD" locale="en-US" />
                 <small v-if="errors.amount" class="text-red-500">{{ errors.amount }}</small>
             </div>
 
             <!-- Discount -->
             <div class="flex flex-col space-y-1 w-full">
-                <label for="discount" class="font-medium">Discount (%)</label>
+                <label for="discount" class="font-medium">{{ $t('student_payment.discount') }} (%)</label>
                 <Select id="discount" v-model="formState.discount" :options="discounts" filter optionLabel="name" optionValue="discount" placeholder="Select discount" class="w-full" showClear />
             </div>
 
             <!-- Final Price (Read-only) -->
             <div class="flex flex-col space-y-1 w-full">
-                <label class="font-medium">Final Price</label>
+                <label class="font-medium">{{ $t('student_payment.final_price') }}</label>
                 <InputNumber :modelValue="finalPrice" class="w-full bg-gray-100" readonly mode="currency" currency="USD" locale="en-US" />
             </div>
 
             <!-- Payment Type -->
             <div class="flex flex-col space-y-1 w-full">
-                <label for="payment_type" class="font-medium">Payment Type</label>
+                <label for="payment_type" class="font-medium">{{ $t('student_payment.payment_type') }}</label>
                 <Select id="payment_type" v-model="formState.payment_type" :options="paymentTypes" optionLabel="name" optionValue="value" placeholder="Select payment type" class="w-full" showClear />
             </div>
 
             <!-- First Payment Date -->
             <div class="flex flex-col space-y-1 w-full">
-                <label for="first_payment_date" class="font-medium">First Payment Date</label>
+                <label for="first_payment_date" class="font-medium"> {{ $t('student_payment.payment_date') }}</label>
                 <Calendar id="first_payment_date" v-model="formState.first_payment_date" dateFormat="yy-mm-dd" showIcon class="w-full" />
             </div>
 
             <!-- Next Payment Date (Read-only) -->
             <div v-if="nextPaymentDate" class="flex flex-col space-y-1 w-full">
-                <label class="font-medium">Next Payment Date</label>
+                <label class="font-medium">{{ $t('student_payment.next_payment_date') }}</label>
                 <InputText :value="nextPaymentDate" class="w-full bg-gray-100" disabled />
             </div>
         </div>
 
         <!-- Action Buttons -->
-        <div class="w-full flex items-center justify-end mt-4 p-4 border-t bg-gray-50">
-            <Button @click="$emit('close')" label="Cancel" severity="secondary" outlined class="mr-2" />
-            <Button :label="loading ? 'Saving...' : 'Save'" type="submit" :loading="loading" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -166,14 +166,13 @@ const handleSubmit = async () => {
 
         if (props.datatoedit) {
             await Promise.all([updateData(invoicePayload, props.datatoedit._id)]);
-            emit('toast', 'update');
+            emit('toast', 'update', 'success');
             invoiceId = props.datatoedit._id;
-
-            // } else {
-            //     const newInvoiceResponse = await postData(invoicePayload);
-            //     invoiceId = newInvoiceResponse.data?._id;
-            //     await postStudentPaymentReport({ ...reportPayload, invoice_id: invoiceId }); // Optionally link report to invoice
-            //     emit('toast', 'create');
+        } else {
+            const newInvoiceResponse = await postData(invoicePayload);
+            // invoiceId = newInvoiceResponse.data?._id;
+            // await invoicePayload({ ...reportPayload, invoice_id: invoiceId }); // Optionally link report to invoice
+            emit('toast', 'create', 'success');
         }
 
         emit('save');

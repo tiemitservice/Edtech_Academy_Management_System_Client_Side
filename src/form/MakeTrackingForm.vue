@@ -2,20 +2,20 @@
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Complete Payment</label>
+            <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
 
         <div class="px-4 py-5 space-y-5 text-start">
             <div>
-                <label for="date" class="block text-sm font-medium text-gray-700 mb-2 text-start"> Are you sure you want to mark this payment as completed [can not restore] ? </label>
+                <label for="date" class="block text-sm font-medium text-gray-700 mb-2 text-start"> {{ $t('student_payment.are_you_sure') }} </label>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="flex justify-end gap-2 p-4 bg-gray-50 border-t">
-            <Button label="Cancel" @click="$emit('close')" severity="secondary" outlined />
-            <Button :label="isSubmitting ? 'Processing...' : 'Save'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="secondary" outlined />
+            <Button :label="isSubmitting ? $t('element.processing') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>

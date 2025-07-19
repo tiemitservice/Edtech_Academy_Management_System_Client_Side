@@ -1,16 +1,16 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <div v-if="datatoedit" class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Return Invoice [ {{ formatClassName(datatoedit?.course_id) }} - {{ formatStudentName(datatoedit?.student_id) }} ]</label>
+            <label class="text-base font-semibold text-gray-800">{{ $t('student_payment_transaction.return_invoice') }} [ {{ formatClassName(datatoedit?.course_id) }} - {{ formatStudentName(datatoedit?.student_id) }} ]</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
         </div>
         <div class="p-4">
-            <p class="text-start">Are you sure you want to mark this invoice as pending to regenerate it?</p>
+            <p class="text-start">{{ $t('student_payment_transaction.are_you_sure_return') }}</p>
         </div>
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-2 p-4">
-            <Button label="Cancel" @click="$emit('close')" severity="danger" outlined />
-            <Button :label="isSubmitting ? 'Processing...' : 'Save'" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+        <div class="flex justify-end border-t gap-2 p-4">
+            <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
+            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
         </div>
     </form>
 </template>
@@ -68,8 +68,7 @@ const handleSubmit = async () => {
         // 4. Navigate to the printable invoice page on success
 
         emit('close');
-        emit('toast', 'update');
-        emit('save'); // Notify parent to refresh data
+        emit('toast', 'update', 'success');
     } catch (error) {
         console.error('Error processing payment:', error);
         emit('toast', 'error', 'Failed to process payment.');
