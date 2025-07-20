@@ -1,7 +1,9 @@
 <template>
     <section class="px-4 mx-auto">
         <!-- <p class="mt-1 text-lg text-gray-800">Staff list</p> -->
-
+        <!-- <pre>
+            {{ data }}
+        </pre> -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
             <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('session.title') }}</label>
 

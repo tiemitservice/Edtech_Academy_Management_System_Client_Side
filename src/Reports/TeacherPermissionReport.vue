@@ -2,13 +2,13 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Teacher Permission Reports</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('teacher_permission_report.title') }}</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.teacherId" :options="teachers" filter optionLabel="name" optionValue="_id" placeholder="Filter by Teacher" showClear class="min-w-[180px]" />
-                <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" placeholder="Filter by Date" class="min-w-[220px]" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
+                <Select v-model="filters.teacherId" :options="teachers" filter optionLabel="name" optionValue="_id" :placeholder="$t('teacher_permission_report.filter_by_teacher')" showClear class="min-w-[180px]" />
+                <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" :placeholder="$t('teacher_permission_report.filter_by_date')" class="min-w-[220px]" />
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
 
@@ -17,36 +17,36 @@
             <div class="overflow-x-auto">
                 <div v-if="filteredReports.length > 0" class="py-2 bg-white p-4 rounded-lg shadow-md">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold">Report Results</h3>
+                        <h3 class="text-lg font-semibold">{{ $t('teacher_permission_report.report_results') }}</h3>
                         <div>
-                            <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
-                            <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
+                            <Button icon="pi pi-print" class="mr-2" @click="printReport" :aria-label="$t('student_promotion_report.print_report')" />
+                            <Button icon="pi pi-file-excel" @click="exportReportToExcel" :aria-label="$t('student_promotion_report.export_excel')" />
                         </div>
                     </div>
                     <DataTable :value="filteredReports" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
-                        <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
-                        <Column field="createdAt" header="Report Date" sortable>
+                        <Column field="displayIndex" :header="$t('element.num')" sortable style="min-width: 80px"></Column>
+                        <Column field="createdAt" :header="$t('teacher_permission_report.report_date')" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>
-                        <Column field="teacher_id" header="Teacher" sortable>
+                        <Column field="teacher_id" :header="$t('teacher_permission_report.teacher')" sortable>
                             <template #body="{ data }">{{ formatTeacherName(data.teacher_id) }}</template>
                         </Column>
-                        <Column field="reason" header="Reason" sortable></Column>
-                        <Column field="hold_date" header="Leave Dates" sortable>
+                        <Column field="reason" :header="$t('teacher_permission_report.reason')" sortable></Column>
+                        <Column field="hold_date" :header="$t('teacher_permission_report.leave_dates')" sortable>
                             <template #body="{ data }">
                                 <p v-if="Array.isArray(data.hold_date)">{{ data.hold_date.join(' to ') }}</p>
                             </template>
                         </Column>
-                        <Column field="permission_status" class="capitalize" header="Status" sortable>
+                        <Column field="permission_status" class="capitalize" :header="$t('teacher_permission_report.status')" sortable>
                             <template #body="{ data }">
-                                <Tag :severity="getStatusSeverity(data.permission_status)" :value="data.permission_status"></Tag>
+                                <Tag :severity="getStatusSeverity(data.permission_status)" :value="$t(`staff_permission.${data.permission_status.toLowerCase()}`)"></Tag>
                             </template>
                         </Column>
-                        <Column field="note" header="Note"></Column>
+                        <Column field="note" :header="$t('teacher_permission_report.note')"></Column>
                     </DataTable>
                 </div>
                 <div v-else>
-                    <NotFound message="No teacher permission reports found for the selected criteria." />
+                    <NotFound :message="$t('teacher_permission_report.no_reports_found')" />
                 </div>
             </div>
         </div>
@@ -55,7 +55,6 @@
         </div>
     </section>
 </template>
-
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useFetch } from '../composible/useFetch';

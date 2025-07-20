@@ -2,13 +2,13 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Teacher Attendance Reports</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('teacher_attendance_report.title') }}</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.teacherId" :options="teachers" filter optionLabel="en_name" optionValue="_id" placeholder="Filter by Teacher" showClear class="min-w-[180px]" />
-                <Calendar v-model="filters.dateRange" selectionMode="range" showIcon dateFormat="yy-mm-dd" placeholder="Filter by Date Range" class="min-w-[220px]" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
+                <Select v-model="filters.teacherId" :options="teachers" filter optionLabel="en_name" optionValue="_id" :placeholder="$t('teacher_attendance_report.filter_by_teacher')" showClear class="min-w-[180px]" />
+                <Calendar v-model="filters.dateRange" selectionMode="range" showIcon dateFormat="yy-mm-dd" :placeholder="$t('teacher_attendance_report.filter_by_date_range')" class="min-w-[220px]" />
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
 
@@ -17,32 +17,32 @@
             <div class="overflow-x-auto">
                 <div v-if="filteredReports.length > 0" class="py-2 bg-white p-4 rounded-lg shadow-md">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold">Report Results</h3>
+                        <h3 class="text-lg font-semibold">{{ $t('teacher_attendance_report.report_results') }}</h3>
                         <div>
-                            <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
-                            <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
+                            <Button icon="pi pi-print" class="mr-2" @click="printReport" :aria-label="$t('student_promotion_report.print_report')" />
+                            <Button icon="pi pi-file-excel" @click="exportReportToExcel" :aria-label="$t('student_promotion_report.export_excel')" />
                         </div>
                     </div>
                     <DataTable :value="filteredReports" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
-                        <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
-                        <Column field="checking_at" header="Date" sortable>
+                        <Column field="displayIndex" :header="$t('element.num')" sortable style="min-width: 80px"></Column>
+                        <Column field="checking_at" :header="$t('teacher_attendance_report.date')" sortable>
                             <template #body="{ data }">{{ formatDate(data.checking_at) }}</template>
                         </Column>
-                        <Column field="teacher_id" header="Teacher" sortable>
+                        <Column field="teacher_id" :header="$t('teacher_attendance_report.teacher')" sortable>
                             <template #body="{ data }">{{ formatTeacherName(data.teacher_id) }}</template>
                         </Column>
-                        <Column field="entry_time" header="Entry Time" sortable></Column>
-                        <Column field="exit_time" header="Exit Time" sortable></Column>
-                        <Column field="attendance_status" class="capitalize" header="Attendance" sortable>
+                        <Column field="entry_time" :header="$t('teacher_attendance_report.entry_time')" sortable></Column>
+                        <Column field="exit_time" :header="$t('teacher_attendance_report.exit_time')" sortable></Column>
+                        <Column field="attendance_status" class="capitalize" :header="$t('teacher_attendance_report.attendance')" sortable>
                             <template #body="{ data }">
-                                <Tag :severity="getAttendanceSeverity(data.attendance_status)" :value="data.attendance_status || 'Un-check'"></Tag>
+                                <Tag :severity="getAttendanceSeverity(data.attendance_status)" :value="data.attendance_status ? $t(`teacher_attendance.${data.attendance_status.toLowerCase()}`) : $t('teacher_attendance.un_checked')"></Tag>
                             </template>
                         </Column>
-                        <Column field="note" header="Note"></Column>
+                        <Column field="note" :header="$t('teacher_attendance_report.note')"></Column>
                     </DataTable>
                 </div>
                 <div v-else>
-                    <NotFound message="No teacher attendance reports found for the selected period." />
+                    <NotFound :message="$t('teacher_attendance_report.no_reports_found')" />
                 </div>
             </div>
         </div>

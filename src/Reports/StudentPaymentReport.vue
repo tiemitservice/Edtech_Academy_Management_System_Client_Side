@@ -2,14 +2,14 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Payment Reports</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_payment_report.title') }}</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
                 <Select v-model="filters.period" :options="periodOptions" optionLabel="label" optionValue="value" class="min-w-[180px]" />
-                <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" placeholder="Filter by Student" showClear class="min-w-[180px]" />
-                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" placeholder="Filter by Class" showClear class="min-w-[180px]" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
+                <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" :placeholder="$t('student_payment_report.filter_by_student')" showClear class="min-w-[180px]" />
+                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" :placeholder="$t('student_payment_report.filter_by_class')" showClear class="min-w-[180px]" />
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
 
@@ -18,36 +18,36 @@
             <div class="overflow-x-auto">
                 <div v-if="filteredReports.length > 0" class="py-2 bg-white p-4 rounded-lg shadow-md">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold">Report Results</h3>
+                        <h3 class="text-lg font-semibold">{{ $t('student_payment_report.report_results') }}</h3>
                         <div>
-                            <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
-                            <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
+                            <Button icon="pi pi-print" class="mr-2" @click="printReport" :aria-label="$t('student_payment_report.print_report')" />
+                            <Button icon="pi pi-file-excel" @click="exportReportToExcel" :aria-label="$t('student_payment_report.export_excel')" />
                         </div>
                     </div>
                     <DataTable :value="filteredReports" :paginator="true" :rows="50" :rowsPerPageOptions="[50, 100, 250]">
-                        <Column field="displayIndex" header="No." sortable style="min-width: 80px"></Column>
-                        <Column field="createdAt" header="Date" sortable>
+                        <Column field="displayIndex" :header="$t('element.num')" sortable style="min-width: 80px"></Column>
+                        <Column field="createdAt" :header="$t('student_payment_report.date')" sortable>
                             <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
                         </Column>
-                        <Column field="student_id" header="Student" sortable>
+                        <Column field="student_id" :header="$t('student_payment_report.student')" sortable>
                             <template #body="{ data }">{{ formatStudentName(data.student_id) }}</template>
                         </Column>
-                        <Column field="course_id" header="Class" sortable>
+                        <Column field="course_id" :header="$t('student_payment_report.class')" sortable>
                             <template #body="{ data }">{{ formatClassName(data.course_id) }}</template>
                         </Column>
-                        <Column field="amount" header="Price" sortable>
+                        <Column field="amount" :header="$t('student_payment_report.price')" sortable>
                             <template #body="{ data }">${{ data.amount?.toFixed(2) }}</template>
                         </Column>
-                        <Column field="discount" header="Discount (%)" sortable>
+                        <Column field="discount" :header="$t('student_payment_report.discount')" sortable>
                             <template #body="{ data }">{{ data.discount }}%</template>
                         </Column>
-                        <Column field="final_price" header="Final Price" sortable>
+                        <Column field="final_price" :header="$t('student_payment_report.final_price')" sortable>
                             <template #body="{ data }">${{ data.final_price?.toFixed(2) }}</template>
                         </Column>
                     </DataTable>
                 </div>
                 <div v-else>
-                    <NotFound message="No student payment reports found for the selected period." />
+                    <NotFound :message="$t('student_payment_report.no_reports_found')" />
                 </div>
             </div>
         </div>

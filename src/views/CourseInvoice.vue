@@ -3,11 +3,9 @@
     <div class="flex flex-col min-h-screen items-center bg-gray-100 dark:bg-gray-900">
         <!-- This container holds the buttons and will be hidden during printing -->
         <div class="flex w-[820px] items-center justify-between mx-auto py-4 hidden-print">
-            <div>
-                <Button icon="pi pi-arrow-left" @click="router.go(-1)"></Button>
-            </div>
-            <div>
-                <Button icon="pi pi-print" @click="handlePrint"></Button>
+            <div class="flex justify-end gap-2 mb-4 hidden-print">
+                <Button icon="pi pi-arrow-left" @click="router.back()" :label="$t('element.back')" outlined />
+                <Button icon="pi pi-print" @click="handlePrint" :label="$t('element.print_invoice')" />
             </div>
         </div>
 
@@ -103,7 +101,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useFetch } from '@/composible/useFetch';
 import { formatDateParts, calculateAge } from '@/composible/formatDate';
@@ -137,7 +135,8 @@ const classDetails = computed(() => {
 });
 
 // --- Methods ---
-const handlePrint = () => {
+const handlePrint = async () => {
+    await nextTick(); // ensure DOM is fully rendered
     window.print();
 };
 
@@ -173,36 +172,45 @@ onMounted(async () => {
 <style>
 /* Styles for the print layout */
 @media print {
-    /* Hide elements that should not be printed */
-    .hidden-print {
+    /* Hide non-print elements */
+    .hidden-print,
+    .hidden-print * {
         display: none !important;
     }
 
-    /* Reset body styles for printing */
-    body {
-        background-color: #fff;
-        margin: 0;
-        padding: 0;
+    /* Force only the .print-page to show */
+    body * {
+        visibility: hidden;
     }
 
-    /* Define the A5 page size and layout */
+    .print-page,
+    .print-page * {
+        visibility: visible;
+    }
+
     .print-page {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 148mm;
         height: 210mm;
-        margin: 0 auto; /* Center the page */
-        padding: 10mm; /* Add some padding */
-        border: none;
+        padding: 10mm;
+        margin: 0 auto;
         box-shadow: none;
-        overflow: hidden; /* Hide any overflowing content */
-        page-break-after: always; /* Ensure each .print-page is on a new sheet */
+        border: none;
+        background-color: white !important;
+        page-break-after: always;
     }
 
-    /* Ensure the main app container doesn't interfere */
-    #app,
-    .flex.flex-col.min-h-screen {
-        padding: 0;
+    @page {
+        size: A5;
+        margin: 10mm;
+    }
+
+    body {
         margin: 0;
-        background-color: transparent;
+        padding: 0;
+        background: white;
     }
 }
 </style>

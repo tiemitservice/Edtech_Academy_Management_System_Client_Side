@@ -2,14 +2,14 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Score Reports</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_score_report.title') }}</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.year" :options="academicYears" placeholder="* Select a Year" class="min-w-[200px]" />
-                <Select v-model="filters.durationId" :options="durations" optionLabel="duration" optionValue="_id" placeholder="* Select a Duration" class="min-w-[200px]" />
-                <Select v-model="filters.classId" :options="filteredClasses" :disabled="!filters.durationId" optionLabel="name" optionValue="_id" placeholder="* Select a Class" class="min-w-[200px]" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
+                <Select v-model="filters.year" :options="academicYears" :placeholder="`* ${$t('student_score_report.select_year')}`" class="min-w-[200px]" />
+                <Select v-model="filters.durationId" :options="durations" optionLabel="duration" optionValue="_id" :placeholder="`* ${$t('student_score_report.select_duration')}`" class="min-w-[200px]" />
+                <Select v-model="filters.classId" :options="filteredClasses" :disabled="!filters.durationId" optionLabel="name" optionValue="_id" :placeholder="`* ${$t('student_score_report.select_class')}`" class="min-w-[200px]" />
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" :disabled="!filters.classId" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
 
@@ -17,7 +17,7 @@
         <div v-if="!loading">
             <!-- Initial Prompt -->
             <div v-if="!selectedReport && !searched" class="text-center p-8 bg-white rounded-lg shadow-md">
-                <p class="text-gray-500">Please select a year, duration, and class to view the score report.</p>
+                <p class="text-gray-500">{{ $t('student_score_report.initial_prompt') }}</p>
             </div>
 
             <!-- Report Details and Table -->
@@ -25,43 +25,43 @@
                 <div class="flex justify-between items-center mb-4 border-b pb-4">
                     <div>
                         <h3 class="text-xl font-bold text-primary">{{ formatClassName(selectedReport.class_id) }}</h3>
-                        <p class="text-sm text-gray-600">Subject: {{ formatSubjectName(selectedReport.subject) }} | Report Date: {{ formatDate(selectedReport.createdAt) }}</p>
+                        <p class="text-sm text-gray-600">{{ $t('student_score_report.subject') }}: {{ formatSubjectName(selectedReport.subject) }} | {{ $t('student_score_report.report_date') }}: {{ formatDate(selectedReport.createdAt) }}</p>
                     </div>
                     <div>
-                        <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Full Class Report" v-tooltip.top="'Print Full Class Report'" />
-                        <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" v-tooltip.top="'Export to Excel'" />
+                        <Button icon="pi pi-print" class="mr-2" @click="printReport" :aria-label="$t('student_score_report.print_full_report')" v-tooltip.top="$t('student_score_report.print_full_report')" />
+                        <Button icon="pi pi-file-excel" @click="exportReportToExcel" :aria-label="$t('student_score_report.export_excel')" v-tooltip.top="$t('student_score_report.export_excel')" />
                     </div>
                 </div>
                 <DataTable :value="selectedReport.students" showGridlines striped-rows responsiveLayout="scroll" size="large" class="text-nowrap">
                     <!-- Row Number -->
-                    <Column header="No">
+                    <Column :header="$t('element.num')">
                         <template #body="slotProps">
                             {{ slotProps.index + 1 }}
                         </template>
                     </Column>
 
                     <!-- Student Name -->
-                    <Column header="Student Name">
+                    <Column :header="$t('student_score_report.student_name')">
                         <template #body="{ data }">
                             {{ formatStudentName(data.student) }}
                         </template>
                     </Column>
 
                     <!-- Scores -->
-                    <Column field="attendance_score" header="Attendance" />
-                    <Column field="class_practice" header="Practice" />
-                    <Column field="home_work" header="Homework" />
-                    <Column field="assignment_score" header="Assignment" />
-                    <Column field="presentation" header="Presentation" />
-                    <Column field="work_book" header="Workbook" />
-                    <Column field="revision_test" header="Revision" />
-                    <Column field="final_exam" header="Final Exam" />
-                    <Column field="total_score" header="Total" style="font-weight: bold" />
+                    <Column field="attendance_score" :header="$t('student_score_report.attendance_score')" />
+                    <Column field="class_practice" :header="$t('student_score_report.practice')" />
+                    <Column field="home_work" :header="$t('student_score_report.home_work')" />
+                    <Column field="assignment_score" :header="$t('student_score_report.assigment_score')" />
+                    <Column field="presentation" :header="$t('student_score_report.prentation')" />
+                    <Column field="work_book" :header="$t('student_score_report.work_book')" />
+                    <Column field="revision_test" :header="$t('student_score_report.revision')" />
+                    <Column field="final_exam" :header="$t('student_score_report.final_exam')" />
+                    <Column field="total_score" :header="$t('student_score_report.total')" style="font-weight: bold" />
 
                     <!-- Action Buttons -->
-                    <Column header="Actions" style="width: 8rem; text-align: center">
+                    <Column :header="$t('element.action')" style="width: 8rem; text-align: center">
                         <template #body="{ data }">
-                            <Button icon="pi pi-print" class="p-button-rounded" @click="printStudentReport(data)" v-tooltip.top="'Print Student Report'" />
+                            <Button icon="pi pi-print" class="p-button-rounded" @click="printStudentReport(data)" v-tooltip.top="$t('student_score_report.print_student_report')" />
                         </template>
                     </Column>
                 </DataTable>
@@ -69,7 +69,7 @@
 
             <!-- No reports found message -->
             <div v-else-if="searched">
-                <NotFound :message="`No score reports found for the selected criteria.`" />
+                <NotFound :message="$t('student_score_report.no_reports_found')" />
             </div>
         </div>
         <div v-else>

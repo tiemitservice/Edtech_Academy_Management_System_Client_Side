@@ -2,13 +2,13 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">Student Promotion Reports</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_promotion_report.title') }}</label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
-                <Select v-model="filters.year" :options="academicYears" placeholder="* Select a Year" class="min-w-[200px]" />
-                <Select v-model="filters.classId" :options="availableFromClasses" :disabled="!filters.year" filter optionLabel="name" optionValue="_id" placeholder="* Select From Class" class="min-w-[200px]" />
-                <Button @click="applyFilters" label="Apply Filter" icon="pi pi-filter" :disabled="!filters.classId" />
-                <Button v-if="isFilterActive" @click="clearFilters" label="Clear" icon="pi pi-times" class="p-button-secondary" />
+                <Select v-model="filters.year" :options="academicYears" :placeholder="$t('student_promotion_report.select_year')" class="min-w-[200px]" />
+                <Select v-model="filters.classId" :options="availableFromClasses" :disabled="!filters.year" filter optionLabel="name" optionValue="_id" :placeholder="$t('student_promotion_report.select_from_class')" class="min-w-[200px]" />
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" :disabled="!filters.classId" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
 
@@ -16,26 +16,28 @@
         <div v-if="!loading">
             <!-- Initial Prompt -->
             <div v-if="!selectedReport && !searched" class="text-center p-8 bg-white rounded-lg shadow-md">
-                <p class="text-gray-500">Please select a year and class, then apply filters to view the promotion report.</p>
+                <p class="text-gray-500">{{ $t('student_promotion_report.initial_prompt') }}</p>
             </div>
 
             <!-- Report Details and Table -->
             <div v-else-if="selectedReport" class="py-2 bg-white p-4 rounded-lg shadow-md">
                 <div class="flex justify-between items-center mb-4 border-b pb-4">
                     <div>
-                        <h3 class="text-xl font-bold text-primary">Promotion Report: {{ formatClassName(selectedReport.from_class_id) }} <i class="pi pi-arrow-right mx-2"></i> {{ formatClassName(selectedReport.class_id) }}</h3>
-                        <p class="text-sm text-gray-600">Report Date: {{ formatDate(selectedReport.created_at) }}</p>
+                        <h3 class="text-xl font-bold text-primary">
+                            {{ $t('student_promotion_report.report_title') }}: {{ formatClassName(selectedReport.from_class_id) }} <i class="pi pi-arrow-right mx-2"></i> {{ formatClassName(selectedReport.class_id) }}
+                        </h3>
+                        <p class="text-sm text-gray-600">{{ $t('student_promotion_report.report_date') }}: {{ formatDate(selectedReport.created_at) }}</p>
                     </div>
                     <div>
-                        <Button icon="pi pi-print" class="mr-2" @click="printReport" aria-label="Print Report" />
-                        <Button icon="pi pi-file-excel" @click="exportReportToExcel" aria-label="Export to Excel" />
+                        <Button icon="pi pi-print" class="mr-2" @click="printReport" :aria-label="$t('student_promotion_report.print_report')" />
+                        <Button icon="pi pi-file-excel" @click="exportReportToExcel" :aria-label="$t('student_promotion_report.export_excel')" />
                     </div>
                 </div>
                 <DataTable :value="selectedReport.students" showGridlines responsiveLayout="scroll" size="large" striped-rows class="text-nowrap">
-                    <Column header="No." headerStyle="width: 3rem">
+                    <Column :header="$t('element.num')" headerStyle="width: 3rem">
                         <template #body="slotProps">{{ slotProps.index + 1 }}</template>
                     </Column>
-                    <Column header="Student Name">
+                    <Column :header="$t('student.name')">
                         <template #body="{ data }">{{ formatStudentName(data.student) }}</template>
                     </Column>
                 </DataTable>
@@ -43,7 +45,7 @@
 
             <!-- No reports found message -->
             <div v-else-if="searched">
-                <NotFound :message="`No promotion reports found for '${formatClassName(filters.classId)}' in the selected year.`" />
+                <NotFound :message="$t('student_promotion_report.no_reports_found', { className: formatClassName(filters.classId) })" />
             </div>
         </div>
         <div v-else>
