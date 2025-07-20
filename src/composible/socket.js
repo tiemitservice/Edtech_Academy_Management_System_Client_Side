@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 
 // Only ever import this file ONCE in your app!
-const url = 'http://localhost:5000';
+const url = 'http://188.166.242.109:5000';
 // const url = 'https://edtech-academy-management-system-server.onrender.com';
 const socket = io(url, {
     autoConnect: true, // (default)
