@@ -1,4 +1,4 @@
-const url = 'http://localhost:5000';
+// const url = 'http://localhost:5000';
 
-// const url = 'https://edtech-academy-management-system-server.onrender.com';
+const url = 'http://188.166.242.109:5000';
 export default url;

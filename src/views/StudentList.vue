@@ -1,7 +1,7 @@
 <template>
     <section class="px-4 mx-auto w-full">
         <div class="py-2 flex flex-col md:flex-row justify-between items-center mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
-            <label class="text-lg font-medium text-gray-800 dark:text-white text-nowrap">Students List</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white text-nowrap">{{ $t('student.title') }}</label>
 
             <!-- Left: All filters and search in a row, wrap on small screens -->
             <div class="flex flex-wrap gap-4 items-start justify-end">
