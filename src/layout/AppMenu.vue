@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue'; // Import computed
 import { useI18n } from 'vue-i18n';
 import AppMenuItem from './AppMenuItem.vue';
 import { useUserStore } from '@/store/useUserStore';
@@ -32,7 +32,8 @@ onMounted(async () => {
 });
 const userStore = useUserStore();
 
-const model = ref(
+// Wrap the model definition in a computed property
+const model = computed(() =>
     [
         {
             label: t('menu.home'),
