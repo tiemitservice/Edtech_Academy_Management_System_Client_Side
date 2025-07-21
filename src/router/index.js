@@ -55,6 +55,8 @@ import FeedBack from '@/views/FeedBack.vue';
 import StudentTrackingPayment from '@/views/StudentTrackingPayment.vue';
 import Registration from '@/Registration.vue';
 import ResetPasswordForm from '@/ResetPasswordForm.vue';
+import ForgetPasswordForm from '@/ForgetPasswordForm.vue';
+
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -119,6 +121,7 @@ const router = createRouter({
         },
         // Public pages (no layout)
         { path: '/reset-password/:token', name: 'resetPassword', component: ResetPasswordForm },
+        { path: '/forget-password', name: 'forgetPassword', component: ForgetPasswordForm },
         { path: '/print_invoice/:id', name: 'invoice_invoice', component: CourseInvoice },
         { path: '/book-invoice/:id', name: 'book-invoice', component: BookInvoice },
         { path: '/landing', name: 'landing', component: () => import('@/views/pages/Landing.vue') },
@@ -137,9 +140,11 @@ router.beforeEach((to, from, next) => {
 
     // --- FIX: Check if the path is the reset password route ---
     const isResetPasswordRoute = to.path.startsWith('/reset-password');
+    // --- FIX: Check if the path is the forget password route ---
+    const isForgetPasswordRoute = to.path === '/forget-password';
 
     // An auth token is required if the page is not public AND it's not the reset password route
-    const authRequired = !publicPages.includes(to.path) && !isResetPasswordRoute;
+    const authRequired = !publicPages.includes(to.path) && !isResetPasswordRoute && !isForgetPasswordRoute;
 
     const loggedIn = localStorage.getItem('authToken');
     const userStore = useUserStore();

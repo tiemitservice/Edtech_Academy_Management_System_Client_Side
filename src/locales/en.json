@@ -25,6 +25,19 @@
             "takeAttendance": "Take Attendance"
         }
     },
+    "forgot_password": {
+        "title": "Forgot Your Password?",
+        "subtitle": "No problem. Enter your email address below and we'll send you a link to reset it.",
+        "email_label": "Email Address",
+        "email_placeholder": "you@example.com",
+        "send_link_button": "Send Reset Link",
+        "sending": "Sending...",
+        "success_title": "Check Your Email",
+        "success_detail": "If an account with that email exists, we have sent a password reset link.",
+        "error_title": "Error",
+        "error_detail": "Could not send reset link. Please try again.",
+        "back_to_login": "Back to Login"
+    },
     "reset-password": {
         "title": "កំណត់ពាក្យសម្ងាត់របស់អ្នកឡើងវិញ",
         "subtitle": "បញ្ចូលពាក្យសម្ងាត់ថ្មីសម្រាប់គណនីរបស់អ្នក។",

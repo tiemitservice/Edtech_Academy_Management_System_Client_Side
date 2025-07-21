@@ -24,6 +24,19 @@
             "takeAttendance": "ពិនិត្យវត្តមាន"
         }
     },
+    "forgot_password": {
+        "title": "ភ្លេចពាក្យសម្ងាត់របស់អ្នកមែនទេ?",
+        "subtitle": "គ្មាន​បញ្ហា។ បញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នកខាងក្រោម ហើយយើងនឹងផ្ញើតំណដើម្បីកំណត់វាឡើងវិញ។",
+        "email_label": "អាសយដ្ឋានអ៊ីមែល",
+        "email_placeholder": "you@example.com",
+        "send_link_button": "ផ្ញើតំណកំណត់ឡើងវិញ",
+        "sending": "កំពុង​ផ្ញើ...",
+        "success_title": "ពិនិត្យអ៊ីមែលរបស់អ្នក",
+        "success_detail": "ប្រសិនបើមានគណនីជាមួយអ៊ីមែលនោះ យើងបានផ្ញើតំណកំណត់ពាក្យសម្ងាត់ឡើងវិញហើយ។",
+        "error_title": "កំហុស",
+        "error_detail": "មិនអាចផ្ញើតំណកំណត់ឡើងវិញបានទេ។ សូម​ព្យាយាម​ម្តង​ទៀត។",
+        "back_to_login": "ត្រឡប់ទៅក្រោយ"
+    },
     "reset-password": {
         "title": "Reset Your Password",
         "subtitle": "Enter a new password for your account.",
