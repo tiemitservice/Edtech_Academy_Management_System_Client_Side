@@ -5,8 +5,8 @@ import io from 'socket.io-client';
 import useAuth from './useAuth';
 
 const { user } = useAuth();
-// const API_URL = 'http://localhost:5000';
-const API_URL = 'http://188.166.242.109:5000';
+const API_URL = 'http://localhost:5000';
+// const API_URL = 'http://188.166.242.109:5000';
 
 export function useFetch(collection) {
     const data = ref([]);
