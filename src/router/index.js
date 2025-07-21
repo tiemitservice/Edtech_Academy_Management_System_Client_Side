@@ -138,12 +138,11 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const publicPages = ['/auth/login', '/auth/register', '/landing'];
 
-    // --- FIX: Check if the path is the reset password route ---
+    // Check for public routes that don't require login
     const isResetPasswordRoute = to.path.startsWith('/reset-password');
-    // --- FIX: Check if the path is the forget password route ---
     const isForgetPasswordRoute = to.path === '/forget-password';
 
-    // An auth token is required if the page is not public AND it's not the reset password route
+    // A token is required if the page is not in the public list and not one of the password-related routes
     const authRequired = !publicPages.includes(to.path) && !isResetPasswordRoute && !isForgetPasswordRoute;
 
     const loggedIn = localStorage.getItem('authToken');
