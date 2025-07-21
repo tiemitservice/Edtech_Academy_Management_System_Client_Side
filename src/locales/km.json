@@ -24,6 +24,22 @@
             "takeAttendance": "ពិនិត្យវត្តមាន"
         }
     },
+    "reset-password": {
+        "title": "Reset Your Password",
+        "subtitle": "Enter a new password for your account.",
+        "new_password": "New Password",
+        "new_password_placeholder": "Enter your new password",
+        "confirm_password": "Confirm New Password",
+        "confirm_password_placeholder": "Confirm your new password",
+        "reset_button": "Reset Password",
+        "resettings": "Resetting...",
+        "password_mismatch": "Passwords do not match.",
+        "token_missing": "Reset token is missing or invalid.",
+        "success_title": "Success",
+        "success_detail": "Your password has been reset successfully. You can now log in.",
+        "error_title": "Error",
+        "error_detail": "Failed to reset password. Please try again."
+    },
     "schedule": {
         "title": "កាលវិភាគថ្នាក់",
         "printButton": "បោះពុម្ពកាលវិភាគ",

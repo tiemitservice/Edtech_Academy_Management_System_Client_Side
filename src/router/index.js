@@ -54,7 +54,7 @@ import StudentPermissionReport from '@/Reports/StudentPermissionReport.vue';
 import FeedBack from '@/views/FeedBack.vue';
 import StudentTrackingPayment from '@/views/StudentTrackingPayment.vue';
 import Registration from '@/Registration.vue';
-
+import ResetPasswordForm from '@/ResetPasswordForm.vue';
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -118,6 +118,7 @@ const router = createRouter({
             ]
         },
         // Public pages (no layout)
+        { path: '/reset-password/:token', name: 'resetPassword', component: ResetPasswordForm },
         { path: '/print_invoice/:id', name: 'invoice_invoice', component: CourseInvoice },
         { path: '/book-invoice/:id', name: 'book-invoice', component: BookInvoice },
         { path: '/landing', name: 'landing', component: () => import('@/views/pages/Landing.vue') },
