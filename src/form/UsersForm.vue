@@ -103,9 +103,9 @@ const { t } = useI18n();
 const { postData: createUser, updateData, loading, error } = useFetch('users');
 
 const roles = computed(() => [
-    { name: t('user.admin'), _id: 'admin' },
-    { name: t('user.user'), _id: 'user' },
-    { name: t('user.superadmin'), _id: 'superadmin' }
+    { name: 'admin', _id: 'admin' },
+    { name: 'user', _id: 'user' },
+    { name: 'superadmin', _id: 'superadmin' }
 ]);
 
 const permissionModules = ref([
@@ -153,7 +153,7 @@ const permissionModules = ref([
     { group: 'teacher_report', tKey: 'teacher_permission_report', name: 'Teacher Permission Report', actions: ['read'] },
     // Payment Reports Group
     { group: 'payment_report', tKey: 'student_payment_report', name: 'Student Payment Report', actions: ['read'] },
-    { group: 'payment_report', tKey: 'student_complete_payment_report', name: 'Student Complete Payment Report', actions: ['read'] },
+    // { group: 'payment_report', tKey: 'student_complete_payment_report', name: 'Student Complete Payment Report', actions: ['read'] },
     { group: 'payment_report', tKey: 'book_payment_report', name: 'Book Payment Report', actions: ['read'] },
     { group: 'payment_report', tKey: 'book_stock_history', name: 'Book Stock History', actions: ['read'] },
     // Settings Group

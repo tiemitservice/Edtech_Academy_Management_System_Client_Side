@@ -134,7 +134,13 @@ const router = createRouter({
 // Navigation Guard
 router.beforeEach((to, from, next) => {
     const publicPages = ['/auth/login', '/auth/register', '/landing'];
-    const authRequired = !publicPages.includes(to.path);
+
+    // --- FIX: Check if the path is the reset password route ---
+    const isResetPasswordRoute = to.path.startsWith('/reset-password');
+
+    // An auth token is required if the page is not public AND it's not the reset password route
+    const authRequired = !publicPages.includes(to.path) && !isResetPasswordRoute;
+
     const loggedIn = localStorage.getItem('authToken');
     const userStore = useUserStore();
 
@@ -166,7 +172,7 @@ router.beforeEach((to, from, next) => {
         }
     }
 
-    // For all other cases (public pages or pages without a permission meta field), allow navigation
+    // For all other cases, allow navigation
     next();
 });
 

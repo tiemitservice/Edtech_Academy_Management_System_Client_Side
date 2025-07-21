@@ -73,10 +73,10 @@ const handleResetPassword = async () => {
 
     loading.value = true;
     try {
-        const url = `http://188.166.242.109/api/v1/auth/reset-password/${token.value}`;
+        const url = `http://188.166.242.109:5000/api/reset-password/${token.value}`;
 
         await axios.patch(url, {
-            password: password.value,
+            newPassword: password.value,
             passwordConfirm: confirmPassword.value
         });
 
@@ -98,5 +98,8 @@ const handleResetPassword = async () => {
 onMounted(() => {
     // Extract the token from the URL when the component mounts
     token.value = route.params.token;
+    console.log('====================================');
+    console.log(`Reset Password Token: ${token.value}`);
+    console.log('====================================');
 });
 </script>
