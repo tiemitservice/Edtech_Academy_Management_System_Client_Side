@@ -8,7 +8,7 @@
             <form @submit.prevent="handleForgotPassword" class="space-y-6">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700">{{ $t('forgot_password.email_label') }}</label>
-                    <InputText id="email" v-model="email" type="email" :placeholder="$t('forgot_password.email_placeholder')" class="w-full mt-1" required />
+                    <InputText id="email" v-model="email" type="email" placeholder="Email" class="w-full mt-1" required />
                 </div>
                 <div>
                     <Button type="submit" :label="loading ? $t('forgot_password.sending') : $t('forgot_password.send_link_button')" :loading="loading" class="w-full" />
