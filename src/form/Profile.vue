@@ -28,7 +28,7 @@
                 <!-- Save Button -->
                 <div class="pt-4 space-y-2">
                     <Button @click="handleSubmit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full" :disabled="isUploading">
-                        {{ isUploading ? 'Saving...' : 'Save Changes' }}
+                        {{ isUploading ? $t('element.saving') : $t('element.save') }}
                     </Button>
                     <p v-if="successMessage" class="text-green-600">{{ successMessage }}</p>
                     <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
