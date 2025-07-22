@@ -8,6 +8,7 @@ import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
 import '@/assets/styles.scss';
 import { createPinia } from 'pinia';
+import Tooltip from 'primevue/tooltip';
 import i18n from './i18n';
 const app = createApp(App);
 const pinia = createPinia();
@@ -15,6 +16,7 @@ app.use(pinia); // ✅ Install Pinia first
 
 // ✅ Now it's safe to use the store
 import { useUserStore } from './store/useUserStore';
+app.directive('tooltip', Tooltip); // <-- Register the directive
 const userStore = useUserStore();
 const savedUser = localStorage.getItem('authUser');
 if (savedUser) {

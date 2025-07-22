@@ -14,19 +14,23 @@
                 <h2 class="text-lg font-semibold text-gray-700">{{ $t('schedule.weeklySchedule') }}</h2>
             </div>
 
-            <!-- Day Headers with Dates -->
-            <div class="grid grid-cols-7 gap-2 border-b-2 border-gray-200 pb-2 mb-4">
-                <div v-for="day in daysOfWeek" :key="day.name" class="text-lg text-primary font-bold text-center">
+            <!-- Responsive Day Headers with Dates -->
+            <div class="grid grid-cols-1 md:grid-cols-7 gap-2 border-b-2 border-gray-200 pb-2 mb-4">
+                <div v-for="day in daysOfWeek" :key="day.name" class="text-lg text-primary font-bold text-center py-2 md:py-0">
                     <p>{{ $t(`day_of_week.${day.name.toLowerCase()}`) }}</p>
                     <p class="text-sm text-gray-500 font-normal">{{ day.date }}</p>
                 </div>
             </div>
 
-            <!-- Schedule Content -->
-            <div class="grid grid-cols-7 gap-4 min-h-[70vh]">
-                <div v-for="day in daysOfWeek" :key="day.name" class="flex flex-col gap-4 border-r last:border-r-0 pr-4">
-                    <div v-if="classesByDay(day.name).length > 0">
-                        <div v-for="schedule in classesByDay(day.name)" :key="schedule._id" class="border p-3 rounded-lg bg-primary/5 hover:shadow-lg transition-shadow duration-300 m-3">
+            <!-- Responsive Schedule Content -->
+            <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 xl:grid-cols-7 gap-4 md:min-h-[70vh]">
+                <div v-for="day in daysOfWeek" :key="day.name" class="flex flex-col gap-4 md:border-r last:border-r-0 md:pr-4 border-b md:border-b-0 pb-4 md:pb-0 mb-4 md:mb-0">
+                    <!-- This header is only visible on mobile to show which day's classes are being listed -->
+                    <div class="md:hidden text-lg text-primary font-bold text-center bg-gray-50 py-2 rounded-md -mt-4">
+                        <p>{{ $t(`day_of_week.${day.name.toLowerCase()}`) }} - {{ day.date }}</p>
+                    </div>
+                    <div v-if="classesByDay(day.name).length > 0" class="">
+                        <div v-for="schedule in classesByDay(day.name)" :key="schedule._id" class="border p-3 rounded-lg bg-primary/5 hover:shadow-lg transition-shadow duration-300 m-3 md:m-3">
                             <p class="font-bold text-primary text-sm">{{ schedule.name }}</p>
                             <p class="text-xs text-gray-600 font-semibold">{{ formatSectionTime(schedule.duration) }}</p>
                             <div class="mt-2 pt-2 border-t text-xs space-y-1">
@@ -90,18 +94,19 @@ const classesByDay = (dayName) => {
     return scheduleList.value
         .filter((schedule) => {
             const isCorrectDay = schedule?.day_class?.includes(dayName);
-            const isActive = schedule?.mark_as_completed !== false;
+            const isActive = schedule?.mark_as_completed === true; // Corrected logic to check for active classes
 
             if (!isCorrectDay || !isActive) {
                 return false;
             }
 
+            // Check if the class falls on a holiday
             if (schedule.holiday) {
                 const holidaySchedule = holidays.value.find((h) => h._id === schedule.holiday);
                 if (holidaySchedule && Array.isArray(holidaySchedule.holidays)) {
                     const isHolidayForThisDay = holidaySchedule.holidays.some((holidayDate) => dateForDay.isSame(moment(holidayDate), 'day'));
                     if (isHolidayForThisDay) {
-                        return false;
+                        return false; // Do not show class if it's a holiday
                     }
                 }
             }
@@ -118,8 +123,7 @@ const classesByDay = (dayName) => {
 const formatSectionTime = (sectionId) => {
     if (!sections.value) return 'N/A';
     const section = sections.value.find((s) => s._id === sectionId);
-
-    return section.duration;
+    return section ? section.duration : 'N/A';
 };
 
 const formatStaffName = (staffId) => {
@@ -151,14 +155,14 @@ const printSchedule = () => {
                 const schedule = dayClasses[i];
                 if (schedule) {
                     tableHTML += `<td>
-                        <div class="class-name">${schedule.name}</div>
-                        <div class="class-time">${formatSectionTime(schedule.duration)}</div>
-                        <div class="class-details">
-                            Teacher: ${formatStaffName(schedule.staff)}<br>
-                            Subject: ${formatSubjectName(schedule.subject)}<br>
-                            Students: ${schedule.students.length}
-                        </div>
-                    </td>`;
+                            <div class="class-name">${schedule.name}</div>
+                            <div class="class-time">${formatSectionTime(schedule.duration)}</div>
+                            <div class="class-details">
+                                Teacher: ${formatStaffName(schedule.staff)}<br>
+                                Subject: ${formatSubjectName(schedule.subject)}<br>
+                                Students: ${schedule.students.length}
+                            </div>
+                        </td>`;
                 } else {
                     tableHTML += `<td></td>`;
                 }
