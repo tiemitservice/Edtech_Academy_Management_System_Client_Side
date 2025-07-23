@@ -1,7 +1,7 @@
 <template>
     <ul class="layout-menu !z-20 hidden-print">
         <div class="size-40 overflow-hidden mx-auto">
-            <img class="object-contain" :src="data && data.length > 0 ? data[0].image : ''" alt="Company Logo" />
+            <img class="object-contain" :src="data && data.length > 0 ? data[0].image : 'https://placehold.co/140x140/png'" alt="Company Logo" />
         </div>
         <div class="w-full flex items-center justify-center">
             <span class="font-semibold text-primary px-2 text-center">

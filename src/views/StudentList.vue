@@ -67,7 +67,7 @@
                         <!-- Column for gender -->
                         <Column field="gender" :header="$t('student.gender')" sortable style="min-width: 100px">
                             <template #body="slotProps">
-                                <p>{{ slotProps.data.gender }}</p>
+                                <p>{{ $t(`gender.${slotProps.data.gender.toLowerCase()}`) }}</p>
                             </template>
                         </Column>
 
@@ -231,8 +231,8 @@ const formatCategoryById = (id) => {
 const searchQuery = ref('');
 const selectGender = ref(null);
 const genders = ref([
-    { label: 'Male', value: 'Male' },
-    { label: 'Female', value: 'Female' }
+    { label: t('gender.male'), value: 'Male' },
+    { label: t('gender.female'), value: 'Female' }
 ]);
 const selectDOB = ref(null);
 const selectCategory = ref(null);

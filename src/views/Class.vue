@@ -49,7 +49,7 @@
                         <Column field="status" :header="$t('element.status')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
-                                    <Tag :severity="slotProps.data.status ? 'success' : 'danger'" :value="slotProps.data.status ? 'Active' : 'Inactive'"></Tag>
+                                    <Tag :severity="slotProps.data.status ? 'success' : 'danger'" :value="slotProps.data.status ? $t('element.active') : $t('element.inactive')"></Tag>
                                 </div>
                             </template>
                         </Column>

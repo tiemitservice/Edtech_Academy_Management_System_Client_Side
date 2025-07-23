@@ -107,7 +107,7 @@
             <div v-else class="h-[70vh] flex items-center justify-center">
                 <div class="text-center text-gray-500">
                     <i class="pi pi-users text-4xl mb-2"></i>
-                    <p>{{ $t('class.no_active_students') }}</p>
+                    <p>{{ $t('student.noData') }}</p>
                 </div>
             </div>
         </div>

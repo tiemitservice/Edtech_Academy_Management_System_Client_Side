@@ -709,5 +709,9 @@
         "discount": "Discount",
         "grand_total": "Grand Total:",
         "thank_you": "Thank you for your business!"
+    },
+    "gender": {
+        "male": "Male",
+        "female": "Female"
     }
 }
