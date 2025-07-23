@@ -61,6 +61,11 @@
                                 </div>
                             </template>
                         </Column>
+                        <Column field="gender" :header="$t('staff.gender')" sortable style="min-width: 100px">
+                            <template #body="slotProps">
+                                <p>{{ $t(`gender.${slotProps.data.gender.toLowerCase()}`) }}</p>
+                            </template>
+                        </Column>
 
                         <!-- Position Column -->
                         <Column field="position" :header="$t('staff.positsion')" sortable style="min-width: 200px">
