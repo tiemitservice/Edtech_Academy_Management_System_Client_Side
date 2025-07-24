@@ -18,6 +18,11 @@
                             <label for="password" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">{{ $t('login.password') }}</label>
                             <Password v-model="password" id="password" :placeholder="$t('login.passwordPlaceholder')" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
 
+                            <!-- Display error message here -->
+                            <div v-if="errorMessage" class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-surface-800 dark:text-red-400" role="alert">
+                                {{ errorMessage }}
+                            </div>
+
                             <Button :disabled="loading" :label="loading ? $t('login.signInButtonLoading') : $t('login.signInButton')" class="w-full" type="submit"></Button>
                         </div>
                     </div>
@@ -46,10 +51,14 @@ const { data: companyData, fetchData: fetchCompanyData } = useFetch('companies')
 const email = ref('');
 const password = ref('');
 const loading = ref(false);
+const errorMessage = ref(''); // State to hold the error message
+
 // --- Event Handlers ---
 const handleLogin = async () => {
+    loading.value = true;
+    errorMessage.value = ''; // Clear previous errors on a new attempt
+
     try {
-        loading.value = true;
         const response = await axios.post(`${url}/api/login`, {
             email: email.value,
             password: password.value
@@ -62,7 +71,15 @@ const handleLogin = async () => {
         userStore.setUser(user);
         router.push({ name: 'dashboard' });
     } catch (error) {
-        console.error(error);
+        // Check if the error has a response from the server
+        if (error.response && error.response.data && error.response.data.error) {
+            // Set the error message from the backend response
+            errorMessage.value = error.response.data.error;
+        } else {
+            // Generic error for network issues or other unexpected problems
+            errorMessage.value = 'An unexpected error occurred. Please try again.';
+        }
+        console.error(error); // Keep logging the full error for debugging
     } finally {
         loading.value = false;
     }
