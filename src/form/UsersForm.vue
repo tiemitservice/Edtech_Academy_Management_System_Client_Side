@@ -51,6 +51,11 @@
                             <label class="flex flex-col text-sm font-medium text-gray-700 space-y-4">{{ $t('user.role') }}</label>
                             <Select v-model="form.role" :options="roles" option-label="name" option-value="_id" :placeholder="$t('user.select_role')" class="w-full" />
                         </div>
+                        <!-- status -->
+                        <div class="flex flex-col w-full">
+                            <label class="flex flex-col text-sm font-medium text-gray-700 space-y-4">{{ $t('element.status') }}</label>
+                            <ToggleSwitch aria-labelledby="switch2" v-model="form.status" />
+                        </div>
                     </div>
                 </div>
             </div>

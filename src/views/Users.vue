@@ -111,7 +111,6 @@ export default {
         const collection = ref('users');
         const { data: users, fetchData: fetchUsers } = useFetch(collection.value);
         const filters = ref({
-            status: 'true',
             limit: 10,
             page: 1,
             search: '',

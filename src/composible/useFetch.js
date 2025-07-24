@@ -3,10 +3,10 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import io from 'socket.io-client';
 import useAuth from './useAuth';
-
+import url from './api';
 const { user } = useAuth();
 // const API_URL = 'http://localhost:5000';
-const API_URL = 'http://188.166.242.109:5000';
+const API_URL = url;
 
 export function useFetch(collection) {
     const data = ref([]);
