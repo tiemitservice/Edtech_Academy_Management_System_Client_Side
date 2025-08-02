@@ -23,7 +23,7 @@
                         <!-- start data -->
                         <Column field="duration" :header="$t('session.duration')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">{{ slotProps.data.duration }}</div>
+                                <div class="inline text-lg font-semibold rounded-full">{{ slotProps.data.duration }}</div>
                             </template>
                         </Column>
 

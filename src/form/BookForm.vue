@@ -14,8 +14,17 @@
                 <Select filter show-clear class="w-full" :options="book_categories" optionLabel="name" optionValue="_id" :placeholder="$t('book.bookType')" id="book_type" v-model="formState.bookType" />
             </div>
             <div>
-                <label for="stock" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('book.quantity') }} <span class="text-red-500">*</span></label>
-                <InputNumber show-clear class="w-full" :placeholder="$t('book.quantity')" id="stock" v-model="formState.stock" />
+                <label for="stock" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ datatoedit ? 'Current Stock' : $t('book.quantity') }} <span class="text-red-500">*</span></label>
+                <InputNumber show-clear class="w-full" :placeholder="$t('book.quantity')" id="stock" v-model="formState.stock" :disabled="datatoedit" />
+            </div>
+            <!-- Field for adjusting stock, only shown when editing -->
+            <div v-if="datatoedit">
+                <label for="adjust_stock" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Adjust Stock By</label>
+                <div class="flex items-center gap-2">
+                    <Button icon="pi pi-minus" @click="decrementAdjustment" severity="danger" rounded text />
+                    <InputText class="w-full text-center font-semibold" v-model="formattedStockAdjustment" />
+                    <Button icon="pi pi-plus" @click="incrementAdjustment" severity="success" rounded text />
+                </div>
             </div>
             <div>
                 <label for="price" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ $t('book.price') }} <span class="text-red-500">*</span></label>
@@ -23,18 +32,18 @@
             </div>
             <div class="space-y-1 text-start flex items-center gap-4">
                 <ToggleSwitch id="status_switch" v-model="formState.status" />
-                <!-- <label for="status_switch">Is Active</label> -->
+                <label for="status_switch">Is Active</label>
             </div>
         </div>
         <div class="flex justify-end border-t gap-2 p-4">
             <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
-            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+            <Button :label="loading ? $t('element.adding') : $t('element.save')" type="submit" :loading="loading" :disabled="loading" />
         </div>
     </form>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useFetch } from '@/composible/useFetch';
 
 // --- Props and Emits ---
@@ -49,7 +58,6 @@ const emit = defineEmits(['close', 'toast', 'save']);
 // --- Data Fetching ---
 const { postData, updateData, loading } = useFetch('books');
 const { data: book_categories, fetchData: fetchBookCategories } = useFetch('book_categories');
-// A separate useFetch instance for creating stock history reports
 const { postData: postStockHistoryReport } = useFetch('stockhistoryreports');
 
 // --- Component State ---
@@ -58,47 +66,69 @@ const formState = ref({
     status: true,
     bookType: null,
     price: null,
-    stock: null
+    stock: 0
 });
+const stockAdjustment = ref(0); // New state for the adjustment amount
+
+// --- Computed property for displaying the formatted adjustment value ---
+const formattedStockAdjustment = computed({
+    get: () => {
+        if (stockAdjustment.value > 0) {
+            return `+${stockAdjustment.value}`;
+        }
+        return stockAdjustment.value.toString();
+    },
+    set: (value) => {
+        stockAdjustment.value = parseInt(value) || 0;
+    }
+});
+
+// --- Stock Adjustment Functions ---
+const incrementAdjustment = () => {
+    stockAdjustment.value++;
+};
+const decrementAdjustment = () => {
+    stockAdjustment.value--;
+};
 
 // --- Form Submission ---
 const handleSubmit = async () => {
     try {
-        const payload = {
-            name: formState.value.name,
-            status: formState.value.status,
-            bookType: formState.value.bookType,
-            price: formState.value.price,
-            stock: formState.value.stock
-        };
-
         if (props.datatoedit) {
             // --- UPDATE LOGIC ---
-            const oldStock = props.datatoedit.stock || 0;
-            const newStock = formState.value.stock || 0;
-            const stockDifference = newStock - oldStock;
+            const currentStock = props.datatoedit.stock || 0;
+            const adjustment = stockAdjustment.value || 0;
+            const newStock = currentStock + adjustment;
 
+            if (newStock < 0) {
+                emit('toast', { action: 'error', message: 'Stock cannot be negative.' });
+                return; // Stop the submission
+            }
+
+            const payload = { ...formState.value, stock: newStock };
             await updateData(payload, props.datatoedit._id);
 
-            // If stock was increased, create a stock-in history report
-            if (stockDifference > 0) {
+            // If stock was actually changed, create a history report
+            if (adjustment !== 0) {
                 const historyPayload = {
                     book_id: props.datatoedit._id,
-                    stock_in: stockDifference
+                    stock_in: adjustment > 0 ? adjustment : 0,
+                    stock_out: adjustment < 0 ? Math.abs(adjustment) : 0
                 };
                 await postStockHistoryReport(historyPayload);
             }
             emit('toast', 'update', 'success');
         } else {
             // --- CREATE LOGIC ---
+            const payload = { ...formState.value };
             const newBookResponse = await postData(payload);
 
-            // If the new book was created successfully and has an initial stock,
-            // create a stock-in history report for that initial amount.
+            // If the new book has an initial stock, create a stock-in report
             if (newBookResponse && newBookResponse.data?._id && formState.value.stock > 0) {
                 const historyPayload = {
                     book_id: newBookResponse.data._id,
-                    stock_in: formState.value.stock
+                    stock_in: formState.value.stock,
+                    stock_out: 0
                 };
                 await postStockHistoryReport(historyPayload);
             }
@@ -109,22 +139,20 @@ const handleSubmit = async () => {
         emit('close');
     } catch (error) {
         console.error('Submission error:', error);
-        emit('toast', 'error', 'Failed to save book data.');
+        emit('toast', { action: 'error', message: 'Failed to save book data.' });
     }
 };
 
 // --- Lifecycle Hook ---
 onMounted(async () => {
-    // Fetch book categories for the dropdown
     await fetchBookCategories();
 
-    // If editing, populate the form with the existing data
     if (props.datatoedit) {
         formState.value.name = props.datatoedit.name;
         formState.value.status = props.datatoedit.status;
         formState.value.bookType = props.datatoedit.bookType;
         formState.value.price = props.datatoedit.price;
-        formState.value.stock = props.datatoedit.stock;
+        formState.value.stock = props.datatoedit.stock || 0;
     }
 });
 </script>

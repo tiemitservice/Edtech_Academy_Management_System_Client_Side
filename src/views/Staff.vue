@@ -38,7 +38,7 @@
                         <!-- Created At Column -->
                         <Column field="createdAt" :header="$t('element.createdat')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
+                                <div class="inline text-lg font-semibold rounded-full">
                                     <p>{{ formatDate2(slotProps.data.createdAt) }}</p>
                                 </div>
                             </template>
@@ -47,7 +47,7 @@
                         <!-- English Name Column -->
                         <Column field="en_name" :header="$t('staff.eng_name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
+                                <div class="inline text-lg font-semibold rounded-full">
                                     <p>{{ slotProps.data.en_name }}</p>
                                 </div>
                             </template>
@@ -56,7 +56,7 @@
                         <!-- Khmer Name Column -->
                         <Column field="kh_name" :header="$t('staff.kh_name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold rounded-full">
+                                <div class="inline text-lg font-semibold rounded-full">
                                     <p>{{ slotProps.data.kh_name }}</p>
                                 </div>
                             </template>
@@ -102,7 +102,7 @@
         </div>
 
         <TransitionRoot appear :show="isOpen" as="template">
-            <Dialog as="div" @close="closeModal" class="relative z-[99]">
+            <Dialog as="div" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>

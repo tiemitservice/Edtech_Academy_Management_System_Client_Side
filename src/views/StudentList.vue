@@ -12,8 +12,9 @@
                 <Dropdown :options="genders" show-clear option-value="value" v-model="selectGender" option-label="label" :placeholder="$t('student.filter_by_gender')" class="min-w-[150px]" />
                 <Dropdown :options="category" show-clear option-value="_id" v-model="selectCategory" option-label="name" :placeholder="$t('student.filter_by_category')" class="min-w-[150px]" />
                 <DatePicker selectionMode="range" show-button-bar v-model="selectDOB" :placeholder="$t('student.filter_date_of_birth')" class="min-w-[120px]" />
-                <DatePicker selectionMode="range" show-button-bar v-model="selectEntered" :placeholder="$t('student.filter_by_entered')" class="min-w-[120px]" />
+                <DatePicker selectionMode="range" show-button-bar v-model="selectEntered" :placeholder="$t('staff.day_entered')" class="min-w-[120px]" />
                 <Button :label="$t('element.filter')" @click="filterData" />
+                <Button v-if="isFilterActive" :label="$t('element.cancel')" @click="clearFilters" severity="secondary" />
 
                 <div class="flex-shrink-0">
                     <Button @click="openModal" :label="$t('element.addnew')" class="!text-white w-[100px]" />
@@ -81,7 +82,7 @@
                         <!-- Column for status -->
                         <Column field="status" :header="$t('element.status')" sortable style="min-width: 100px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
+                                <div class="inline text-lg font-semibold text-nowrap">
                                     <Tag :severity="slotProps.data.status ? 'success' : 'danger'" :value="slotProps.data.status ? $t('element.active') : $t('element.inactive')"></Tag>
                                 </div>
                             </template>
@@ -111,7 +112,7 @@
         </div>
 
         <TransitionRoot appear :show="isOpen" as="template">
-            <Dialog as="div" @close="closeModal" class="relative z-[99]">
+            <Dialog as="div" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-black/25" />
                 </TransitionChild>
@@ -167,7 +168,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import StudentForm from '@/form/StudentForm.vue';
@@ -180,6 +181,18 @@ import { formatDate2 } from '@/composible/formatDate';
 import moment from 'moment';
 import { useUserStore } from '@/store/useUserStore';
 import { useI18n } from 'vue-i18n';
+
+// Import PrimeVue components
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import InputText from 'primevue/inputtext';
+import Dropdown from 'primevue/dropdown';
+import DatePicker from 'primevue/datepicker';
+import Tag from 'primevue/tag';
+import Toast from 'primevue/toast';
 
 const { t } = useI18n();
 const showToast = (action, severity) => {
@@ -238,8 +251,24 @@ const selectDOB = ref(null);
 const selectCategory = ref(null);
 const hasFiltered = ref(false);
 
-const selectEntered = ref([moment().startOf('year').toDate(), moment().endOf('year').toDate()]);
+const selectEntered = ref(null); // Default to null instead of a range
 const data = ref([]);
+
+// Computed property to check if any filter is active
+const isFilterActive = computed(() => {
+    return !!(searchQuery.value || selectGender.value || selectCategory.value || selectDOB.value || selectEntered.value);
+});
+
+// Function to clear all filters
+const clearFilters = () => {
+    searchQuery.value = '';
+    selectGender.value = null;
+    selectCategory.value = null;
+    selectDOB.value = null;
+    selectEntered.value = null;
+    filterData(); // Re-run the filter to show all data
+};
+
 watch(
     rawData,
     () => {
@@ -250,7 +279,7 @@ watch(
 
 const filterData = () => {
     studentLoading.value = true; // Set loading to true at the start
-    hasFiltered.value = false;
+    hasFiltered.value = true; // Set to true since a filter action is performed
 
     setTimeout(() => {
         const q = searchQuery.value.trim().toLowerCase();
@@ -287,7 +316,6 @@ const filterData = () => {
         }));
 
         studentLoading.value = false;
-        hasFiltered.value = true;
     }, 500);
 };
 watch(searchQuery, () => {

@@ -5,22 +5,22 @@
         <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
             <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('asign_teacher.title') }}</label>
 
-            <div class="flex gap-4">
+            <div class="flex flex-wrap items-center gap-4">
                 <IconField>
                     <InputIcon class="pi pi-search" />
-
                     <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" />
                 </IconField>
-
+                <!-- 
                 <div>
                     <DatePicker show-icon v-model="createdAt_select" selectionMode="range" show-button-bar placeholder="Filter by created at" />
-                </div>
+                </div> -->
 
                 <div>
                     <Dropdown class="w-full" filter="true" v-model="selectStaff" show-clear :options="staffData" option-value="_id" option-label="en_name" :placeholder="$t('asign_teacher.select_teacher')" />
                 </div>
 
                 <div><Button @click="filterData" :label="loading ? $t('element.adding') : $t('element.filter')" :disabled="loading" :loading="loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 text-nowrap" /></div>
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.cancel')" severity="secondary" />
             </div>
         </div>
 
@@ -128,6 +128,17 @@ import Laoding from './pages/Laoding.vue';
 import NotFound from './pages/NotFound.vue';
 import { useI18n } from 'vue-i18n';
 
+// Import PrimeVue components
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import InputText from 'primevue/inputtext';
+import DatePicker from 'primevue/datepicker';
+import Dropdown from 'primevue/dropdown';
+import Toast from 'primevue/toast';
+
 const { t } = useI18n();
 const toast = useToast();
 const showToast = (action, severity) => {
@@ -179,6 +190,19 @@ const createdAt_select = ref([moment().startOf('year').toDate(), moment().endOf(
 // This ref will hold the data filtered by the "Apply Filter" button
 const appliedFilterData = ref([]);
 
+// Computed property to check if any filter is active
+const isFilterActive = computed(() => {
+    return !!(searchQuery.value || selectStaff.value);
+});
+
+// Function to clear all filters
+const clearFilters = () => {
+    searchQuery.value = '';
+    selectStaff.value = null;
+    createdAt_select.value = [moment().startOf('year').toDate(), moment().endOf('year').toDate()];
+    filterData(); // Re-run the filter to show all data
+};
+
 // This function is now ONLY for the button-based filters (date and teacher)
 const filterData = () => {
     const start = Array.isArray(createdAt_select.value) ? createdAt_select.value[0] : null;
@@ -192,9 +216,9 @@ const filterData = () => {
     appliedFilterData.value =
         rawData.value.filter((item) => {
             const matchesStaff = !selectStaff.value || item.staff === selectStaff.value;
-            const matchesCreatedAt = !start || !end ? true : moment(item.createdAt).isBetween(moment(start).startOf('day'), moment(end).endOf('day'), undefined, '[]');
+            // const matchesCreatedAt = !start || !end ? true : moment(item.createdAt).isBetween(moment(start).startOf('day'), moment(end).endOf('day'), undefined, '[]');
             const isCompleted = item.mark_as_completed === true;
-            return matchesCreatedAt && isCompleted && matchesStaff;
+            return isCompleted && matchesStaff;
         }) || [];
 };
 
@@ -210,7 +234,7 @@ const data = computed(() => {
 });
 
 onMounted(async () => {
-    await Promise.allSettled([fetchData(), fetchStaff(), fetchSections()]);
+    await Promise.allSettled([fetchData({ status: true }), fetchStaff(), fetchSections()]);
     filterData(); // Apply initial filters when component loads
 });
 

@@ -7,9 +7,9 @@
                     <InputIcon class="pi pi-search" />
                     <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" class="w-full" />
                 </IconField>
-                <div class="flex items-center gap-4">
-                    <DatePicker v-model="createdAt_select" show-icon selectionMode="range" show-button-bar :placeholder="$t('element.Filterbycreatedat')" />
-                </div>
+                <!-- <div class="flex items-center gap-4">
+                    <DatePicker v-model="createdAt_select" show-icon selectionMode="range" show-button-bar :placeholder="$t('element.createdat')" />
+                </div> -->
             </div>
         </div>
 

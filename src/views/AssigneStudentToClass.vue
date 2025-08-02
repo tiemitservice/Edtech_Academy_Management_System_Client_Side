@@ -8,9 +8,9 @@
                     <InputIcon class="pi pi-search" />
                     <InputText v-model="searchQuery" :placeholder="$t('element.Searchbyname')" class="min-w-[200px]" />
                 </IconField>
-                <div class="w-64">
+                <!-- <div class="w-64">
                     <Calendar show-icon v-model="createdAt_select" selectionMode="range" show-button-bar placeholder="Filter by created at" />
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -158,10 +158,10 @@ const filterData = () => {
     data.value =
         rawData.value?.filter((item) => {
             const matchesName = !q || item.name?.toLowerCase().includes(q);
-            const matchesCreatedAt = !start || !end ? true : moment(item.createdAt).isBetween(moment(start).startOf('day'), moment(end).endOf('day'), undefined, '[]');
+            // const matchesCreatedAt = !start || !end ? true : moment(item.createdAt).isBetween(moment(start).startOf('day'), moment(end).endOf('day'), undefined, '[]');
             // Corrected logic: Show classes that are NOT completed to assign students.
             const isNotCompleted = item.mark_as_completed !== false;
-            return matchesName && matchesCreatedAt && isNotCompleted;
+            return matchesName && isNotCompleted;
         }) || [];
 };
 

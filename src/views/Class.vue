@@ -26,21 +26,21 @@
 
                         <Column field="name" :header="$t('class.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
+                                <div class="inline text-lg font-semibold text-nowrap">
                                     {{ slotProps.data.name }}
                                 </div>
                             </template>
                         </Column>
                         <Column field="subject" :header="$t('class.subject')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
+                                <div class="inline text-lg font-semibold text-nowrap">
                                     {{ formatSubject(slotProps.data.subject) }}
                                 </div>
                             </template>
                         </Column>
                         <Column field="start_time" :header="$t('class.duration')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
+                                <div class="inline text-lg font-semibold text-nowrap">
                                     {{ formatDuration(slotProps.data?.duration) || 'N/A' }}
                                 </div>
                             </template>
@@ -48,7 +48,7 @@
 
                         <Column field="status" :header="$t('element.status')" sortable style="min-width: 200px">
                             <template #body="slotProps">
-                                <div class="inline px-3 py-1 text-lg font-semibold text-nowrap">
+                                <div class="inline text-lg font-semibold text-nowrap">
                                     <Tag :severity="slotProps.data.status ? 'success' : 'danger'" :value="slotProps.data.status ? $t('element.active') : $t('element.inactive')"></Tag>
                                 </div>
                             </template>
