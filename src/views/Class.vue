@@ -23,7 +23,6 @@
                                 <p class="font-medium">{{ slotProps.data.originalIndex }}</p>
                             </template>
                         </Column>
-
                         <Column field="name" :header="$t('class.name')" sortable style="min-width: 200px">
                             <template #body="slotProps">
                                 <div class="inline text-lg font-semibold text-nowrap">

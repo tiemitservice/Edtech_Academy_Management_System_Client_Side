@@ -112,7 +112,9 @@
         "to_class": "To Class",
         "student_to_promote": "Students to Promote",
         "promote_selected_student": "Promote Selected Students",
-        "Filterbycreatedat": "Filter by created at"
+        "Filterbycreatedat": "Filter by created at",
+        "day_class": "Day Class",
+        "total_student": "Total Students"
     },
     "student": {
         "title": "Student List",
