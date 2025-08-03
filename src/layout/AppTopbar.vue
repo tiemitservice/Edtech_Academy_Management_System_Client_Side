@@ -12,21 +12,22 @@
         </div>
 
         <div class="layout-topbar-actions">
+            <!-- Desktop Language Switcher and User Menu -->
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content flex items-center gap-2">
-                    <!-- Language Switcher -->
-                    <Button rounded severity="secondary" v-tooltip="{ value: 'Confirm to proceed', showDelay: 1000, hideDelay: 300 }" @click="toggleFullScreen" class="rounded-full overflow-hidden !size-10">
+                    <!-- Fullscreen Toggle Button -->
+                    <Button rounded severity="secondary" v-tooltip="{ value: 'Toggle Fullscreen', showDelay: 1000, hideDelay: 300 }" @click="toggleFullScreen" class="rounded-full overflow-hidden !size-10">
                         <i :class="['text-2xl', isFullscreen ? 'pi pi-window-maximize' : 'pi pi-expand']"></i>
                     </Button>
+
+                    <!-- Desktop Language Switcher -->
                     <Select v-model="selectedLanguage" :options="languages" optionLabel="name" @change="changeLanguage" class="w-40" placeholder="Select a Language">
                         <template #value="slotProps">
                             <div v-if="slotProps.value" class="flex items-center">
                                 <span v-html="slotProps.value.icon" class="mr-2 flex items-center"></span>
                                 <div>{{ slotProps.value.name }}</div>
                             </div>
-                            <span v-else>
-                                {{ slotProps.placeholder }}
-                            </span>
+                            <span v-else>{{ slotProps.placeholder }}</span>
                         </template>
                         <template #option="slotProps">
                             <div class="flex items-center">
@@ -35,8 +36,6 @@
                             </div>
                         </template>
                     </Select>
-
-                    <!-- Fullscreen Toggle Button -->
 
                     <span class="font-semibold text-primary px-2">
                         {{ user?.name }}
@@ -54,7 +53,30 @@
                     </Button>
                 </div>
             </div>
+            <!-- Mobile Menu Button (if you have one) -->
+            <!-- <button class="layout-topbar-action d-block d-lg-none" @click="onMobileMenuButtonClick">
+                <i class="pi pi-ellipsis-v"></i>
+            </button> -->
         </div>
+    </div>
+
+    <!-- Floating Language Switcher for Mobile/Tablet -->
+    <div class="block lg:hidden fixed bottom-6 right-6 z-50">
+        <Select v-model="selectedLanguage" :options="languages" optionLabel="name" @change="changeLanguage" class="w-40 shadow-lg" placeholder="Select a Language">
+            <template #value="slotProps">
+                <div v-if="slotProps.value" class="flex items-center">
+                    <span v-html="slotProps.value.icon" class="mr-2 flex items-center"></span>
+                    <div>{{ slotProps.value.name }}</div>
+                </div>
+                <span v-else>{{ slotProps.placeholder }}</span>
+            </template>
+            <template #option="slotProps">
+                <div class="flex items-center">
+                    <span v-html="slotProps.option.icon" class="mr-2 flex items-center"></span>
+                    <div>{{ slotProps.option.name }}</div>
+                </div>
+            </template>
+        </Select>
     </div>
 </template>
 
@@ -65,9 +87,11 @@ import { useRouter } from 'vue-router';
 import { useFetch } from '@/composible/useFetch';
 import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import Button from 'primevue/button';
+import Select from 'primevue/select';
 
 const { data, fetchData } = useFetch('companies');
-const { toggleMenu } = useLayout();
+const { toggleMenu, onMobileMenuButtonClick } = useLayout();
 const { user, logout } = useAuth();
 const router = useRouter();
 const { locale } = useI18n();
@@ -115,7 +139,6 @@ const toggleFullScreen = () => {
     }
 };
 
-// This function updates the state when fullscreen changes (e.g., by pressing Esc)
 const onFullScreenChange = () => {
     isFullscreen.value = !!document.fullscreenElement;
 };
@@ -129,12 +152,10 @@ onMounted(async () => {
         selectedLanguage.value = savedLang;
         locale.value = savedLang.code;
     }
-    // Add event listener for fullscreen changes
     document.addEventListener('fullscreenchange', onFullScreenChange);
 });
 
 onBeforeUnmount(() => {
-    // Clean up the event listener when the component is destroyed
     document.removeEventListener('fullscreenchange', onFullScreenChange);
 });
 </script>

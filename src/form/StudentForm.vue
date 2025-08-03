@@ -1,7 +1,7 @@
 <template>
     <form @submit.prevent="handleSubmit" class="w-full">
         <!-- Header -->
-        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50 sticky top-0 z-10">
             <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded :aria-label="$t('actions.close')" />
         </div>
@@ -27,11 +27,11 @@
             </div>
 
             <!-- Form Fields -->
-            <div class="grid grid-cols-2 gap-6 p-5 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-5 items-start">
                 <!-- Personal Information -->
                 <div>
                     <h4 class="text-lg font-medium">{{ $t('student.personal_information') }}</h4>
-                    <div class="rounded p-2 border grid grid-cols-3 gap-4">
+                    <div class="rounded p-2 border grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         <div class="flex flex-col space-y-1">
                             <label for="kh_name" class="text-sm font-medium">{{ $t('student.kh_name') }} <span class="text-red-500">*</span></label>
                             <InputText :required="true" id="kh_name" type="text" :placeholder="$t('student.kh_name')" v-model="formState.kh_name" />
@@ -44,7 +44,7 @@
                         </div>
                         <div class="flex flex-col space-y-1">
                             <label for="selectedGender" class="text-sm font-medium">{{ $t('student.gender') }} <span class="text-red-500">*</span></label>
-                            <Select show-clear id="selectedGender" v-model="formState.gender" :options="genderOptions" optionLabel="name" optionValue="name" :placeholder="$t('student.select_gender')" class="w-full" />
+                            <Select show-clear id="selectedGender" v-model="formState.gender" :options="genderOptions" optionLabel="label" optionValue="value" :placeholder="$t('student.select_gender')" class="w-full" />
                             <small v-if="errors.gender" class="text-red-500 mt-1">{{ errors.gender }}</small>
                         </div>
                         <div class="flex flex-col space-y-1">
@@ -75,7 +75,7 @@
                 <!-- Live Address -->
                 <div>
                     <h4 class="text-lg font-medium">{{ $t('student.living_information') }}</h4>
-                    <div class="rounded p-2 border grid grid-cols-3 gap-4">
+                    <div class="rounded p-2 border grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                         <div class="flex flex-col space-y-1">
                             <label for="selectedProvince" class="text-sm font-medium">{{ $t('student.province') }}</label>
                             <Dropdown
@@ -125,7 +125,7 @@
                 <!-- Place of Birth -->
                 <div>
                     <h4 class="text-lg font-medium">{{ $t('student.place_of_birth') }}</h4>
-                    <div class="rounded p-2 border grid grid-cols-3 gap-4">
+                    <div class="rounded p-2 border grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                         <div class="flex flex-col space-y-1">
                             <label for="plb_province" class="text-sm font-medium">{{ $t('student.province') }}</label>
                             <Dropdown
@@ -175,7 +175,7 @@
                 <!-- Family Information -->
                 <div>
                     <h4 class="text-lg font-medium pb-2">{{ $t('student.family_information') }}</h4>
-                    <div class="rounded p-2 border grid grid-cols-3 gap-4">
+                    <div class="rounded p-2 border grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                         <div class="flex flex-col space-y-1">
                             <label for="father_name" class="text-sm font-medium">{{ $t('student.father_name') }}</label>
                             <InputText id="father_name" type="text" :placeholder="$t('student.father_name')" v-model="formState.father_name" />
@@ -197,7 +197,7 @@
                 <!-- Document Information -->
                 <div>
                     <h4 class="text-lg font-medium pb-2">{{ $t('student.document_information') }}</h4>
-                    <div class="rounded p-2 border grid grid-cols-2 gap-4">
+                    <div class="rounded p-2 border grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="flex flex-col space-y-1">
                             <label for="document_type" class="text-sm font-medium">{{ $t('student.document_type') }}</label>
                             <Dropdown id="document_type" v-model="formState.document_type" :options="documentTypeOptions" optionLabel="label" optionValue="value" :placeholder="$t('student.select_document_type')" showClear class="w-full" />
@@ -206,7 +206,7 @@
                             <label for="documentNumber" class="text-sm font-medium">{{ $t('student.document_number') }}</label>
                             <InputText id="documentNumber" type="text" :placeholder="$t('student.document_number')" v-model="formState.document_number" />
                         </div>
-                        <div class="col-span-2">
+                        <div class="col-span-1 sm:col-span-2">
                             <div class="flex flex-col items-center space-y-3">
                                 <div v-if="document_image_preview" class="w-full h-[200px] overflow-hidden mx-auto rounded-xl border-2 border-gray-300">
                                     <img :src="document_image_preview" alt="Document Preview" class="object-contain w-full h-full" />
@@ -226,7 +226,7 @@
                     </div>
                 </div>
                 <!-- Status Toggle -->
-                <div class="col-span-2">
+                <div class="lg:col-span-2">
                     <h4 class="text-lg font-medium pb-2">{{ $t('element.status') }}</h4>
                     <div class="rounded p-4 border flex items-center gap-4">
                         <label for="status" class="text-sm font-medium">{{ $t('element.active') }}</label>
