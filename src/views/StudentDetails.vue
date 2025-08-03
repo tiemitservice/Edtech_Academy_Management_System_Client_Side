@@ -9,8 +9,8 @@
             <div class="grid grid-cols-1 gap-4">
                 <!-- Profile Image -->
                 <div class="bg-white dark:bg-gray-800 p-6">
-                    <div class="mb-4">
-                        <img class="w-32 h-32 object-cover rounded-full mx-auto" :src="datatoedit?.image || 'https://placehold.co/128'" :alt="datatoedit?.eng_name" />
+                    <div class="mb-4 w-48 aspect-[2/3] mx-auto">
+                        <img class="w-full h-full object-cover rounded-md" :src="datatoedit?.image || 'https://placehold.co/400x600'" :alt="datatoedit?.eng_name" />
                     </div>
                     <p class="text-center font-semibold">{{ datatoedit?.eng_name }}</p>
                 </div>

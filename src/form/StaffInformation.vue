@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
-            <label class="text-base font-semibold text-gray-800">Student Details</label>
+            <label class="text-base font-semibold text-gray-800">{{ $t('staff.teacher_details') }}</label>
             <Button icon="pi pi-times" size="small" severity="danger" @click="$emit('close')" rounded aria-label="Close" />
         </div>
 
@@ -9,10 +9,11 @@
             <div class="grid grid-cols-1 gap-4">
                 <div class="bg-white dark:bg-gray-800 p-6">
                     <div class="mb-4">
-                        <img class="w-32 h-32 object-cover rounded-full mx-auto" :src="datatoedit?.image || 'https://placehold.co/128'" :alt="datatoedit?.en_name" />
+                        <img class="w-[160px] h-[240px] object-cover rounded-md mx-auto shadow" :src="datatoedit?.image || 'https://placehold.co/160x240'" :alt="datatoedit?.en_name" />
                     </div>
                     <p class="text-center font-semibold">{{ datatoedit?.en_name }}</p>
                 </div>
+
                 <div class="w-full border rounded-lg p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Personal Information -->
                     <div class="p-4 border rounded-lg">

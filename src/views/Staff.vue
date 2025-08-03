@@ -29,7 +29,7 @@
                             <template #body="slotProps">
                                 <div class="flex items-center space-x-3">
                                     <div class="flex w-16 h-16 items-center justify-center overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-                                        <img :src="slotProps.data?.image ? slotProps.data.image : 'https://placehold.co/64'" :alt="slotProps.data.en_name" />
+                                        <img :src="slotProps.data?.image ? slotProps.data.image : 'https://placehold.co/400x600'" :alt="slotProps.data.en_name" />
                                     </div>
                                 </div>
                             </template>

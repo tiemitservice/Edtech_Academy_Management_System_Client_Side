@@ -1,13 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap'); */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Khmer:wght@100..900&display=swap');
 
 /* Optional: Custom styles */
+@font-face {
+    font-family: 'Noto Serif Khmer';
+    src: url('../assets/fonts/static/NotoSerifKhmer-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 * {
     font-family: 'Noto Serif Khmer', serif;
+    font-weight: normal; /* Or remove this if you want default weight from font file */
 }
+
 /* ::-webkit-scrollbar {
     width: 8px;
     height: 10px;
