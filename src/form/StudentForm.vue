@@ -244,7 +244,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, reactive } from 'vue';
+import { ref, onMounted, watch, computed, reactive, nextTick } from 'vue';
 import { useFetch } from '@/composible/useFetch';
 import { useToast } from 'primevue/usetoast';
 import provinceJson from '@/json/province.json';
@@ -300,9 +300,15 @@ const image = ref(null);
 const previewUrl = ref(null);
 const document_image = ref(null);
 const document_image_preview = ref(null);
+// **FIX:** Add a flag to prevent watchers from running during initial data load
+const isInitializing = ref(true);
 
 // --- Static Data ---
-const genderOptions = ref([{ name: 'Male' }, { name: 'Female' }]);
+// **FIX:** Corrected genderOptions to have label and value properties
+const genderOptions = ref([
+    { label: 'Male', value: 'Male' },
+    { label: 'Female', value: 'Female' }
+]);
 const documentTypeOptions = ref([
     { label: 'National ID', value: 'national_id' },
     { label: 'Passport', value: 'passport' },
@@ -334,9 +340,11 @@ const filteredCommunesForBirth = computed(() => communes.value.filter((c) => c.p
 const filteredVillagesForBirth = computed(() => villages.value.filter((v) => v.properties.ADMIN_ID3 === formState.st_birth_commune));
 const formattedVillagesForBirth = computed(() => filteredVillagesForBirth.value.map((v) => ({ label: `${v.properties.NAME} (${v.properties.NAME_ENG})`, value: v.properties.ADMIN_ID })));
 
+// **FIX:** Watchers now check the isInitializing flag before resetting fields
 watch(
     () => formState.province,
     () => {
+        if (isInitializing.value) return;
         formState.district = null;
         formState.commune = null;
         formState.village = null;
@@ -345,6 +353,7 @@ watch(
 watch(
     () => formState.district,
     () => {
+        if (isInitializing.value) return;
         formState.commune = null;
         formState.village = null;
     }
@@ -352,12 +361,14 @@ watch(
 watch(
     () => formState.commune,
     () => {
+        if (isInitializing.value) return;
         formState.village = null;
     }
 );
 watch(
     () => formState.st_birth_province,
     () => {
+        if (isInitializing.value) return;
         formState.st_birth_district = null;
         formState.st_birth_commune = null;
         formState.st_birth_village = null;
@@ -366,6 +377,7 @@ watch(
 watch(
     () => formState.st_birth_district,
     () => {
+        if (isInitializing.value) return;
         formState.st_birth_commune = null;
         formState.st_birth_village = null;
     }
@@ -373,6 +385,7 @@ watch(
 watch(
     () => formState.st_birth_commune,
     () => {
+        if (isInitializing.value) return;
         formState.st_birth_village = null;
     }
 );
@@ -398,7 +411,6 @@ const handleSubmit = async () => {
     const isDeactivating = props.datatoedit && props.datatoedit.status === true && formState.status === false;
 
     try {
-        // First, update the student's main record
         const formData = new FormData();
         for (const key in formState) {
             if (formState[key] !== null && formState[key] !== undefined) {
@@ -420,17 +432,13 @@ const handleSubmit = async () => {
             emit('toast', 'create', 'success');
         }
 
-        // If the student is being deactivated, remove them from all classes.
         if (isDeactivating) {
             await fetchAllClasses();
             const studentIdToRemove = props.datatoedit._id;
-
             const classesToUpdate = allclasses.value.filter((cls) => cls.students.some((s) => (s.student?._id || s.student) === studentIdToRemove));
 
-            // Use a sequential loop for more reliable updates
             for (const cls of classesToUpdate) {
                 const updatedStudents = cls.students.filter((s) => (s.student?._id || s.student) !== studentIdToRemove);
-                // **FIX:** Ensure the student objects in the payload are not populated
                 const payloadStudents = updatedStudents.map((s) => ({
                     ...s,
                     student: s.student?._id || s.student
@@ -453,12 +461,13 @@ const handleSubmit = async () => {
 
 // --- Lifecycle Hook ---
 onMounted(async () => {
+    isInitializing.value = true;
     await fetchCategory({ status: 'true' });
     if (props.datatoedit) {
         for (const key in formState) {
-            if (props.datatoedit[key] !== undefined) {
+            if (props.datatoedit[key] !== undefined && props.datatoedit[key] !== null) {
                 if (key === 'date_of_birth' || key === 'date_intered') {
-                    formState[key] = props.datatoedit[key] ? moment(props.datatoedit[key]).toDate() : null;
+                    formState[key] = moment(props.datatoedit[key]).toDate();
                 } else {
                     formState[key] = props.datatoedit[key];
                 }
@@ -467,5 +476,8 @@ onMounted(async () => {
         previewUrl.value = props.datatoedit.image;
         document_image_preview.value = props.datatoedit.document_image;
     }
+    // **FIX:** Use nextTick to allow Vue to process initial data binding before disabling the flag
+    await nextTick();
+    isInitializing.value = false;
 });
 </script>
