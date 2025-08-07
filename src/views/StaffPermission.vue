@@ -53,8 +53,17 @@
                         <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
-                                    <Button icon="pi pi-inbox" severity="warn" rounded :aria-label="$t('element.edit')" @click="handleEdit(slotProps.data)" />
-                                    <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded :aria-label="$t('element.delete')" />
+                                    <!-- MODIFIED: Added disabled attribute -->
+                                    <Button icon="pi pi-inbox" severity="warn" rounded :aria-label="$t('element.edit')" @click="handleEdit(slotProps.data)" :disabled="slotProps.data.status === 'accepted' || slotProps.data.status === 'rejected'" />
+                                    <!-- MODIFIED: Added disabled attribute -->
+                                    <Button
+                                        @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)"
+                                        icon="pi pi-trash"
+                                        severity="danger"
+                                        rounded
+                                        :aria-label="$t('element.delete')"
+                                        :disabled="slotProps.data.status === 'accepted' || slotProps.data.status === 'rejected'"
+                                    />
                                 </div>
                             </template>
                         </Column>

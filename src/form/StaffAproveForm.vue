@@ -17,7 +17,8 @@
             </div>
             <div>
                 <label for="hold_date" class="block mb-2 text-sm font-medium">{{ $t('teacher_permission.holder_date') }} <span class="text-red-500">*</span></label>
-                <Calendar :min-date="new Date()" id="hold_date" v-model="formState.hold_date" :placeholder="$t('teacher_permission.select_date_range')" selectionMode="range" showClear class="w-full" />
+                <!-- MODIFIED: Added @hide event listener -->
+                <Calendar :min-date="new Date()" id="hold_date" v-model="formState.hold_date" :placeholder="$t('teacher_permission.select_date_range')" selectionMode="range" showClear class="w-full" @hide="handleDateRangeClose" />
                 <small v-if="errors.hold_date" class="text-red-500 mt-1">{{ errors.hold_date }}</small>
             </div>
             <div>
@@ -31,7 +32,7 @@
         </div>
         <div class="flex justify-end border-t gap-2 p-4">
             <Button :label="$t('element.cancel')" @click="$emit('close')" severity="danger" />
-            <Button :label="isSubmitting ? $t('element.adding') : $t('element.save')" type="submit" :loading="isSubmitting" :disabled="isSubmitting" />
+            <Button :label="loading ? $t('element.adding') : $t('element.save')" type="submit" :loading="loading" :disabled="loading" />
         </div>
     </form>
 </template>
@@ -75,13 +76,24 @@ const statusOptions = ref([
     { label: 'Rejected', value: 'rejected' }
 ]);
 
+// --- NEW: Function to handle single-day range selection ---
+const handleDateRangeClose = () => {
+    const dates = formState.hold_date;
+    // If the user selected a start date but not an end date when the calendar closes,
+    // we assume they want a single-day range and set the end date automatically.
+    if (dates && dates[0] && !dates[1]) {
+        formState.hold_date = [dates[0], dates[0]];
+    }
+};
+
 // --- Form Validation ---
 const validateForm = () => {
     errors.value = {};
     if (!formState.staff) errors.value.staff = 'Staff is required.';
     if (!formState.reason) errors.value.reason = 'Reason is required.';
-    if (!formState.hold_date || formState.hold_date?.length < 2) {
-        errors.value.hold_date = 'Please select a start and end date.';
+    // The validation now correctly handles the single-day range case
+    if (!formState.hold_date || !formState.hold_date[0] || !formState.hold_date[1]) {
+        errors.value.hold_date = 'Please select a date or date range.';
     }
     return Object.keys(errors.value).length === 0;
 };
@@ -94,6 +106,7 @@ const handleSubmit = async () => {
     }
 
     try {
+        // The payload logic remains the same and works with the new date handling
         const payload = {
             staff: formState.staff,
             status: formState.status,
@@ -105,8 +118,6 @@ const handleSubmit = async () => {
         if (props.datatoedit) {
             // --- UPDATE LOGIC ---
             await updateData(payload, props.datatoedit._id);
-
-            // **CORRECTED LOGIC:** Only create a report if the status is being set to 'accepted' or 'rejected'.
             if (formState.status === 'accepted' || formState.status === 'rejected') {
                 const reportPayload = {
                     teacher_id: formState.staff,
@@ -114,14 +125,13 @@ const handleSubmit = async () => {
                     hold_date: payload.hold_date,
                     permission_status: formState.status,
                     note: formState.note,
-                    approve_by: user.value.id // The user performing the action
+                    approve_by: user.value.id
                 };
                 await postPermissionReport(reportPayload);
             }
             emit('toast', 'update', 'success');
         } else {
             // --- CREATE LOGIC ---
-            // When creating a new request, it's usually 'pending' and doesn't need a report yet.
             await postData(payload);
             emit('toast', 'create', 'info');
         }
