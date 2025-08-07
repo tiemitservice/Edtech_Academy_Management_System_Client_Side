@@ -1,26 +1,27 @@
 <template>
     <section class="px-4 mx-auto">
+        <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
             <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_payment_transaction.title') }}</label>
-            <div class="flex items-center gap-2">
-                <!-- Dropdowns for Day, Month, Year -->
-                <Select v-model="selectedDay" :options="days" placeholder="Day" showClear class="min-w-[100px]" />
-                <Select v-model="selectedMonth" :options="months" optionLabel="name" optionValue="value" placeholder="Month" showClear class="min-w-[120px]" />
-                <Select v-model="selectedYear" :options="years" placeholder="Year" showClear class="min-w-[120px]" />
+            <div class="flex items-center gap-2 flex-wrap justify-end">
+                <!-- Filters -->
+                <Select v-model="filters.period" :options="periodOptions" optionLabel="label" optionValue="value" class="min-w-[180px]" />
+                <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" :placeholder="$t('student_payment.filter_by_student')" showClear class="min-w-[180px]" />
+                <Select v-model="filters.classId" :options="classes" filter optionLabel="name" optionValue="_id" :placeholder="$t('student_payment.filter_by_class')" showClear class="min-w-[180px]" />
 
-                <!-- Separate Apply and Clear Buttons -->
-                <Button @click="filterData" :label="$t('element.filter')" icon="pi pi-filter" />
+                <!-- Action Buttons -->
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
 
-        <div class="flex flex-col" v-if="data">
+        <div class="flex flex-col" v-if="!loading">
             <div class="overflow-x-auto">
-                <div class="py-2" v-if="!loading && data.length > 0">
-                    <DataTable :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <Column field="invoice_id" :header="$t('element.num')" sortable style="min-width: 150px">
+                <div class="py-2" v-if="tableData.length > 0">
+                    <DataTable :value="tableData" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                        <Column field="displayId" :header="$t('element.num')" sortable style="min-width: 80px">
                             <template #body="slotProps">
-                                <p class="font-bold text-blue-600">{{ slotProps.data.invoice_id }}</p>
+                                <p class="font-bold">{{ slotProps.data.displayId }}</p>
                             </template>
                         </Column>
 
@@ -73,26 +74,20 @@
                         <Column :header="$t('element.action')" style="min-width: 150px">
                             <template #body="slotProps">
                                 <div class="flex space-x-2">
-                                    <Button icon="pi pi-undo" severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" v-tooltip.top="'Mark as Pending'" />
-                                    <Button
-                                        icon="pi pi-print
-    "
-                                        rounded
-                                        aria-label="Edit"
-                                        @click="$router.push(`/print_invoice/${slotProps.data._id}`)"
-                                    />
+                                    <Button icon="pi pi-undo" severity="warn" rounded aria-label="Mark as Pending" @click="handleEdit(slotProps.data)" v-tooltip.top="'Mark as Pending'" />
+                                    <Button icon="pi pi-print" rounded aria-label="Print" @click="$router.push(`/print_invoice/${slotProps.data._id}`)" v-tooltip.top="'Print Invoice'" />
                                 </div>
                             </template>
                         </Column>
                     </DataTable>
                 </div>
-                <div v-else-if="!loading && data.length === 0">
+                <div v-else-if="!loading && tableData.length === 0">
                     <NotFound />
                 </div>
-                <div v-else>
-                    <Laoding />
-                </div>
             </div>
+        </div>
+        <div v-else>
+            <Laoding />
         </div>
 
         <TransitionRoot appear :show="isOpen" as="template">
@@ -128,118 +123,104 @@ import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
 import { useToast } from 'primevue/usetoast';
 import { formatDate2 } from '@/composible/formatDate';
-// PrimeVue components
+import moment from 'moment';
+import { useI18n } from 'vue-i18n';
 
-import { useI18n } from 'vue-i18n'; // Initialize i18n
 const { t } = useI18n();
 const toast = useToast();
 
 const showToast = (action, severity) => {
-    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    const summary = t(`toast.${action}`, t('toast.action'));
     toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
+
 const collection = ref('studentinvoicegenerates');
-const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
-const isOpen = ref(false);
-const datatoedit = ref(null);
+const { data: rawData, loading, fetchData } = useFetch(collection.value);
 const { data: classes, fetchData: fetchClasses } = useFetch('classes');
 const { data: students, fetchData: fetchStudents } = useFetch('students');
+
+const isOpen = ref(false);
+const datatoedit = ref(null);
+const filteredData = ref([]);
+
+const filters = ref({
+    period: 'current_month',
+    studentId: null,
+    classId: null
+});
+
+const periodOptions = ref([
+    { label: t('periods.current_month'), value: 'current_month' },
+    { label: t('periods.last_month'), value: 'last_month' },
+    { label: t('periods.last_3_months'), value: 'last_3_months' }
+]);
+
+const isFilterActive = computed(() => {
+    return filters.value.period !== 'current_month' || filters.value.studentId !== null || filters.value.classId !== null;
+});
 
 const formatClassName = (id, fieldPath, fallback = 'Unknown') => {
     const className = classes.value?.find((cl) => cl._id?.toString() === id?.toString());
     if (!className) return fallback;
-    try {
-        const result = fieldPath.split('.').reduce((obj, key) => obj?.[key], className);
-        return Array.isArray(result) ? result.join(', ') : (result ?? fallback);
-    } catch (err) {
-        return fallback;
-    }
+    return className[fieldPath] || fallback;
 };
 
 const formatStudentNestedField = (id, fieldPath, fallback = 'Unknown') => {
     const student = students.value?.find((s) => s._id?.toString() === id?.toString());
     if (!student) return fallback;
-    try {
-        const result = fieldPath.split('.').reduce((obj, key) => obj?.[key], student);
-        return Array.isArray(result) ? result.join(', ') : (result ?? fallback);
-    } catch (err) {
-        return fallback;
-    }
+    return student[fieldPath] || fallback;
 };
 
-const data = ref([]);
-// Refs for filter dropdowns
-const selectedDay = ref(null);
-const selectedMonth = ref(null);
-const selectedYear = ref(null);
+const applyFilters = () => {
+    let processed = rawData.value || [];
 
-// Options for filter dropdowns
-const days = ref(Array.from({ length: 31 }, (_, i) => i + 1));
-const months = ref([
-    { name: 'January', value: 1 },
-    { name: 'February', value: 2 },
-    { name: 'March', value: 3 },
-    { name: 'April', value: 4 },
-    { name: 'May', value: 5 },
-    { name: 'June', value: 6 },
-    { name: 'July', value: 7 },
-    { name: 'August', value: 8 },
-    { name: 'September', value: 9 },
-    { name: 'October', value: 10 },
-    { name: 'November', value: 11 },
-    { name: 'December', value: 12 }
-]);
-const currentYear = new Date().getFullYear();
-const years = ref(Array.from({ length: 10 }, (_, i) => currentYear - 5 + i));
+    // --- Filter for completed transactions ---
+    processed = processed.filter((item) => item.status === false);
 
-// A filter is considered active if any of the dropdowns are not in their default state.
-const isFilterActive = computed(() => {
-    const now = new Date();
-    // A filter is active if a day is selected, or if the month/year is different from the current month/year.
-    return selectedDay.value !== null || selectedMonth.value !== now.getMonth() + 1 || selectedYear.value !== now.getFullYear();
-});
+    // Time-based filtering
+    const now = moment();
+    switch (filters.value.period) {
+        case 'current_month':
+            processed = processed.filter((item) => moment(item.createdAt).isSame(now, 'month'));
+            break;
+        case 'last_month':
+            const lastMonth = now.clone().subtract(1, 'month');
+            processed = processed.filter((item) => moment(item.createdAt).isSame(lastMonth, 'month'));
+            break;
+        case 'last_3_months':
+            const threeMonthsAgo = now.clone().subtract(3, 'months');
+            processed = processed.filter((item) => moment(item.createdAt).isAfter(threeMonthsAgo));
+            break;
+    }
 
-const filterData = () => {
-    loading.value = true;
-    setTimeout(() => {
-        let filtered = rawData.value?.filter((item) => item.status === false) || [];
-        const yearToFilter = selectedYear.value;
-        const monthToFilter = selectedMonth.value;
-        const dayToFilter = selectedDay.value;
+    // Student filter
+    if (filters.value.studentId) {
+        processed = processed.filter((item) => item.student_id === filters.value.studentId);
+    }
 
-        filtered = filtered.filter((item) => {
-            if (!item.createdAt) return false;
-            const itemDate = new Date(item.createdAt);
+    // Class filter
+    if (filters.value.classId) {
+        processed = processed.filter((item) => item.course_id === filters.value.classId);
+    }
 
-            // If a filter value is selected, it must match. If null, it's ignored.
-            const matchesYear = !yearToFilter || itemDate.getFullYear() === yearToFilter;
-            const matchesMonth = !monthToFilter || itemDate.getMonth() + 1 === monthToFilter;
-            const matchesDay = !dayToFilter || itemDate.getDate() === dayToFilter;
-
-            return matchesYear && matchesMonth && matchesDay;
-        });
-
-        data.value = filtered;
-        loading.value = false;
-    }, 500);
+    filteredData.value = processed;
 };
 
 const clearFilters = () => {
-    // Reset filters to the default (current month and year)
-    const now = new Date();
-    selectedDay.value = null;
-    selectedMonth.value = now.getMonth() + 1;
-    selectedYear.value = now.getFullYear();
-    filterData(); // Re-run the filter to show the default view
+    filters.value.period = 'current_month';
+    filters.value.studentId = null;
+    filters.value.classId = null;
+    applyFilters();
 };
 
-watch(
-    rawData,
-    () => {
-        filterData();
-    },
-    { deep: true }
-);
+const tableData = computed(() => {
+    return filteredData.value.map((item, index) => ({
+        ...item,
+        displayId: index + 1
+    }));
+});
+
+watch(rawData, applyFilters, { deep: true, immediate: true });
 
 const handleEdit = (data) => {
     datatoedit.value = data;
@@ -259,14 +240,6 @@ function openModal() {
 }
 
 onMounted(async () => {
-    await fetchClasses();
-    await fetchStudents();
-
-    // Set default filters to the current month and year
-    const now = new Date();
-    selectedYear.value = now.getFullYear();
-    selectedMonth.value = now.getMonth() + 1;
-
-    await fetchData();
+    await Promise.all([fetchClasses(), fetchStudents(), fetchData()]);
 });
 </script>

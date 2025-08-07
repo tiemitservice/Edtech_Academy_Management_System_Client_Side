@@ -714,5 +714,10 @@
     "gender": {
         "male": "ប្រុស",
         "female": "ស្រី"
+    },
+    "periods": {
+        "current_month": "ខែបច្ចុប្បន្ន",
+        "last_month": "ខែមុន",
+        "last_3_months": "៣ ខែចុងក្រោយ"
     }
 }

@@ -208,9 +208,9 @@ const filters = ref({
 });
 
 const periodOptions = ref([
-    { label: 'Current Month', value: 'current_month' },
-    { label: 'Last Month', value: 'last_month' },
-    { label: 'Last 3 Months', value: 'last_3_months' }
+    { label: t('periods.current_month'), value: 'current_month' },
+    { label: t('periods.last_month'), value: 'last_month' },
+    { label: t('periods.last_3_months'), value: 'last_3_months' }
 ]);
 
 const isFilterActive = computed(() => {

@@ -83,7 +83,7 @@
         <!-- Submit Button -->
         <div class="p-4 bg-gray-50 border-t">
             <Button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full" :disabled="loading">
-                {{ loading ? $t('element.saving') : $t('element.save') }}
+                {{ loading ? $t('element.adding') : $t('element.save') }}
             </Button>
             <Button type="button" class="mt-2 w-full" @click="$emit('close')" severity="secondary">
                 {{ $t('element.cancel') }}
