@@ -138,7 +138,8 @@
         "select_department": "ជ្រើសរើសនាយកដ្ឋាន",
         "contact_employment": "ទំនាក់ទំនង និងការងារ",
         "current_address": "អាសយដ្ឋានបច្ចុប្បន្ន",
-        "work_day": "ថ្ងៃធ្វើការ"
+        "work_day": "ថ្ងៃធ្វើការ",
+        "personal_information": "ព័ត៌មានផ្ទាល់ខ្លួន"
     },
     "teacher_attendance": {
         "title": "វត្តមានគ្រូបង្រៀន",
@@ -474,7 +475,7 @@
         "active": "សកម្ម",
         "inactive": "អសកម្ម",
         "clear": "សម្អាត",
-        "currency": "អត្រាការប្រាក់",
+        "currency": "អត្រាប្ដូរប្រាក់",
         "description": "ការពិពណ៌នា",
         "back": "ត្រឡប់ក្រោយ",
         "print_invoice": "បោះពុម្ពវិក្កយបត្រ"
@@ -491,7 +492,8 @@
         "email": "អ៊ីមែល",
         "permissions": "អនុសាសន៍",
         "role": "តួនាទី",
-        "Update_Profile_Picture": "រូបភាពប្រវត្តិរូប"
+        "Update_Profile_Picture": "រូបភាពប្រវត្តិរូប",
+        "select_role": "ជ្រើសរើសតួនាទី"
     },
     "student_score_report": {
         "title": "របាយការណ៍ពិន្ទុសិស្ស",

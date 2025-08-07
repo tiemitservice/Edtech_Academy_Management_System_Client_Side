@@ -5,9 +5,9 @@
 /* Optional: Custom styles */
 @font-face {
     font-family: 'Noto Serif Khmer';
-    src: url('../assets/fonts/static/NotoSerifKhmer-Regular.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+    src: url('../assets/fonts/static/NotoSerifKhmer-Medium.ttf') format('truetype');
+    /* font-weight: normal;
+    font-style: normal; */
 }
 
 * {

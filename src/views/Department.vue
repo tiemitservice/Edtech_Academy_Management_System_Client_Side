@@ -114,8 +114,8 @@ const handleCloseDelete = async () => {
     await fetchData();
 };
 const handleEdit = (data) => {
-    datatoedit.value = data;
     openModal();
+    datatoedit.value = data;
 };
 const handleClose = () => {
     isOpen.value = false;

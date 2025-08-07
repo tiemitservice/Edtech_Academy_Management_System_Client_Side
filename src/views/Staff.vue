@@ -95,7 +95,7 @@
 
                     <!-- Loading State -->
                     <div v-else-if="loading" class="text-center py-10">
-                        <p>{{ $t('element.loading') }}</p>
+                        <NotFound />
                     </div>
                 </div>
             </div>
@@ -178,7 +178,7 @@ import StaffInformation from '@/form/StaffInformation.vue';
 import DeleteConfimation from '@/form/DeleteConfimation.vue';
 import { useToast } from 'primevue/usetoast';
 import { formatDate2 } from '@/composible/formatDate';
-
+import NotFound from './pages/NotFound.vue';
 // Modal state
 import { useI18n } from 'vue-i18n';
 

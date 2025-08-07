@@ -195,7 +195,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, reactive } from 'vue';
+import { ref, onMounted, watch, computed, reactive, nextTick } from 'vue';
 import { useFetch } from '@/composible/useFetch';
 import { useToast } from 'primevue/usetoast';
 import provinceJson from '@/json/province.json';
@@ -247,7 +247,11 @@ const image = ref(null);
 const previewUrl = ref(null);
 
 // --- Static Data ---
-const genderOptions = ref([{ name: 'Male' }, { name: 'Female' }, { name: 'Others' }]);
+const genderOptions = ref([
+    { label: 'Male', value: 'Male' },
+    { label: 'Female', value: 'Female' },
+    { label: 'Others', value: 'Others' }
+]);
 const provinces = ref(provinceJson);
 const districts = ref(districtJson);
 const communes = ref(communeJson);
@@ -363,17 +367,38 @@ const handleSubmit = async () => {
 onMounted(async () => {
     await Promise.all([fetchPositions(), fetchDepartment()]);
     if (props.datatoedit) {
-        // Populate formState with data from datatoedit prop
-        for (const key in formState) {
-            if (props.datatoedit[key] !== undefined) {
+        const editData = props.datatoedit;
+
+        // Populate non-address fields
+        Object.keys(formState).forEach((key) => {
+            if (editData[key] !== undefined && !key.startsWith('st_birth_') && !['province', 'district', 'commune', 'village'].includes(key)) {
                 if (key === 'date_of_birth' || key === 'date_intered') {
-                    formState[key] = props.datatoedit[key] ? moment(props.datatoedit[key]).toDate() : null;
+                    formState[key] = editData[key] ? moment(editData[key]).toDate() : null;
                 } else {
-                    formState[key] = props.datatoedit[key];
+                    formState[key] = editData[key];
                 }
             }
-        }
-        previewUrl.value = props.datatoedit.image;
+        });
+
+        previewUrl.value = editData.image;
+
+        // Sequentially populate Place of Birth to trigger computed properties correctly
+        formState.st_birth_province = editData.st_birth_province;
+        await nextTick();
+        formState.st_birth_district = editData.st_birth_district;
+        await nextTick();
+        formState.st_birth_commune = editData.st_birth_commune;
+        await nextTick();
+        formState.st_birth_village = editData.st_birth_village;
+
+        // Sequentially populate Current Address
+        formState.province = editData.province;
+        await nextTick();
+        formState.district = editData.district;
+        await nextTick();
+        formState.commune = editData.commune;
+        await nextTick();
+        formState.village = editData.village;
     }
 });
 </script>

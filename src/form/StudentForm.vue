@@ -300,11 +300,9 @@ const image = ref(null);
 const previewUrl = ref(null);
 const document_image = ref(null);
 const document_image_preview = ref(null);
-// **FIX:** Add a flag to prevent watchers from running during initial data load
 const isInitializing = ref(true);
 
 // --- Static Data ---
-// **FIX:** Corrected genderOptions to have label and value properties
 const genderOptions = ref([
     { label: 'Male', value: 'Male' },
     { label: 'Female', value: 'Female' }
@@ -340,7 +338,6 @@ const filteredCommunesForBirth = computed(() => communes.value.filter((c) => c.p
 const filteredVillagesForBirth = computed(() => villages.value.filter((v) => v.properties.ADMIN_ID3 === formState.st_birth_commune));
 const formattedVillagesForBirth = computed(() => filteredVillagesForBirth.value.map((v) => ({ label: `${v.properties.NAME} (${v.properties.NAME_ENG})`, value: v.properties.ADMIN_ID })));
 
-// **FIX:** Watchers now check the isInitializing flag before resetting fields
 watch(
     () => formState.province,
     () => {
@@ -413,11 +410,18 @@ const handleSubmit = async () => {
     try {
         const formData = new FormData();
         for (const key in formState) {
-            if (formState[key] !== null && formState[key] !== undefined) {
+            let value = formState[key];
+
+            // FIX: Ensure empty optional email is sent as null to avoid duplicate key errors
+            if (key === 'email' && value === '') {
+                value = null;
+            }
+
+            if (value !== null && value !== undefined) {
                 if (key === 'date_of_birth' || key === 'date_intered') {
-                    formData.append(key, moment(formState[key]).format('YYYY-MM-DD'));
+                    formData.append(key, moment(value).format('YYYY-MM-DD'));
                 } else {
-                    formData.append(key, formState[key]);
+                    formData.append(key, value);
                 }
             }
         }
@@ -455,7 +459,12 @@ const handleSubmit = async () => {
         emit('close');
     } catch (error) {
         console.error('Error submitting form:', error);
-        toast.add({ severity: 'error', summary: 'Submission Error', detail: 'Failed to save student data.', life: 3000 });
+        // Check for duplicate key error specifically
+        if (error.message.includes('E11000')) {
+            toast.add({ severity: 'error', summary: 'Duplicate Entry', detail: 'An entry with this email or phone number already exists.', life: 4000 });
+        } else {
+            toast.add({ severity: 'error', summary: 'Submission Error', detail: 'Failed to save student data.', life: 3000 });
+        }
     }
 };
 
@@ -476,7 +485,6 @@ onMounted(async () => {
         previewUrl.value = props.datatoedit.image;
         document_image_preview.value = props.datatoedit.document_image;
     }
-    // **FIX:** Use nextTick to allow Vue to process initial data binding before disabling the flag
     await nextTick();
     isInitializing.value = false;
 });

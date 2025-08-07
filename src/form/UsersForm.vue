@@ -32,28 +32,38 @@
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex flex-col space-y-3">
-                            <label class="flex flex-col text-sm font-medium text-gray-700 space-y-4">{{ $t('user.name') }}</label>
+                            <label class="flex text-sm font-medium text-gray-700 space-y-4"
+                                >{{ $t('user.name') }} <span><span class="text-red-500 ml-2">*</span></span></label
+                            >
                             <InputText v-model="form.name" type="text" class="w-full" :placeholder="$t('user.name')" />
                         </div>
                         <div class="flex flex-col space-y-3">
-                            <label class="flex flex-col text-sm font-medium text-gray-700 space-y-4">{{ $t('user.email') }}</label>
+                            <label class="flex text-sm font-medium text-gray-700 space-y-4"
+                                >{{ $t('user.email') }} <span><span class="text-red-500 ml-2">*</span></span></label
+                            >
                             <InputText v-model="form.email" type="email" class="w-full" :placeholder="$t('user.email')" />
                         </div>
                         <div class="flex flex-col space-y-3">
-                            <label class="flex flex-col text-sm font-medium text-gray-700 space-y-4">{{ $t('login.password') }}</label>
+                            <label class="flex text-sm font-medium text-gray-700 space-y-4"
+                                >{{ $t('login.password') }} <span><span class="text-red-500 ml-2">*</span></span></label
+                            >
                             <Password v-model="form.password" :placeholder="$t('login.password')" fluid :toggleMask="true" class="w-full" :feedback="false" />
                         </div>
                         <div class="flex flex-col space-y-3">
-                            <label class="flex flex-col text-sm font-medium text-gray-700 space-y-4">{{ $t('student.phone_number') }}</label>
+                            <label class="flex text-sm font-medium text-gray-700 space-y-4"
+                                >{{ $t('student.phone_number') }} <span><span class="text-red-500 ml-2">*</span></span></label
+                            >
                             <InputText v-model="form.phoneNumber" type="text" class="w-full" :placeholder="$t('student.phone_number')" />
                         </div>
                         <div class="flex flex-col w-full">
-                            <label class="flex flex-col text-sm font-medium text-gray-700 space-y-4">{{ $t('user.role') }}</label>
+                            <label class="flex text-sm font-medium text-gray-700 space-y-4"
+                                >{{ $t('user.role') }} <span><span class="text-red-500 ml-2">*</span></span></label
+                            >
                             <Select v-model="form.role" :options="roles" option-label="name" option-value="_id" :placeholder="$t('user.select_role')" class="w-full" />
                         </div>
                         <!-- status -->
                         <div class="flex flex-col w-full">
-                            <label class="flex flex-col text-sm font-medium text-gray-700 space-y-4">{{ $t('element.status') }}</label>
+                            <label class="flex text-sm font-medium text-gray-700 space-y-4">{{ $t('element.status') }}</label>
                             <ToggleSwitch aria-labelledby="switch2" v-model="form.status" />
                         </div>
                     </div>
@@ -88,7 +98,7 @@
             <Button type="button" class="mt-2 w-full" @click="$emit('close')" severity="secondary">
                 {{ $t('element.cancel') }}
             </Button>
-            <p v-if="error" class="text-red-500 mt-2 text-center">{{ error }}</p>
+            <p v-if="error" class="text-red-500 ml-2 mt-2 text-center">{{ error }}</p>
         </div>
     </form>
 </template>
