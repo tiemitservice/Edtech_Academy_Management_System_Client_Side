@@ -308,7 +308,10 @@
         "optional_note": "Optional Note",
         "note": "Note",
         "holder_date": "Hold Date",
-        "status": "Status"
+        "status": "Status",
+        "select_staff": "Select Staff",
+        "reason_placeholder": "Enter reason for permission",
+        "select_date_range": "Date Range"
     },
     "department": {
         "title": "Department List",

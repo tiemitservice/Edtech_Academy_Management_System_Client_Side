@@ -170,7 +170,10 @@
         "optional_note": "កំណត់ចំណាំជ្រើសរើស",
         "note": "កំណត់ចំណាំ",
         "holder_date": "កាលបរិច្ឆេទ",
-        "status": "ស្ថានភាព"
+        "status": "ស្ថានភាព",
+        "select_staff": "ជ្រើសរើសបុគ្គលិក",
+        "reason_placeholder": "បញ្ចូលមូលហេតុសម្រាប់ការអនុញ្ញាត",
+        "select_date_range": "ចន្លោះកាលបរិច្ឆេទ"
     },
     "department": {
         "title": "បញ្ជីនាយកដ្ឋាន",
