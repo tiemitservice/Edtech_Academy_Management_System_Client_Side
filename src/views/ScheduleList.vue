@@ -32,16 +32,16 @@
                     <div v-if="classesByDay(day.name).length > 0" class="">
                         <div v-for="schedule in classesByDay(day.name)" :key="schedule._id" class="border p-3 rounded-lg bg-primary/5 hover:shadow-lg transition-shadow duration-300 m-3 md:m-3">
                             <p class="font-bold text-primary text-sm">{{ schedule.name }}</p>
-                            <p class="text-xs text-gray-600 font-semibold">{{ formatSectionTime(schedule.duration) }}</p>
-                            <div class="mt-2 pt-2 border-t text-xs space-y-1">
+                            <p class="text-sm text-gray-600 font-semibold">{{ formatSectionTime(schedule.duration) }}</p>
+                            <div class="mt-2 pt-2 border-t text-sm space-y-1">
                                 <p>
-                                    <span class="font-semibold">{{ $t('staff.teacher') }}:</span> {{ formatStaffName(schedule.staff) }}
+                                    <span class="font-semibold m-2">{{ $t('staff.teacher') }}:</span> {{ formatStaffName(schedule.staff) }}
                                 </p>
                                 <p>
-                                    <span class="font-semibold">{{ $t('subject.title') }}:</span> {{ formatSubjectName(schedule.subject) }}
+                                    <span class="font-semibold m-2">{{ $t('subject.title') }}:</span> {{ formatSubjectName(schedule.subject) }}
                                 </p>
                                 <p>
-                                    <span class="font-semibold">{{ $t('class.studentPlaceholder') }}:</span> {{ schedule.students.length }}
+                                    <span class="font-semibold m-2">{{ $t('class.studentPlaceholder') }}:</span> {{ schedule.students.length }}
                                 </p>
                             </div>
                         </div>

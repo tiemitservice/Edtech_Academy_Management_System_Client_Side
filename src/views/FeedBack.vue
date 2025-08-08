@@ -28,7 +28,7 @@
                         </Column>
 
                         <Column field="feedback" :header="$t('feedback.message')" style="min-width: 300px"></Column>
-                        <Column :header="$t('element.action')" style="min-width: 100px">
+                        <Column v-if="user?.role === 'superadmin'" :header="$t('element.action')" style="min-width: 100px">
                             <template #body="slotProps">
                                 <Button @click="handleDeleteConfirm(slotProps.data._id, slotProps.data)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" />
                             </template>
@@ -70,6 +70,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import { useToast } from 'primevue/usetoast';
 import moment from 'moment';
+import useAuth from '@/composible/useAuth';
 
 // Import UI components
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
@@ -79,6 +80,7 @@ import Laoding from './pages/Laoding.vue';
 
 import Toast from 'primevue/toast';
 const { data: staffs, fetchData: fetchStaff } = useFetch('students');
+const { user } = useAuth();
 const formatStaffName = (staffId) => {
     const staff = staffs.value?.find((s) => s._id === staffId);
     return staff ? staff.eng_name : 'Unknown';

@@ -149,12 +149,11 @@ const filters = ref({
     classId: null
 });
 
-const periodOptions = ref([
+const periodOptions = computed(() => [
     { label: t('periods.current_month'), value: 'current_month' },
     { label: t('periods.last_month'), value: 'last_month' },
     { label: t('periods.last_3_months'), value: 'last_3_months' }
 ]);
-
 const isFilterActive = computed(() => {
     return filters.value.period !== 'current_month' || filters.value.studentId !== null || filters.value.classId !== null;
 });

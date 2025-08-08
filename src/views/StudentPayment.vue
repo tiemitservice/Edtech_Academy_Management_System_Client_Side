@@ -2,7 +2,7 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_payment.title') }}</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('student_payment.title') }} </label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
                 <Select v-model="filters.period" :options="periodOptions" optionLabel="label" optionValue="value" class="min-w-[180px]" />
@@ -174,8 +174,7 @@ import Laoding from './pages/Laoding.vue';
 import { useToast } from 'primevue/usetoast';
 import moment from 'moment';
 import { formatDate2 } from '@/composible/formatDate';
-
-import { useI18n } from 'vue-i18n'; // Initialize i18n
+import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const toast = useToast();
 
@@ -207,12 +206,11 @@ const filters = ref({
     classId: null
 });
 
-const periodOptions = ref([
+const periodOptions = computed(() => [
     { label: t('periods.current_month'), value: 'current_month' },
     { label: t('periods.last_month'), value: 'last_month' },
     { label: t('periods.last_3_months'), value: 'last_3_months' }
 ]);
-
 const isFilterActive = computed(() => {
     return filters.value.period !== 'current_month' || filters.value.studentId !== null || filters.value.classId !== null;
 });

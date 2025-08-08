@@ -10,13 +10,14 @@
                     <InputIcon class="pi pi-search" />
                     <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" />
                 </IconField>
-                <!-- 
-                <div>
-                    <DatePicker show-icon v-model="createdAt_select" selectionMode="range" show-button-bar placeholder="Filter by created at" />
-                </div> -->
 
                 <div>
                     <Dropdown class="w-full" filter="true" v-model="selectStaff" show-clear :options="staffData" option-value="_id" option-label="en_name" :placeholder="$t('asign_teacher.select_teacher')" />
+                </div>
+
+                <!-- Added Duration Filter -->
+                <div>
+                    <Dropdown class="w-full" v-model="selectDuration" show-clear :options="sections" option-value="_id" option-label="duration" :placeholder="$t('class.duration')" />
                 </div>
 
                 <div><Button @click="filterData" :label="loading ? $t('element.adding') : $t('element.filter')" :disabled="loading" :loading="loading" class="text-white px-4 py-2 rounded hover:bg-blue-700 text-nowrap" /></div>
@@ -60,7 +61,6 @@
                             <template #body="slotProps">
                                 <div class="flex space-x-2 text-nowrap">
                                     <Button icon="pi pi-pencil " severity="warn" rounded aria-label="Edit" @click="handleEdit(slotProps.data)" />
-                                    <!-- <Button @click="handleDelete(slotProps.data._id)" icon="pi pi-trash" severity="danger" rounded aria-label="Delete" /> -->
                                 </div>
                             </template>
                         </Column>
@@ -117,13 +117,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'; // Make sure to import computed
+import { ref, onMounted, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import ClassDetails from '@/form/ClassDetails.vue';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import { useToast } from 'primevue/usetoast';
 import AssigneTeacherToclassForm from '@/form/AssigneTeacherToclassForm.vue';
-import moment from 'moment';
 import Laoding from './pages/Laoding.vue';
 import NotFound from './pages/NotFound.vue';
 import { useI18n } from 'vue-i18n';
@@ -135,14 +134,13 @@ import Column from 'primevue/column';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
-import DatePicker from 'primevue/datepicker';
 import Dropdown from 'primevue/dropdown';
 import Toast from 'primevue/toast';
 
 const { t } = useI18n();
 const toast = useToast();
 const showToast = (action, severity) => {
-    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    const summary = t(`toast.${action}`, t('toast.action'));
     toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
 
@@ -179,35 +177,28 @@ function openModal() {
     isOpen.value = true;
 }
 
-const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
+const { data: rawData, loading, fetchData } = useFetch(collection.value);
 const { data: staffData, fetchData: fetchStaff } = useFetch('staffs');
 
 // Filter states
 const searchQuery = ref('');
 const selectStaff = ref(null);
-const createdAt_select = ref([moment().startOf('year').toDate(), moment().endOf('year').toDate()]);
+const selectDuration = ref(null); // Added state for duration filter
 
-// This ref will hold the data filtered by the "Apply Filter" button
 const appliedFilterData = ref([]);
 
-// Computed property to check if any filter is active
 const isFilterActive = computed(() => {
-    return !!(searchQuery.value || selectStaff.value);
+    return !!(searchQuery.value || selectStaff.value || selectDuration.value); // Updated to include duration
 });
 
-// Function to clear all filters
 const clearFilters = () => {
     searchQuery.value = '';
     selectStaff.value = null;
-    createdAt_select.value = [moment().startOf('year').toDate(), moment().endOf('year').toDate()];
-    filterData(); // Re-run the filter to show all data
+    selectDuration.value = null; // Reset duration filter
+    filterData();
 };
 
-// This function is now ONLY for the button-based filters (date and teacher)
 const filterData = () => {
-    const start = Array.isArray(createdAt_select.value) ? createdAt_select.value[0] : null;
-    const end = Array.isArray(createdAt_select.value) ? createdAt_select.value[1] : null;
-
     if (!rawData.value) {
         appliedFilterData.value = [];
         return;
@@ -216,17 +207,16 @@ const filterData = () => {
     appliedFilterData.value =
         rawData.value.filter((item) => {
             const matchesStaff = !selectStaff.value || item.staff === selectStaff.value;
-            // const matchesCreatedAt = !start || !end ? true : moment(item.createdAt).isBetween(moment(start).startOf('day'), moment(end).endOf('day'), undefined, '[]');
+            const matchesDuration = !selectDuration.value || item.duration === selectDuration.value; // Added duration match logic
             const isCompleted = item.mark_as_completed === true;
-            return isCompleted && matchesStaff;
+            return isCompleted && matchesStaff && matchesDuration; // Added duration to condition
         }) || [];
 };
 
-// A computed property for the data table that applies the live search on top of the filtered data
 const data = computed(() => {
     const q = searchQuery.value.trim().toLowerCase();
     if (!q) {
-        return appliedFilterData.value; // If no search query, return the data as is
+        return appliedFilterData.value;
     }
     return appliedFilterData.value.filter((item) => {
         return item.name?.toLowerCase().includes(q);
@@ -235,7 +225,7 @@ const data = computed(() => {
 
 onMounted(async () => {
     await Promise.allSettled([fetchData({ status: true }), fetchStaff(), fetchSections()]);
-    filterData(); // Apply initial filters when component loads
+    filterData();
 });
 
 const formatName = (id) => {

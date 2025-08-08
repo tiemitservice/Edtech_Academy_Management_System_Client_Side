@@ -2,14 +2,19 @@
     <section class="px-4 mx-auto">
         <div class="py-2 flex flex-col md:flex-row mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg justify-between items-center">
             <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('class.title') }}</label>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 flex-wrap justify-end">
                 <IconField>
                     <InputIcon class="pi pi-search" />
                     <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" class="w-full" />
                 </IconField>
-                <div class="flex items-center gap-4">
-                    <Button @click="openModal" :label="$t('element.addnew')" />
-                </div>
+                <!-- New Filter Dropdowns -->
+                <Select v-model="filters.subjectId" :options="subjects" optionLabel="name" optionValue="_id" :placeholder="$t('class.subject')" showClear class="min-w-[180px]" />
+                <Select v-model="filters.durationId" :options="sections" optionLabel="duration" optionValue="_id" :placeholder="$t('class.duration')" showClear class="min-w-[180px]" />
+
+                <!-- Filter Buttons -->
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.cancel')" icon="pi pi-times" class="p-button-secondary" />
+                <Button @click="openModal" :label="$t('element.addnew')" />
             </div>
         </div>
 
@@ -17,7 +22,6 @@
             <div class="overflow-x-auto">
                 <div v-if="!loadingClass && data.length" class="py-2">
                     <DataTable :value="data" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 25]">
-                        <!-- MODIFIED: This column now sorts by a real 'originalIndex' field -->
                         <Column field="originalIndex" header="No" sortable style="min-width: 150px">
                             <template #body="slotProps">
                                 <p class="font-medium">{{ slotProps.data.originalIndex }}</p>
@@ -65,7 +69,6 @@
                         </Column>
                     </DataTable>
                 </div>
-                <!-- MODIFIED: Simplified the condition for showing the not found message -->
                 <div v-else-if="!loadingClass && data.length === 0" class="w-full flex justify-center items-center bg-white p-4 rounded-lg">
                     <NotFound />
                 </div>
@@ -171,7 +174,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'; // Import 'computed'
+import { ref, onMounted, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import ClassDetails from '@/form/ClassDetails.vue';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
@@ -183,15 +186,10 @@ import MarkClassForm from '@/form/MarkClassForm.vue';
 import StudentClassDetial from '../../App/StudentClassDetial.vue';
 import Laoding from './pages/Laoding.vue';
 import { useI18n } from 'vue-i18n';
-const showToast = (action, severity) => {
-    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
-    toast.add({ severity: severity || 'info', summary, life: 3000 });
-};
 
-// Initialize i18n
 const { t } = useI18n();
 const collection = ref('classes');
-const { data: rawData, loading: loadingClass, error, fetchData } = useFetch(collection.value);
+const { data: rawData, loading: loadingClass, fetchData } = useFetch(collection.value);
 const { data: sections, fetchData: fetchSections } = useFetch('sections');
 const { data: subjects, fetchData: fetchSubjects } = useFetch('subjects');
 const toast = useToast();
@@ -204,15 +202,38 @@ const isStudentClassDetail = ref(false);
 const searchQuery = ref('');
 const isMarkClass = ref(false);
 
-// --- NEW: Reactive computed properties for cleaner data handling ---
+// --- Filter State ---
+const filters = ref({
+    subjectId: null,
+    durationId: null
+});
+// This holds the filters that are actually applied after clicking the button
+const activeFilters = ref({
+    subjectId: null,
+    durationId: null
+});
 
-// 1. Adds a stable 'originalIndex' to each item from the raw data.
+const isFilterActive = computed(() => !!(filters.value.subjectId || filters.value.durationId));
+
+const applyFilters = () => {
+    // Copy the selected filters to the active filters
+    activeFilters.value = { ...filters.value };
+};
+
+const clearFilters = () => {
+    filters.value = { subjectId: null, durationId: null };
+    activeFilters.value = { subjectId: null, durationId: null };
+};
+
+const showToast = (action, severity) => {
+    const summary = t(`toast.${action}`, t('toast.action'));
+    toast.add({ severity: severity || 'info', summary, life: 3000 });
+};
+
 const indexedRawData = computed(() => {
     return rawData.value?.map((item, index) => ({ ...item, originalIndex: index + 1 })) || [];
 });
 
-// 2. Filters the indexed data based on the search query and other criteria.
-// This 'data' is now reactive and will automatically update when the search query changes.
 const data = computed(() => {
     let filteredItems = indexedRawData.value;
 
@@ -220,6 +241,16 @@ const data = computed(() => {
     const q = searchQuery.value.trim().toLowerCase();
     if (q) {
         filteredItems = filteredItems.filter((item) => item.name?.toLowerCase().includes(q));
+    }
+
+    // Apply active subject filter
+    if (activeFilters.value.subjectId) {
+        filteredItems = filteredItems.filter((item) => item.subject === activeFilters.value.subjectId);
+    }
+
+    // Apply active duration filter
+    if (activeFilters.value.durationId) {
+        filteredItems = filteredItems.filter((item) => item.duration === activeFilters.value.durationId);
     }
 
     // Apply 'mark_as_completed' filter
@@ -235,6 +266,7 @@ const handleMarkClass = (doc) => {
 const handleCloseMarkClass = () => {
     isMarkClass.value = false;
     datatoedit.value = null;
+    fetchData(); // Refetch to see changes
 };
 
 const formatDuration = (id) => {
@@ -245,17 +277,6 @@ const formatSubject = (id) => {
     const subject = subjects.value?.find((subject) => subject._id === id);
     return subject ? subject.name : 'N/A';
 };
-
-// const showToast = (action, severity) => {
-//     const summary =
-//         {
-//             create: 'Created Success',
-//             update: 'Updated Success',
-//             delete: 'Deleted Success',
-//             asociate: 'Please delete the associated data first'
-//         }[action] || 'Action Completed';
-//     toast.add({ severity: severity || 'info', summary, life: 3000 });
-// };
 
 const openModal = () => {
     isOpen.value = true;
@@ -274,6 +295,7 @@ const handleEdit = (data) => {
 const handleClose = () => {
     isOpen.value = false;
     datatoedit.value = null;
+    fetchData(); // Refetch to see changes
 };
 
 const handleClassDetails = (data) => {
@@ -296,6 +318,7 @@ const handleCloseDelete = () => {
     isDelete.value = false;
     deleteData.value = null;
     datatoedit.value = null;
+    fetchData(); // Refetch to see changes
 };
 
 const handleStudentClassDetail = (data) => {
@@ -314,7 +337,3 @@ onMounted(async () => {
     await fetchSubjects();
 });
 </script>
-
-<style scoped>
-/* Tailwind CSS is assumed to be included in your project */
-</style>

@@ -2,14 +2,18 @@
     <section class="px-4 mx-auto">
         <div class="py-2 flex flex-col md:flex-row mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg justify-between items-center">
             <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('class.classes_transaction') }}</label>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 flex-wrap justify-end">
                 <IconField>
                     <InputIcon class="pi pi-search" />
                     <InputText :placeholder="$t('element.Searchbyname')" v-model="searchQuery" class="w-full" />
                 </IconField>
-                <!-- <div class="flex items-center gap-4">
-                    <DatePicker v-model="createdAt_select" show-icon selectionMode="range" show-button-bar :placeholder="$t('element.createdat')" />
-                </div> -->
+                <!-- New Filter Dropdowns -->
+                <Select v-model="filters.subjectId" :options="subjects" optionLabel="name" optionValue="_id" :placeholder="$t('class.subject')" showClear class="min-w-[180px]" />
+                <Select v-model="filters.durationId" :options="sections" optionLabel="duration" optionValue="_id" :placeholder="$t('class.duration')" showClear class="min-w-[180px]" />
+
+                <!-- Filter Buttons -->
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
+                <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
         </div>
 
@@ -71,7 +75,7 @@
             </div>
         </div>
 
-        <!-- All TransitionRoot modals remain the same, but their content might change based on the action -->
+        <!-- All TransitionRoot modals remain the same -->
         <TransitionRoot appear :show="isClassDetails" as="template">
             <Dialog as="div" @close="handleCloseDetails" class="relative z-[99]">
                 <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
@@ -156,7 +160,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useFetch } from '../composible/useFetch';
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessui/vue';
 import { useToast } from 'primevue/usetoast';
-import moment from 'moment';
 import { useI18n } from 'vue-i18n';
 // Import Components
 import ClassDetails from '@/form/ClassDetails.vue';
@@ -184,7 +187,25 @@ const is_promote = ref(false);
 
 // State for Filtering
 const searchQuery = ref('');
-const createdAt_select = ref(null);
+const filters = ref({
+    subjectId: null,
+    durationId: null
+});
+const activeFilters = ref({
+    subjectId: null,
+    durationId: null
+});
+
+const isFilterActive = computed(() => !!(filters.value.subjectId || filters.value.durationId));
+
+const applyFilters = () => {
+    activeFilters.value = { ...filters.value };
+};
+
+const clearFilters = () => {
+    filters.value = { subjectId: null, durationId: null };
+    activeFilters.value = { subjectId: null, durationId: null };
+};
 
 // --- Reactive Data Handling ---
 
@@ -202,11 +223,14 @@ const data = computed(() => {
         filteredItems = filteredItems.filter((item) => item.name?.toLowerCase().includes(q));
     }
 
-    const [start, end] = createdAt_select.value || [];
-    if (start && end) {
-        const startDate = moment(start).startOf('day');
-        const endDate = moment(end).endOf('day');
-        filteredItems = filteredItems.filter((item) => moment(item.createdAt).isBetween(startDate, endDate));
+    // Apply active subject filter
+    if (activeFilters.value.subjectId) {
+        filteredItems = filteredItems.filter((item) => item.subject === activeFilters.value.subjectId);
+    }
+
+    // Apply active duration filter
+    if (activeFilters.value.durationId) {
+        filteredItems = filteredItems.filter((item) => item.duration === activeFilters.value.durationId);
     }
 
     return filteredItems;
@@ -277,7 +301,3 @@ onMounted(async () => {
     await fetchSubjects();
 });
 </script>
-
-<style scoped>
-/* Tailwind CSS is assumed to be included in your project */
-</style>

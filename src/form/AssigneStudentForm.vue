@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="handleSubmit" class="w-[320px] bg-white rounded-lg shadow-md overflow-hidden">
+    <form @submit.prevent="handleSubmit" class="w-[420px] bg-white rounded-lg shadow-md overflow-hidden">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
             <label class="text-base font-semibold text-gray-800">{{ datatoedit ? $t('element.edit') : $t('element.addnew') }}</label>
             <Button icon="pi pi-times" size="small" @click="$emit('close')" severity="danger" rounded aria-label="Close" />
@@ -8,12 +8,6 @@
             <div class="flex flex-col text-start">
                 <label for="student_list" class="mb-2 font-medium">{{ $t('asign_student.student') }}</label>
 
-                <!-- 
-                  - Removed optionLabel and optionValue to use full objects.
-                  - Added display="chip" for a better UI for multiple selections.
-                  - Added custom templates for #option and #chip to display both names.
-                  - ADDED filterFields to specify which object properties to use for searching.
-                -->
                 <MultiSelect
                     v-if="!loading"
                     id="student_list"
@@ -28,7 +22,12 @@
                 >
                     <template #option="slotProps">
                         <div class="flex flex-col items-start p-2">
-                            <div class="font-bold">{{ slotProps.option.eng_name }}</div>
+                            <!-- index -->
+
+                            <div class="font-bold">
+                                <span class="text-normal"> {{ slotProps.index + 1 }}. </span>
+                                {{ slotProps.option.eng_name }}
+                            </div>
                             <div class="text-sm text-gray-600">{{ slotProps.option.kh_name }}</div>
                         </div>
                     </template>
