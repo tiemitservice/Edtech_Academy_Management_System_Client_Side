@@ -18,7 +18,7 @@
                     </div>
                     <div class="text-right">
                         <h1 class="text-3xl font-bold text-gray-800">{{ $t('invoice.title') }}</h1>
-                        <p class="text-sm text-gray-500 mt-1">{{ $t('invoice.invoice_no') }}: {{ invoice?._id }}</p>
+                        <p class="text-sm text-gray-500 mt-1">{{ $t('invoice.invoice_no') }}: {{ invoice?.invoice_id }}</p>
                         <p class="text-sm text-gray-500">{{ $t('invoice.date') }}: {{ formatDate(invoice?.createdAt) }}</p>
                     </div>
                 </header>

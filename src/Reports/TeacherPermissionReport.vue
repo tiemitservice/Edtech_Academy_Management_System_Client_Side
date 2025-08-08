@@ -1,12 +1,19 @@
 <template>
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
-        <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
+        <div class="flex justify-between items-center mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg flex-wrap">
             <label class="text-lg font-medium text-gray-800 dark:text-white">{{ $t('teacher_permission_report.title') }}</label>
-            <div class="flex items-center gap-2 flex-wrap justify-end">
-                <!-- Filters -->
+
+            <div class="flex items-center gap-4 flex-wrap">
+                <!-- Filter by Teacher Name -->
                 <Select v-model="filters.teacherId" :options="teachers" filter optionLabel="name" optionValue="_id" :placeholder="$t('teacher_permission_report.filter_by_teacher')" showClear class="min-w-[180px]" />
-                <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" :placeholder="$t('teacher_permission_report.filter_by_date')" class="min-w-[220px]" />
+
+                <!-- Date Range Filter -->
+                <div class="flex items-center gap-2">
+                    <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" :placeholder="$t('teacher_permission_report.filter_by_date')" selectionMode="range" showButtonBar class="min-w-[220px]" />
+                </div>
+
+                <!-- Action Buttons -->
                 <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
@@ -55,6 +62,7 @@
         </div>
     </section>
 </template>
+
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useFetch } from '../composible/useFetch';
@@ -70,6 +78,9 @@ import Calendar from 'primevue/calendar';
 import Tag from 'primevue/tag';
 import NotFound from '@/views/pages/NotFound.vue';
 import Laoding from '@/views/pages/Laoding.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // --- DATA FETCHING ---
 const { data: rawReports, loading, fetchData: fetchReports } = useFetch('teacherpermissionreports');
@@ -93,22 +104,30 @@ const applyFilters = () => {
     if (filters.value.teacherId) {
         dataToFilter = dataToFilter.filter((r) => r.teacher_id === filters.value.teacherId);
     }
-    // Filter by a single day
-    if (filters.value.date) {
-        const selectedDate = moment(filters.value.date);
-        dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(selectedDate, 'day'));
+
+    // Filter by date range
+    const dateFilter = filters.value.date;
+    if (dateFilter && dateFilter.length > 0 && dateFilter[0]) {
+        if (dateFilter[1]) {
+            // If a complete range is selected
+            const startDate = moment(dateFilter[0]).startOf('day');
+            const endDate = moment(dateFilter[1]).endOf('day');
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isBetween(startDate, endDate));
+        } else {
+            // If only a single date is selected
+            const selectedDate = moment(dateFilter[0]);
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(selectedDate, 'day'));
+        }
+    } else {
+        // Default to today if no date is selected
+        const today = moment();
+        dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(today, 'day'));
     }
 
-    // **MODIFIED:** Add a display index to each item for sorting
     filteredReports.value = dataToFilter.map((item, index) => ({
         ...item,
         displayIndex: index + 1
     }));
-};
-
-const setDefaultFilters = () => {
-    filters.value.date = new Date(); // Default to today
-    filters.value.teacherId = null;
 };
 
 const clearFilters = () => {
@@ -117,7 +136,7 @@ const clearFilters = () => {
     applyFilters();
 };
 
-watch(rawReports, applyFilters);
+watch(rawReports, applyFilters, { immediate: true });
 
 // --- HELPER & FORMATTING FUNCTIONS ---
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : 'N/A');
@@ -137,7 +156,14 @@ const printReport = () => {
 
     const schoolName = companies.value?.[0]?.name || 'School Management System';
     const reportDate = moment().format('DD-MMM-YYYY');
-    let dateRangeString = filters.value.date ? formatDate(filters.value.date) : 'All Time';
+    let dateRangeString = 'Today'; // Default to "Today"
+    if (filters.value.date && filters.value.date[0]) {
+        if (filters.value.date[1]) {
+            dateRangeString = `${formatDate(filters.value.date[0])} to ${formatDate(filters.value.date[1])}`;
+        } else {
+            dateRangeString = formatDate(filters.value.date[0]);
+        }
+    }
 
     let tableRows = filteredReports.value
         .map(
@@ -170,7 +196,7 @@ const printReport = () => {
         <div class="report-header">
             <h1>${schoolName}</h1>
             <p><strong>Teacher Permission Report</strong></p>
-            <p><strong>Date:</strong> ${dateRangeString}</p>
+            <p><strong>Date Range:</strong> ${dateRangeString}</p>
             <p><em>Generated on: ${reportDate}</em></p>
         </div>
         <table>
@@ -213,8 +239,6 @@ const exportReportToExcel = () => {
 
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
-    setDefaultFilters();
     await Promise.all([fetchReports(), fetchTeachers(), fetchCompany()]);
-    applyFilters();
 });
 </script>

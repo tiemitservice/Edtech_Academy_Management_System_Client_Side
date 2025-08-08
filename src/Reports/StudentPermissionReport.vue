@@ -6,7 +6,7 @@
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
                 <Select v-model="filters.studentId" :options="students" filter optionLabel="eng_name" optionValue="_id" :placeholder="$t('student_permission_report.filter_by_student')" showClear class="min-w-[180px]" />
-                <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" :placeholder="$t('student_permission_report.filter_by_date')" class="min-w-[220px]" />
+                <Calendar v-model="filters.date" showIcon dateFormat="yy-mm-dd" :placeholder="$t('student_permission_report.filter_by_date')" selectionMode="range" showButtonBar class="min-w-[220px]" />
                 <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
             </div>
@@ -68,6 +68,9 @@ import Calendar from 'primevue/calendar';
 import Tag from 'primevue/tag';
 import NotFound from '@/views/pages/NotFound.vue';
 import Laoding from '@/views/pages/Laoding.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // --- DATA FETCHING ---
 const { data: rawReports, loading, fetchData: fetchReports } = useFetch('studentpermissionreports');
@@ -92,10 +95,24 @@ const applyFilters = () => {
     if (filters.value.studentId) {
         dataToFilter = dataToFilter.filter((r) => r.student_id === filters.value.studentId);
     }
-    // Filter by a single day
-    if (filters.value.date) {
-        const selectedDate = moment(filters.value.date);
-        dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(selectedDate, 'day'));
+
+    // Filter by date range
+    const dateFilter = filters.value.date;
+    if (dateFilter && dateFilter[0]) {
+        if (dateFilter[1]) {
+            // If a complete range is selected
+            const startDate = moment(dateFilter[0]).startOf('day');
+            const endDate = moment(dateFilter[1]).endOf('day');
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isBetween(startDate, endDate));
+        } else {
+            // If only a single date is selected in the range picker
+            const selectedDate = moment(dateFilter[0]);
+            dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(selectedDate, 'day'));
+        }
+    } else {
+        // Default to today if no date is selected
+        const today = moment();
+        dataToFilter = dataToFilter.filter((r) => moment(r.createdAt).isSame(today, 'day'));
     }
 
     filteredReports.value = dataToFilter.map((item, index) => ({
@@ -104,18 +121,13 @@ const applyFilters = () => {
     }));
 };
 
-const setDefaultFilters = () => {
-    filters.value.date = new Date(); // Default to today
-    filters.value.studentId = null;
-};
-
 const clearFilters = () => {
     filters.value.studentId = null;
     filters.value.date = null;
     applyFilters();
 };
 
-watch(rawReports, applyFilters);
+watch(rawReports, applyFilters, { immediate: true });
 
 // --- HELPER & FORMATTING FUNCTIONS ---
 const formatDate = (date) => (date ? moment(date).format('YYYY-MM-DD') : 'N/A');
@@ -132,7 +144,14 @@ const printReport = () => {
 
     const schoolName = companies.value?.[0]?.name || 'School Management System';
     const reportDate = moment().format('DD-MMM-YYYY');
-    let dateRangeString = filters.value.date ? formatDate(filters.value.date) : 'All Time';
+    let dateRangeString = 'Today';
+    if (filters.value.date && filters.value.date[0]) {
+        if (filters.value.date[1]) {
+            dateRangeString = `${formatDate(filters.value.date[0])} to ${formatDate(filters.value.date[1])}`;
+        } else {
+            dateRangeString = formatDate(filters.value.date[0]);
+        }
+    }
 
     let tableRows = filteredReports.value
         .map(
@@ -205,8 +224,6 @@ const exportReportToExcel = () => {
 
 // --- LIFECYCLE HOOK ---
 onMounted(async () => {
-    setDefaultFilters();
     await Promise.all([fetchReports(), fetchStudents(), fetchApprovers(), fetchCompany()]);
-    applyFilters();
 });
 </script>

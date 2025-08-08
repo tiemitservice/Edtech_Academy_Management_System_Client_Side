@@ -2,18 +2,15 @@
     <section class="px-4 mx-auto">
         <!-- Header and Filter Controls -->
         <div class="py-2 flex flex-col md:flex-row mt-6 mb-4 gap-4 bg-white dark:bg-gray-800 p-4 items-center rounded-lg justify-between">
-            <label class="text-lg font-medium text-gray-800 dark:text-white"> {{ $t('book_payment_transaction.title') }}</label>
+            <label class="text-lg font-medium text-gray-800 dark:text-white text-nowrap"> {{ $t('book_payment_transaction.title') }} </label>
             <div class="flex items-center gap-2 flex-wrap justify-end">
                 <!-- Filters -->
                 <Select filter v-model="filters.studentId" :options="students" optionLabel="eng_name" optionValue="_id" :placeholder="$t('book_payment_transaction.student_name')" showClear class="min-w-[180px]" />
-                <Select v-model="filters.bookId" :options="books" optionLabel="name" optionValue="_id" :placeholder="$t('book_payment_transaction.book_name')" showClear class="min-w-[180px]" />
-                <Select v-model="filters.day" :options="days" placeholder="Day" showClear class="min-w-[100px]" />
-                <Select v-model="filters.month" :options="months" optionLabel="name" optionValue="value" showClear class="min-w-[120px]" />
-                <Select v-model="filters.year" :options="years" :placeholder="$t('book_payment_transaction.year')" showClear class="min-w-[120px]" />
+                <Calendar v-model="filters.date" selectionMode="range" showIcon dateFormat="yy-mm-dd" :placeholder="$t('element.createdat')" class="min-w-[220px]" />
 
                 <!-- Action Buttons -->
+                <Button @click="applyFilters" :label="$t('element.filter')" icon="pi pi-filter" />
                 <Button v-if="isFilterActive" @click="clearFilters" :label="$t('element.clear')" icon="pi pi-times" class="p-button-secondary" />
-                <!-- <Button @click="openModal" label="Add new" /> -->
             </div>
         </div>
 
@@ -116,19 +113,24 @@ import { TransitionRoot, TransitionChild, Dialog, DialogPanel } from '@headlessu
 import RemarkBookInvoice from '@/form/RemarkBookInvoice.vue';
 import NotFound from './pages/NotFound.vue';
 import Laoding from './pages/Laoding.vue';
-
 import { useToast } from 'primevue/usetoast';
+import Select from 'primevue/select';
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Calendar from 'primevue/calendar';
+import Tag from 'primevue/tag';
+import { useI18n } from 'vue-i18n';
 
-import { useI18n } from 'vue-i18n'; // Initialize i18n
 const { t } = useI18n();
 
 const showToast = (action, severity) => {
-    const summary = t(`toast.${action}`, t('toast.action')); // Fallback to a generic 'action completed' message
+    const summary = t(`toast.${action}`, t('toast.action'));
     toast.add({ severity: severity || 'info', summary, life: 3000 });
 };
 // === DATA FETCHING ===
 const collection = ref('bookpayments');
-const { data: rawData, loading, error, fetchData } = useFetch(collection.value);
+const { data: rawData, loading, fetchData } = useFetch(collection.value);
 const { data: students, fetchData: fetchStudents } = useFetch('students');
 const { data: books, fetchData: fetchBooks } = useFetch('books');
 
@@ -139,33 +141,24 @@ const datatoedit = ref(null);
 // === FILTERING LOGIC ===
 const filters = ref({
     studentId: null,
-    bookId: null,
-    day: null,
-    month: null,
-    year: null
+    date: null
 });
-
-const days = ref(Array.from({ length: 31 }, (_, i) => i + 1));
-const months = ref(moment.months().map((m, i) => ({ name: m, value: i + 1 })));
-const currentYear = moment().year();
-const years = ref(Array.from({ length: 10 }, (_, i) => currentYear - 5 + i));
-
-const setDefaultFilters = () => {
-    const now = moment();
-    filters.value.year = now.year();
-    filters.value.month = now.month() + 1;
-    filters.value.day = null;
-    filters.value.studentId = null;
-    filters.value.bookId = null;
-};
+const activeFilters = ref({
+    studentId: null,
+    date: null
+});
 
 const isFilterActive = computed(() => {
-    const now = moment();
-    return filters.value.studentId !== null || filters.value.bookId !== null || filters.value.day !== null || filters.value.month !== now.month() + 1 || filters.value.year !== now.year();
+    return activeFilters.value.studentId !== null || activeFilters.value.date !== null;
 });
 
+const applyFilters = () => {
+    activeFilters.value = { ...filters.value };
+};
+
 const clearFilters = () => {
-    setDefaultFilters();
+    filters.value = { studentId: null, date: null };
+    activeFilters.value = { studentId: null, date: null };
 };
 
 // === DATA PROCESSING & COMPUTED PROPS ===
@@ -174,25 +167,24 @@ const tableData = computed(() => {
 
     let dataToFilter = rawData.value.filter((item) => item.mark_as_completed === true);
 
-    // Filter by date
-    if (filters.value.year) {
-        dataToFilter = dataToFilter.filter((item) => moment(item.createdAt).year() === filters.value.year);
-    }
-    if (filters.value.month) {
-        dataToFilter = dataToFilter.filter((item) => moment(item.createdAt).month() + 1 === filters.value.month);
-    }
-    if (filters.value.day) {
-        dataToFilter = dataToFilter.filter((item) => moment(item.createdAt).date() === filters.value.day);
+    // Filter by date range
+    const dateFilter = activeFilters.value.date;
+    if (dateFilter && dateFilter[0]) {
+        if (dateFilter[1]) {
+            // If a complete range is selected
+            const startDate = moment(dateFilter[0]).startOf('day');
+            const endDate = moment(dateFilter[1]).endOf('day');
+            dataToFilter = dataToFilter.filter((item) => moment(item.createdAt).isBetween(startDate, endDate));
+        } else {
+            // If only a single date is selected
+            const selectedDate = moment(dateFilter[0]);
+            dataToFilter = dataToFilter.filter((item) => moment(item.createdAt).isSame(selectedDate, 'day'));
+        }
     }
 
     // Filter by student
-    if (filters.value.studentId) {
-        dataToFilter = dataToFilter.filter((item) => item.student_id === filters.value.studentId);
-    }
-
-    // Filter by book
-    if (filters.value.bookId) {
-        dataToFilter = dataToFilter.filter((item) => item.book_id?.includes(filters.value.bookId));
+    if (activeFilters.value.studentId) {
+        dataToFilter = dataToFilter.filter((item) => item.student_id === activeFilters.value.studentId);
     }
 
     // Add display-friendly and sortable fields
@@ -239,7 +231,6 @@ const handleClose = async (shouldRefetch) => {
 
 // === LIFECYCLE HOOK ===
 onMounted(async () => {
-    setDefaultFilters();
     await Promise.all([fetchStudents(), fetchBooks(), fetchData()]);
 });
 </script>
